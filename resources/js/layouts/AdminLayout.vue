@@ -21,7 +21,7 @@
 </template>
 
 <script setup>
-import Navbar from '@/components/navigation/Navbar.vue';
+import Navbar from '@/components/shared/Navbar.vue';
 </script>
 
 <style scoped>

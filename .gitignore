@@ -27,3 +27,21 @@ Thumbs.db
 /e2e/reports/
 /test-results/
 /playwright-report/
+
+# Laravel logs (keep folder, ignore content)
+/storage/logs/*.log
+!/storage/logs/.gitkeep
+
+# Coverage reports
+/coverage
+
+# Local IDE temp files
+*.swp
+*.swo
+*~
+
+# Playwright: keep reports folder but ignore heavy assets
+/e2e/reports/**/*.png
+/e2e/reports/**/*.webm
+/test-results/**/*
+!/e2e/reports/.gitkeep

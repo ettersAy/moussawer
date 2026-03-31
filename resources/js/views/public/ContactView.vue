@@ -39,12 +39,12 @@
 
 <script setup>
 import { ref, reactive } from 'vue';
-
+const randomString = Math.random().toString(36).substring(2, 8);
 const isSending = ref(false);
 const feedback = ref(null);
 const form = reactive({
-    email: 'test@test.com',
-    message: 'This is a test message'
+    email: randomString + '@test.com',
+    message: 'This is a test message "' + randomString + '"!'  // Add random string to avoid caching issues
 });
 
 const sendToApi = async () => {
