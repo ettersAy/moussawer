@@ -45,3 +45,10 @@ Thumbs.db
 /e2e/reports/**/*.webm
 /test-results/**/*
 !/e2e/reports/.gitkeep
+exec.sh
+.gitignore
+scripts/extractor.sh
+scripts/install_startup_macro.sh
+scripts/setup_shortcut.sh
+doc/draft.md
+doc/draft.md

@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Api\Auth\LoginController;
+use App\Http\Controllers\Api\Auth\LogoutController;
+use App\Http\Controllers\Api\Auth\MeController;
 use App\Http\Controllers\Api\Public\ContactSubmissionController;
 use Illuminate\Support\Facades\Route;
 
@@ -17,15 +20,20 @@ use Illuminate\Support\Facades\Route;
 Route::post('/contact', [ContactSubmissionController::class, 'store'])
     ->middleware('throttle:5,1');
 
-// --- Protected Routes (auth:sanctum) — to be implemented ---
-// Route::middleware('auth:sanctum')->group(function () {
-//     Route::prefix('admin')->group(function () {
-//         // Admin routes here
-//     });
-//     Route::prefix('photographer')->group(function () {
-//         // Photographer routes here
-//     });
-//     Route::prefix('client')->group(function () {
-//         // Client routes here
-//     });
-// });
+Route::post('/login', LoginController::class);
+
+// --- Protected Routes (auth:sanctum) ---
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/logout', LogoutController::class);
+    Route::get('/user', MeController::class);
+
+    Route::prefix('admin')->group(function () {
+        // Admin routes here
+    });
+    Route::prefix('photographer')->group(function () {
+        // Photographer routes here
+    });
+    Route::prefix('client')->group(function () {
+        // Client routes here
+    });
+});

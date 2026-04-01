@@ -7,10 +7,12 @@ Moussawer is a professional photography platform designed for **Photographers**,
 ### 🛠️ Tech Stack
 
 - **OS:** Linux Mint
-- **Platform:** Docker (Laravel Sail)
+- **Platform:** Docker (Laravel Sail) to run front & Back end & mysql inside containers.
 - **Backend:** Laravel 13 (API-First, JSON responses only)
 - **Frontend:** Vue.js 3 (Composition API, Vite, Pinia)
 - **Database:** MySQL (Managed via Adminer on port 8080)
+- Testing: PHPUnit, Laravel Test Tools, playwright 
+- Others tech : sublime Text, Gihub, zsh terminal
 
 ---
 
@@ -114,10 +116,6 @@ resources/js/
   - Contact form 15 specs (mocking, UI, interactions).
   - Custom PO Models and Fixtures implemented.
   - `playwright-setup.md` & `playwright-best-practices.md` explicitly defining workflows.
-
-### **Next Task**
-
-🚀 **Admin Authentication (Tomorrow):** Research and implement secure Admin Login using **Laravel Sanctum** — including role-based guards, protecting the admin API routes, and setting up Vue Router guards on the frontend.
 
 ---
 
