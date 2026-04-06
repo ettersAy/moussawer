@@ -1,8 +1,22 @@
-import './bootstrap';
-import { createApp } from 'vue';
-import App from './App.vue';
-import router from './router';
+import { createApp } from 'vue'
+import { createPinia } from 'pinia'
+import App from './App.vue'
+import router from './router'
+import { useAuthStore } from './stores/auth'
 
-const app = createApp(App);
-app.use(router);
-app.mount('#app');
+const pinia = createPinia()
+const app = createApp(App)
+
+app.use(pinia)
+app.use(router)
+
+app.mount('#app')
+
+// Load auth state after Pinia is ready
+const authStore = useAuthStore()
+authStore.loadFromStorage()
+
+// Optional: fetch user if token exists
+if (authStore.token) {
+  authStore.fetchUser()
+}
