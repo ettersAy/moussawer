@@ -13,12 +13,18 @@ const routes = [
         component: () => import('./views/public/ContactView.vue'),
         meta: { layout: 'public' }
     },
-
+    // --- Auth Routes ---
+    { 
+        path: '/login', 
+        name: 'login',
+        component: () => import('./views/auth/LoginView.vue'),   // ← adjust path if needed
+        meta: { layout: 'public', requiresGuest: true }   // optional but recommended
+    },
     // --- Admin Routes ---
     { 
         path: '/admin', 
         component: () => import('./views/admin/DashboardView.vue'),
-        meta: { layout: 'admin' }
+        meta: { layout: 'admin', requiresAuth: true }
     },
 ];
 
