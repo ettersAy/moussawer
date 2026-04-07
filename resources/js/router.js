@@ -20,11 +20,6 @@ const routes = [
         component: () => import('./views/auth/LoginView.vue'),   // ← adjust path if needed
         meta: { layout: 'public', requiresGuest: true }   // optional but recommended
     },
-    { 
-        path: '/logout', 
-        name: 'logout',
-        meta: { layout: 'public', requiresGuest: true }   // optional but recommended
-    },
     // --- Admin Routes ---
     { 
         path: '/admin', 

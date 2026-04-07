@@ -22,14 +22,33 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
-      // Optional: auto logout on 401
-      const authStore = (await import('@/stores/auth')).useAuthStore()
-      await authStore.logout()
-      // You can also router.push('/login') here if you import router
+    const status = error.response?.status
+
+    if (status === 401) {
+      // IMPORTANT: Do NOT call logout() from inside the response interceptor
+      // It can cause infinite loops because logout() itself makes an API call (/logout)
+      // Instead, just clear the local state and let the component/router handle redirect
+
+      try {
+        // Dynamically import to avoid circular dependency at module load time
+        const { useAuthStore } = await import('@/stores/auth')
+        const authStore = useAuthStore()
+
+        // Clear state and storage WITHOUT calling the /logout endpoint here
+        authStore.token = null
+        authStore.user = null
+        localStorage.removeItem('auth_token')
+        localStorage.removeItem('auth_user')
+      } catch (e) {
+        console.error('Failed to clear auth on 401', e)
+      }
+
+      // Optional: You can emit an event or just let the 401 bubble up
+      // The login component or router guard will handle redirect to /login
     }
+
     return Promise.reject(error)
   }
-)
+);
 
 export default api

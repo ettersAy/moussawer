@@ -26,7 +26,7 @@
       </div>
 
       <!-- Error feedback -->
-      <div v-if="error" class="text-red-600 text-sm bg-red-50 p-3 rounded">
+      <div v-if="error" class="text-red-600 text-sm bg-red-50 p-3 rounded border border-red-200">
         {{ error }}
       </div>
 
@@ -69,7 +69,7 @@ const handleLogin = async () => {
     // Redirect based on role or to dashboard
     router.push(authStore.user?.role === 'admin' ? '/admin' : '/dashboard')
   } catch (err) {
-    error.value = authStore.error || 'Invalid credentials'
+    error.value = authStore.error || err.response?.data?.message || 'Invalid credentials.'
   } finally {
     loading.value = false
   }
