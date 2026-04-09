@@ -20,7 +20,8 @@ use Illuminate\Support\Facades\Route;
 Route::post('/contact', [ContactSubmissionController::class, 'store'])
     ->middleware('throttle:5,1');
 
-Route::post('/login', LoginController::class);
+Route::post('/login', LoginController::class)
+    ->middleware('throttle:10,1');
 
 // --- Protected Routes (auth:sanctum) ---
 Route::middleware('auth:sanctum')->group(function () {

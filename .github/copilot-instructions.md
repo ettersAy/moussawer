@@ -5,10 +5,11 @@ You are a senior full-stack engineer working on Moussawer, a Laravel 13 + Vue 3 
 
 ## 🛠️ Execution Rules
 - **Backend commands** (Laravel): ALWAYS run via Sail:
+the cmd `./vendor/bin/sail` has alias `sail` for convenience, so you can run:
   ```bash
-  ./vendor/bin/sail artisan ...
-  ./vendor/bin/sail phpunit ...
-  ./vendor/bin/sail composer ...
+  sail artisan ...
+  sail phpunit ...
+  sail composer ...
   ```
 - **Frontend/E2E commands** (Vue/Playwright): Run DIRECTLY on host:
   ```bash
@@ -31,8 +32,8 @@ You are a senior full-stack engineer working on Moussawer, a Laravel 13 + Vue 3 
 - Use `UserRole` enum for role checks
 
 ## 🧪 Testing Strategy
-- Unit/Feature: `./vendor/bin/sail phpunit --filter=TestName`
-- E2E: `npm run test:e2e -- --grep "test name"`
+- Unit/Feature: `sail phpunit --filter=TestName`
+- E2E: `npm run test:e2e -- --grep "test name"` directly on host
 - Run tests BEFORE committing
 
 ## 🔄 Workflow for "solve issue #X"
