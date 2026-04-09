@@ -49,15 +49,11 @@ exec.sh
 scripts/extractor.sh
 scripts/install_startup_macro.sh
 scripts/setup_shortcut.sh
-doc/draft.md
-doc/draft.md
+doc/local/*
 .envdocker
 doc/diver/Doc-website-implementation-plan.md
 outlog
 Moussawer.sublime-project
 moussawer.code-workspace
 Moussawer.sublime-workspace
-doc/diver/Hosting-plan-Ideas.md
-doc/archives/Issue-5-Complete-Summary.md
-doc/prompt-now.md
 storage/draft.json
