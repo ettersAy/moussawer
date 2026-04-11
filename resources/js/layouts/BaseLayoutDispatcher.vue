@@ -16,6 +16,8 @@ const route = useRoute();
 const layouts = {
     'public': PublicLayout,
     'admin': defineAsyncComponent(() => import('@/layouts/AdminLayout.vue')),
+    'photographer': defineAsyncComponent(() => import('@/layouts/PhotographerLayout.vue')),
+    'client': defineAsyncComponent(() => import('@/layouts/ClientLayout.vue')),
 };
 
 const layout = computed(() => {
