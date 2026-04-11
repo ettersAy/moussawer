@@ -53,12 +53,13 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function fetchUser() {
+    async function fetchUser() {
     if (!token.value) return
 
     try {
       const response = await api.get('/user')
-      user.value = response.data   // assuming MeController returns UserResource
+      // MeController returns { user: UserResource }, so extract the user object
+      user.value = response.data.user
     } catch (err) {
       console.error('Failed to fetch user', err)
       // Token probably expired → logout

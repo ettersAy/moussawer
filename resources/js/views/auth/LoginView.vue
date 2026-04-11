@@ -8,6 +8,7 @@
         <input
           v-model="form.email"
           type="email"
+          name="email"
           required
           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           :class="{ 'border-red-500': error }"
@@ -19,6 +20,7 @@
         <input
           v-model="form.password"
           type="password"
+          name="password"
           required
           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           :class="{ 'border-red-500': error }"
