@@ -66,8 +66,14 @@ const handleLogin = async () => {
     await authStore.login(form.value)
     await authStore.fetchUser() // optional extra safety
 
-    // Redirect based on role or to dashboard
-    router.push(authStore.user?.role === 'admin' ? '/admin' : '/dashboard')
+    // Smart redirect based on role
+    const dashboardMap = {
+      admin: '/admin/dashboard',
+      photographer: '/photographer/dashboard',
+      client: '/client/dashboard',
+    }
+    const redirectPath = dashboardMap[authStore.user?.role] || '/'
+    router.push(redirectPath)
   } catch (err) {
     error.value = authStore.error || err.response?.data?.message || 'Invalid credentials.'
   } finally {
