@@ -30,8 +30,8 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password'          => 'hashed',
-            'role'              => UserRole::class,
+            'password' => 'hashed',
+            'role' => UserRole::class,
         ];
     }
 
@@ -50,5 +50,27 @@ class User extends Authenticatable
     public function isClient(): bool
     {
         return $this->role === UserRole::Client;
+    }
+
+    // --- Relationships ---
+
+    public function photographer()
+    {
+        return $this->hasOne(Photographer::class);
+    }
+
+    public function bookingsAsClient()
+    {
+        return $this->hasMany(Booking::class, 'client_id');
+    }
+
+    public function reviewsAsClient()
+    {
+        return $this->hasMany(Review::class, 'client_id');
+    }
+
+    public function reviewsAsPhotographer()
+    {
+        return $this->hasMany(Review::class, 'photographer_id');
     }
 }
