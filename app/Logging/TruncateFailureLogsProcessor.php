@@ -8,11 +8,12 @@ use Monolog\Processor\ProcessorInterface;
 class TruncateFailureLogsProcessor implements ProcessorInterface
 {
     private const MAX_MESSAGE_LENGTH = 900;
+
     private const MAX_TRACE_FRAMES = 4;   // keep only the most relevant frames
 
     public function __invoke(LogRecord $record): LogRecord
     {
-        if (!isset($record->context['exception']) || ! $record->context['exception'] instanceof \Throwable) {
+        if (! isset($record->context['exception']) || ! $record->context['exception'] instanceof \Throwable) {
             return $record;
         }
 
@@ -36,27 +37,27 @@ class TruncateFailureLogsProcessor implements ProcessorInterface
     private function buildConciseSummary(\Throwable $e): string
     {
         $message = $e->getMessage() ?: get_class($e);
-        $file    = $e->getFile();
-        $line    = $e->getLine();
+        $file = $e->getFile();
+        $line = $e->getLine();
 
         $traceLines = [];
         foreach (array_slice($e->getTrace(), 0, self::MAX_TRACE_FRAMES) as $frame) {
             $class = $frame['class'] ?? '';
-            $func  = $frame['function'] ?? '';
-            $f     = $frame['file'] ?? '[internal]';
-            $l     = $frame['line'] ?? '?';
+            $func = $frame['function'] ?? '';
+            $f = $frame['file'] ?? '[internal]';
+            $l = $frame['line'] ?? '?';
 
-            $traceLines[] = $class 
+            $traceLines[] = $class
                 ? "{$class}::{$func}() → {$f}:{$l}"
                 : "{$func}() → {$f}:{$l}";
         }
 
-        $traceStr = $traceLines ? "\n→ " . implode("\n→ ", $traceLines) : '';
+        $traceStr = $traceLines ? "\n→ ".implode("\n→ ", $traceLines) : '';
 
         $summary = "[{$message}] at {$file}:{$line}{$traceStr}";
 
         if (mb_strlen($summary) > self::MAX_MESSAGE_LENGTH) {
-            $summary = mb_substr($summary, 0, self::MAX_MESSAGE_LENGTH - 3) . '...';
+            $summary = mb_substr($summary, 0, self::MAX_MESSAGE_LENGTH - 3).'...';
         }
 
         return $summary;
