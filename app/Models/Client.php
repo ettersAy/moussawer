@@ -7,23 +7,24 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Photographer extends Model
+class Client extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'user_id',
-        'bio',
-        'portfolio_url',
-        'hourly_rate',
-        'availability_status',
+        'phone',
+        'address',
+        'city',
+        'province',
+        'postal_code',
+        'preferred_contact',
     ];
 
     protected function casts(): array
     {
         return [
-            'hourly_rate' => 'decimal:2',
-            'availability_status' => 'string',
+            'preferred_contact' => 'string',
         ];
     }
 
@@ -34,18 +35,13 @@ class Photographer extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function portfolioItems(): HasMany
-    {
-        return $this->hasMany(PortfolioItem::class);
-    }
-
     public function bookings(): HasMany
     {
-        return $this->hasMany(Booking::class);
+        return $this->hasMany(Booking::class, 'client_id');
     }
 
     public function reviews(): HasMany
     {
-        return $this->hasMany(Review::class);
+        return $this->hasMany(Review::class, 'client_id');
     }
 }
