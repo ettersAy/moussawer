@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Auth\LogoutController;
 use App\Http\Controllers\Api\Auth\MeController;
 use App\Http\Controllers\Api\Auth\RegisterController;
+use App\Http\Controllers\Api\Booking\BookingController;
 use App\Http\Controllers\Api\Client\ProfileController as ClientProfileController;
 use App\Http\Controllers\Api\Photographer\ProfileController as PhotographerProfileController;
 use App\Http\Controllers\Api\Public\ContactSubmissionController;
@@ -54,4 +55,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/profile', [ClientProfileController::class, 'update']);
         Route::delete('/profile', [ClientProfileController::class, 'destroy']);
     });
+
+    // Booking routes
+    Route::post('/bookings', [BookingController::class, 'store']);
+    Route::get('/bookings', [BookingController::class, 'index']);
+    Route::get('/bookings/{booking}', [BookingController::class, 'show']);
+    Route::patch('/bookings/{booking}/status', [BookingController::class, 'updateStatus']);
+    Route::delete('/bookings/{booking}', [BookingController::class, 'destroy']);
 });
