@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Auth\LogoutController;
 use App\Http\Controllers\Api\Auth\MeController;
+use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Public\ContactSubmissionController;
 use Illuminate\Support\Facades\Route;
 
@@ -20,11 +21,16 @@ use Illuminate\Support\Facades\Route;
 Route::post('/contact', [ContactSubmissionController::class, 'store'])
     ->middleware('throttle:5,1');
 
-Route::post('/login', LoginController::class);
+Route::post('/login', LoginController::class)
+    ->middleware('throttle:5,1');
+
+Route::post('/register', RegisterController::class)
+    ->middleware('throttle:3,1');
 
 // --- Protected Routes (auth:sanctum) ---
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/logout', LogoutController::class);
+    Route::post('/logout', LogoutController::class)
+        ->middleware('throttle:10,1');
     Route::get('/user', MeController::class);
 
     Route::prefix('admin')->group(function () {
