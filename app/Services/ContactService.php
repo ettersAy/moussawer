@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\ContactSubmission;
+use Illuminate\Database\Eloquent\Collection;
 
 class ContactService
 {
@@ -17,7 +18,7 @@ class ContactService
     /**
      * Retrieve all submissions (for Admin use).
      *
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return Collection
      */
     public function all()
     {

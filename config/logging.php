@@ -1,5 +1,7 @@
 <?php
+
 // config/logging.php
+use App\Logging\CustomizeFailureLogs;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -63,7 +65,7 @@ return [
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
             'replace_placeholders' => true,
-            'tap' => [App\Logging\CustomizeFailureLogs::class],   // ← ADD THIS
+            'tap' => [CustomizeFailureLogs::class],   // ← ADD THIS
         ],
 
         'daily' => [
@@ -72,7 +74,7 @@ return [
             'level' => env('LOG_LEVEL', 'debug'),
             'days' => env('LOG_DAILY_DAYS', 14),
             'replace_placeholders' => true,
-            'tap' => [App\Logging\CustomizeFailureLogs::class],   // ← ADD THIS
+            'tap' => [CustomizeFailureLogs::class],   // ← ADD THIS
         ],
 
         'slack' => [
@@ -103,7 +105,7 @@ return [
             'handler_with' => ['stream' => 'php://stderr'],
             'formatter' => env('LOG_STDERR_FORMATTER'),
             'processors' => [PsrLogMessageProcessor::class],
-            'tap' => [App\Logging\CustomizeFailureLogs::class],   // ← ADD THIS (recommended)
+            'tap' => [CustomizeFailureLogs::class],   // ← ADD THIS (recommended)
         ],
 
         'syslog' => [

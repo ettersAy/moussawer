@@ -16,9 +16,9 @@ class ContactSubmissionResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'         => $this->id,
-            'email'      => $this->email,
-            'message'    => $this->message,
+            'id' => $this->id,
+            'email' => $this->email,
+            'message' => $this->message,
             'created_at' => $this->created_at->toIso8601String(),
         ];
     }
