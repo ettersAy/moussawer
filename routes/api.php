@@ -4,6 +4,8 @@ use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Auth\LogoutController;
 use App\Http\Controllers\Api\Auth\MeController;
 use App\Http\Controllers\Api\Auth\RegisterController;
+use App\Http\Controllers\Api\Client\ProfileController as ClientProfileController;
+use App\Http\Controllers\Api\Photographer\ProfileController as PhotographerProfileController;
 use App\Http\Controllers\Api\Public\ContactSubmissionController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,10 +38,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('admin')->group(function () {
         // Admin routes here
     });
+
     Route::prefix('photographer')->group(function () {
-        // Photographer routes here
+        // Photographer profile routes
+        Route::post('/profile', [PhotographerProfileController::class, 'store']);
+        Route::get('/profile', [PhotographerProfileController::class, 'show']);
+        Route::put('/profile', [PhotographerProfileController::class, 'update']);
+        Route::delete('/profile', [PhotographerProfileController::class, 'destroy']);
     });
+
     Route::prefix('client')->group(function () {
-        // Client routes here
+        // Client profile routes
+        Route::post('/profile', [ClientProfileController::class, 'store']);
+        Route::get('/profile', [ClientProfileController::class, 'show']);
+        Route::put('/profile', [ClientProfileController::class, 'update']);
+        Route::delete('/profile', [ClientProfileController::class, 'destroy']);
     });
 });
