@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +22,36 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        $this->configureRateLimiting();
+    }
+
+    /**
+     * Configure the rate limiters for the application.
+     */
+    protected function configureRateLimiting(): void
+    {
+        RateLimiter::for('api', function (Request $request) {
+            return $this->app->isLocal() || $this->app->runningUnitTests()
+                ? Limit::none()
+                : Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
+
+        RateLimiter::for('auth', function (Request $request) {
+            return $this->app->isLocal() || $this->app->runningUnitTests()
+                ? Limit::none()
+                : Limit::perMinute(5)->by($request->ip());
+        });
+
+        RateLimiter::for('register', function (Request $request) {
+            return $this->app->isLocal() || $this->app->runningUnitTests()
+                ? Limit::none()
+                : Limit::perMinute(3)->by($request->ip());
+        });
+
+        RateLimiter::for('contact', function (Request $request) {
+            return $this->app->isLocal() || $this->app->runningUnitTests()
+                ? Limit::none()
+                : Limit::perMinute(5)->by($request->ip());
+        });
     }
 }
