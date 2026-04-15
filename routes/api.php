@@ -22,18 +22,18 @@ use Illuminate\Support\Facades\Route;
 
 // --- Public Routes (no auth required) ---
 Route::post('/contact', [ContactSubmissionController::class, 'store'])
-    ->middleware('throttle:5,1');
+    ->middleware('throttle:contact');
 
 Route::post('/login', LoginController::class)
-    ->middleware('throttle:5,1');
+    ->middleware('throttle:auth');
 
 Route::post('/register', RegisterController::class)
-    ->middleware('throttle:3,1');
+    ->middleware('throttle:register');
 
 // --- Protected Routes (auth:sanctum) ---
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::post('/logout', LogoutController::class)
-        ->middleware('throttle:10,1');
+        ->middleware('throttle:auth');
     Route::get('/user', MeController::class);
 
     Route::prefix('admin')->group(function () {

@@ -113,7 +113,13 @@ router.beforeEach((to, from, next) => {
 
         // Role-based access
         if (to.meta.requiredRole && userRole !== to.meta.requiredRole) {
-            return next({ name: 'unauthorized' })
+            // Redirect to their own dashboard instead of an unauthorized page
+            const dashboardMap = {
+                admin: '/admin/dashboard',
+                photographer: '/photographer/dashboard',
+                client: '/client/dashboard',
+            }
+            return next(dashboardMap[userRole] || '/')
         }
     }
 

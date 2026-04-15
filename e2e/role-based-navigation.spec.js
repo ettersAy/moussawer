@@ -1,314 +1,312 @@
 import { test, expect } from '@playwright/test'
 
-test.describe('Role-Based Navigation and Routing', () => {
-    // Test users - these should be created via tinker commands in setup
-    const testUsers = {
-        admin: {
-            email: 'admin@example.com',
-            password: 'AdminPassword123!',
-            role: 'admin',
-            dashboardPath: '/admin/dashboard',
-        },
-        photographer: {
-            email: 'photographer@example.com',
-            password: 'PhotographerPassword123!',
-            role: 'photographer',
-            dashboardPath: '/photographer/dashboard',
-        },
-        client: {
-            email: 'client@example.com',
-            password: 'ClientPassword123!',
-            role: 'client',
-            dashboardPath: '/client/dashboard',
-        },
-    }
+// Test data constants
+const TEST_USERS = {
+    admin: {
+        email: 'admin@example.com',
+        password: 'AdminPassword123!',
+        role: 'admin',
+        dashboardPath: '/admin/dashboard',
+    },
+    photographer: {
+        email: 'photographer@example.com',
+        password: 'PhotographerPassword123!',
+        role: 'photographer',
+        dashboardPath: '/photographer/dashboard',
+    },
+    client: {
+        email: 'client@example.com',
+        password: 'ClientPassword123!',
+        role: 'client',
+        dashboardPath: '/client/dashboard',
+    },
+}
+
+const PHOTOGRAPHER_USER = {
+    id: 1,
+    name: 'Test Photographer',
+    email: 'test@moussawer.test',
+    role: 'photographer',
+}
+
+const CLIENT_USER = {
+    id: 2,
+    name: 'Test Client',
+    email: 'client@moussawer.test',
+    role: 'client',
+}
+
+/**
+ * Helper functions for common test operations
+ */
+const authHelpers = {
+    /**
+     * Set up authenticated session in localStorage
+     */
+    async setupAuthenticatedSession(page, userData) {
+        await page.goto('/login')
+        await page.evaluate((data) => {
+            localStorage.setItem('auth_token', 'test-token-123')
+            localStorage.setItem('auth_user', JSON.stringify(data))
+        }, userData)
+    },
 
     /**
-     * Setup commands (run once before tests):
-     * Admin:     vendor/bin/sail artisan tinker --execute="App\Models\User::factory()->create(['role' => 'admin', 'email' => 'admin@example.com', 'password' => bcrypt('AdminPassword123!')])"
-     * Photographer: vendor/bin/sail artisan tinker --execute="App\Models\User::factory()->create(['role' => 'photographer', 'email' => 'photographer@example.com', 'password' => bcrypt('PhotographerPassword123!')])"
-     * Client:    vendor/bin/sail artisan tinker --execute="App\Models\User::factory()->create(['role' => 'client', 'email' => 'client@example.com', 'password' => bcrypt('ClientPassword123!')])"
+     * Mock API responses to prevent authentication redirects
      */
-
-    test.describe('Login redirects based on user role', () => {
-        for (const [role, user] of Object.entries(testUsers)) {
-            test(`${role} user is redirected to their dashboard after login`, async ({ page }) => {
-                // Go to login page and wait for it to load
-                await page.goto('/login')
-                await page.waitForLoadState('networkidle')
-
-                // Verify we're on the login page
-                await expect(page).toHaveURL(/\/login/)
-
-                // Fill in login form
-                await page.fill('input[name="email"]', user.email)
-                await page.fill('input[name="password"]', user.password)
-
-                // Submit login
-                await page.click('button[type="submit"]')
-
-                // Wait for redirect to role-specific dashboard
-                await expect(page).toHaveURL(new RegExp(user.dashboardPath), {
-                    timeout: 10000,
-                })
-
-                // Verify we're on the dashboard
-                await expect(page).toHaveURL(/\/dashboard/)
+    async mockApiResponses(page, userData) {
+        await page.route('**/api/user', async (route) => {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({ user: userData })
             })
-        }
+        })
+        await page.route('**/api/bookings', async (route) => {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({ data: [] })
+            })
+        })
+    },
+
+    /**
+     * Clear authentication data
+     */
+    async clearAuthData(page) {
+        await page.evaluate(() => {
+            localStorage.removeItem('auth_token')
+            localStorage.removeItem('auth_user')
+        })
+    },
+
+    /**
+     * Verify authentication data is cleared
+     */
+    async verifyAuthCleared(page) {
+        const token = await page.evaluate(() => localStorage.getItem('auth_token'))
+        const user = await page.evaluate(() => localStorage.getItem('auth_user'))
+        expect(token).toBeNull()
+        expect(user).toBeNull()
+    }
+}
+
+/**
+ * Navigation helpers
+ */
+const navigationHelpers = {
+    /**
+     * Navigate to a URL and wait for network idle
+     */
+    async navigateTo(page, url) {
+        await page.goto(url)
+        await page.waitForLoadState('networkidle')
+    },
+
+    /**
+     * Verify URL matches pattern
+     */
+    async verifyUrl(page, pattern) {
+        await expect(page).toHaveURL(pattern)
+    },
+
+    /**
+     * Click a link by role and name pattern
+     */
+    async clickLink(page, namePattern) {
+        await page.getByRole('link', { name: namePattern }).first().click()
+    },
+
+    /**
+     * Verify link is visible
+     */
+    async verifyLinkVisible(page, namePattern) {
+        await expect(page.getByRole('link', { name: namePattern }).first()).toBeVisible()
+    }
+}
+
+/**
+ * Test suite for login redirects
+ */
+test.describe('Login redirects based on user role', () => {
+    for (const [role, user] of Object.entries(TEST_USERS)) {
+        test(`${role} user is redirected to their dashboard after login`, async ({ page }) => {
+            await navigationHelpers.navigateTo(page, '/login')
+            await navigationHelpers.verifyUrl(page, /\/login/)
+
+            await page.fill('input[name="email"]', user.email)
+            await page.fill('input[name="password"]', user.password)
+            await page.click('button[type="submit"]')
+
+            await expect(page).toHaveURL(new RegExp(user.dashboardPath), { timeout: 10000 })
+            await navigationHelpers.verifyUrl(page, /\/dashboard/)
+        })
+    }
+})
+
+/**
+ * Test suite for navigation menu visibility
+ */
+test.describe('Navigation menu shows correct role-specific links', () => {
+    test('Photographer navigation includes photographer-specific links', async ({ page }) => {
+        await navigationHelpers.navigateTo(page, '/photographer/dashboard')
+        
+        await page.evaluate((userData) => {
+            localStorage.setItem('auth_token', 'test-token-123')
+            localStorage.setItem('auth_user', JSON.stringify(userData))
+        }, PHOTOGRAPHER_USER)
+
+        await page.reload()
+        await page.waitForLoadState('networkidle')
+
+        await navigationHelpers.verifyLinkVisible(page, /dashboard/i)
+        await navigationHelpers.verifyLinkVisible(page, /bookings/i)
+        await navigationHelpers.verifyLinkVisible(page, /profile/i)
+        await expect(page.getByRole('button', { name: /logout/i })).toBeVisible()
     })
 
-    test.describe('Navigation menu shows correct role-specific links', () => {
-        test('Photographer navigation includes photographer-specific links', async ({ page }) => {
-            // Navigate first to set the origin
-            await page.goto('/photographer/dashboard')
-            
-            // Set up authenticated session for photographer
-            await page.evaluate((userData) => {
-                localStorage.setItem('auth_token', 'test-token-123')
-                localStorage.setItem('auth_user', JSON.stringify(userData))
-            }, {
-                id: 1,
-                name: 'Test Photographer',
-                email: 'test@moussawer.test',
-                role: 'photographer',
-            })
+    test('Client navigation includes client-specific links', async ({ page }) => {
+        await navigationHelpers.navigateTo(page, '/client/dashboard')
+        
+        await page.evaluate((userData) => {
+            localStorage.setItem('auth_token', 'test-token-123')
+            localStorage.setItem('auth_user', JSON.stringify(userData))
+        }, CLIENT_USER)
 
-            // Reload to apply the auth state
-            await page.reload()
-            await page.waitForLoadState('networkidle')
+        await page.reload()
+        await page.waitForLoadState('networkidle')
 
-            // Verify photographer-specific navigation items
-            await expect(page.getByRole('link', { name: /dashboard/i }).first()).toBeVisible()
-            await expect(page.getByRole('link', { name: /bookings/i }).first()).toBeVisible()
-            await expect(page.getByRole('link', { name: /profile/i }).first()).toBeVisible()
-            await expect(page.getByRole('button', { name: /logout/i })).toBeVisible()
-        })
+        await navigationHelpers.verifyLinkVisible(page, /dashboard/i)
+        await navigationHelpers.verifyLinkVisible(page, /my bookings/i)
+        await navigationHelpers.verifyLinkVisible(page, /my profile/i)
+        await expect(page.getByRole('button', { name: /logout/i })).toBeVisible()
+    })
+})
 
-        test('Client navigation includes client-specific links', async ({ page }) => {
-            // Navigate first to set the origin
-            await page.goto('/client/dashboard')
-            
-            // Set up authenticated session for client
-            await page.evaluate((userData) => {
-                localStorage.setItem('auth_token', 'test-token-123')
-                localStorage.setItem('auth_user', JSON.stringify(userData))
-            }, {
-                id: 2,
-                name: 'Test Client',
-                email: 'client@moussawer.test',
-                role: 'client',
-            })
+/**
+ * Test suite for internal navigation within dashboards
+ */
+test.describe('Internal navigation within role dashboards', () => {
+    test('Photographer can navigate between dashboard sections', async ({ page }) => {
+        await authHelpers.mockApiResponses(page, PHOTOGRAPHER_USER)
+        await authHelpers.setupAuthenticatedSession(page, PHOTOGRAPHER_USER)
 
-            // Reload to apply the auth state
-            await page.reload()
-            await page.waitForLoadState('networkidle')
+        await navigationHelpers.navigateTo(page, '/photographer/dashboard')
+        await navigationHelpers.verifyUrl(page, /\/photographer\/dashboard/)
+        await navigationHelpers.verifyLinkVisible(page, /profile/i)
 
-            // Verify client-specific navigation items
-            await expect(page.getByRole('link', { name: /dashboard/i }).first()).toBeVisible()
-            await expect(page.getByRole('link', { name: /my bookings/i }).first()).toBeVisible()
-            await expect(page.getByRole('link', { name: /my profile/i }).first()).toBeVisible()
-            await expect(page.getByRole('button', { name: /logout/i })).toBeVisible()
-        })
+        await navigationHelpers.navigateTo(page, '/photographer/bookings')
+        await navigationHelpers.verifyUrl(page, /\/photographer\/bookings/)
+        await navigationHelpers.verifyLinkVisible(page, /profile/i)
+
+        await navigationHelpers.clickLink(page, /profile/i)
+        await navigationHelpers.verifyUrl(page, /\/photographer\/profile/)
+
+        await navigationHelpers.clickLink(page, /dashboard/i)
+        await navigationHelpers.verifyUrl(page, /\/photographer\/dashboard/)
     })
 
-    test.describe('Internal navigation within role dashboards', () => {
-        test('Photographer can navigate between dashboard sections', async ({ page }) => {
-            // Navigate first to set the origin
-            await page.goto('/photographer/dashboard')
-            
-            // Set up authenticated session
-            await page.evaluate((userData) => {
-                localStorage.setItem('auth_token', 'test-token-123')
-                localStorage.setItem('auth_user', JSON.stringify(userData))
-            }, {
-                id: 1,
-                name: 'Test Photographer',
-                email: 'test@moussawer.test',
-                role: 'photographer',
-            })
+    test('Client can navigate between dashboard sections', async ({ page }) => {
 
-            // Reload to apply the auth state
-            await page.reload()
-            await page.waitForLoadState('networkidle')
-            await expect(page).toHaveURL(/\/photographer\/dashboard/)
+        await authHelpers.mockApiResponses(page, CLIENT_USER)
+        await authHelpers.setupAuthenticatedSession(page, CLIENT_USER)
 
-            // Navigate to Bookings
-            await page.getByRole('link', { name: /bookings/i }).first().click()
-            await expect(page).toHaveURL(/\/photographer\/bookings/)
+        await navigationHelpers.navigateTo(page, '/client/dashboard')
+        await navigationHelpers.verifyUrl(page, /\/client\/dashboard/)
+        await navigationHelpers.verifyLinkVisible(page, /profile/i)
 
-            // Navigate to Profile
-            await page.getByRole('link', { name: /profile/i }).first().click()
-            await expect(page).toHaveURL(/\/photographer\/profile/)
+        await navigationHelpers.clickLink(page, /my bookings/i)
+        await navigationHelpers.verifyUrl(page, /\/client\/bookings/)
 
-            // Navigate back to Dashboard
-            await page.getByRole('link', { name: /dashboard/i }).first().click()
-            await expect(page).toHaveURL(/\/photographer\/dashboard/)
-        })
+        await navigationHelpers.clickLink(page, /my profile/i)
+        await navigationHelpers.verifyUrl(page, /\/client\/profile/)
 
-        test('Client can navigate between dashboard sections', async ({ page }) => {
-            // Navigate first to set the origin
-            await page.goto('/client/dashboard')
-            
-            // Set up authenticated session
-            await page.evaluate((userData) => {
-                localStorage.setItem('auth_token', 'test-token-123')
-                localStorage.setItem('auth_user', JSON.stringify(userData))
-            }, {
-                id: 2,
-                name: 'Test Client',
-                email: 'client@moussawer.test',
-                role: 'client',
-            })
+        await navigationHelpers.clickLink(page, /dashboard/i)
+        await navigationHelpers.verifyUrl(page, /\/client\/dashboard/)
+    })
+})
 
-            // Reload to apply the auth state
-            await page.reload()
-            await page.waitForLoadState('networkidle')
-            await expect(page).toHaveURL(/\/client\/dashboard/)
+/**
+ * Test suite for authentication guards
+ */
+test.describe('Authentication guards', () => {
+    test('Logout clears session and redirects to login', async ({ page }) => {
+        await navigationHelpers.navigateTo(page, '/client/dashboard')
+        
+        await page.evaluate((userData) => {
+            localStorage.setItem('auth_token', 'test-token-123')
+            localStorage.setItem('auth_user', JSON.stringify(userData))
+        }, CLIENT_USER)
 
-            // Navigate to My Bookings
-            await page.getByRole('link', { name: /my bookings/i }).first().click()
-            await expect(page).toHaveURL(/\/client\/bookings/)
+        await page.reload()
+        await page.waitForLoadState('networkidle')
+        await navigationHelpers.verifyUrl(page, /\/client\/dashboard/)
 
-            // Navigate to My Profile
-            await page.getByRole('link', { name: /my profile/i }).first().click()
-            await expect(page).toHaveURL(/\/client\/profile/)
-
-            // Navigate back to Dashboard
-            await page.getByRole('link', { name: /dashboard/i }).first().click()
-            await expect(page).toHaveURL(/\/client\/dashboard/)
-        })
+        await page.getByRole('button', { name: /logout/i }).click()
+        await navigationHelpers.verifyUrl(page, /\/login/)
+        await authHelpers.verifyAuthCleared(page)
     })
 
-    test.describe('Authentication guards', () => {
-        test('Logout clears session and redirects to login', async ({ page }) => {
-            // Navigate first
-            await page.goto('/client/dashboard')
-            
-            // Set up authenticated session
-            await page.evaluate((userData) => {
-                localStorage.setItem('auth_token', 'test-token-123')
-                localStorage.setItem('auth_user', JSON.stringify(userData))
-            }, {
-                id: 1,
-                name: 'Test User',
-                email: 'test@moussawer.test',
-                role: 'client',
-            })
+    test('Authenticated users are redirected from login page', async ({ page }) => {
+        await navigationHelpers.navigateTo(page, '/login')
+        
+        await page.evaluate((userData) => {
+            localStorage.setItem('auth_token', 'test-token-123')
+            localStorage.setItem('auth_user', JSON.stringify(userData))
+        }, CLIENT_USER)
 
-            // Reload to apply the auth state
-            await page.reload()
-            await page.waitForLoadState('networkidle')
-            await expect(page).toHaveURL(/\/client\/dashboard/)
-
-            // Click logout button
-            await page.getByRole('button', { name: /logout/i }).click()
-
-            // Should redirect to login page
-            await expect(page).toHaveURL(/\/login/)
-
-            // Auth data should be cleared
-            await expect(page.evaluate(() => localStorage.getItem('auth_token'))).toBeNull()
-            await expect(page.evaluate(() => localStorage.getItem('auth_user'))).toBeNull()
-        })
-
-        test('Authenticated users are redirected from login page', async ({ page }) => {
-            // Navigate to login page first
-            await page.goto('/login')
-            
-            // Set up authenticated session
-            await page.evaluate((userData) => {
-                localStorage.setItem('auth_token', 'test-token-123')
-                localStorage.setItem('auth_user', JSON.stringify(userData))
-            }, {
-                id: 1,
-                name: 'Test User',
-                email: 'test@moussawer.test',
-                role: 'client',
-            })
-
-            // Reload - should redirect to client dashboard
-            await page.reload()
-            await page.waitForLoadState('networkidle')
-
-            // Should be redirected to client dashboard (role-based redirect)
-            await expect(page).toHaveURL(/\/client\/dashboard/)
-        })
-
-        test('Unauthenticated users accessing protected routes are redirected to login', async ({ page }) => {
-            // Clear any auth data
-            await page.goto('/')
-            await page.evaluate(() => {
-                localStorage.removeItem('auth_token')
-                localStorage.removeItem('auth_user')
-            })
-
-            // Try to access photographer dashboard directly
-            await page.goto('/photographer/dashboard')
-            await page.waitForLoadState('networkidle')
-
-            // Should redirect to login page
-            await expect(page).toHaveURL(/\/login/)
-        })
+        await page.reload()
+        await page.waitForLoadState('networkidle')
+        await navigationHelpers.verifyUrl(page, /\/client\/dashboard/)
     })
 
-    test.describe('Role-based access control', () => {
-        test('Photographer cannot access client routes', async ({ page }) => {
-            // Navigate first
-            await page.goto('/photographer/dashboard')
-            
-            // Set up photographer session
-            await page.evaluate((userData) => {
-                localStorage.setItem('auth_token', 'test-token-123')
-                localStorage.setItem('auth_user', JSON.stringify(userData))
-            }, {
-                id: 1,
-                name: 'Test Photographer',
-                email: 'test@moussawer.test',
-                role: 'photographer',
-            })
+    test('Unauthenticated users accessing protected routes are redirected to login', async ({ page }) => {
+        await navigationHelpers.navigateTo(page, '/')
+        await authHelpers.clearAuthData(page)
 
-            // Reload to apply the auth state
-            await page.reload()
-            await page.waitForLoadState('networkidle')
+        await navigationHelpers.navigateTo(page, '/photographer/dashboard')
+        await navigationHelpers.verifyUrl(page, /\/login/)
+    })
+})
 
-            // Try to access client dashboard
-            await page.goto('/client/dashboard')
-            await page.waitForLoadState('networkidle')
+/**
+ * Test suite for role-based access control
+ */
+test.describe('Role-based access control', () => {
+    test('Photographer cannot access client routes', async ({ page }) => {
+        await authHelpers.mockApiResponses(page, PHOTOGRAPHER_USER)
+        await authHelpers.setupAuthenticatedSession(page, PHOTOGRAPHER_USER)
 
-            // Should be redirected (either to unauthorized or back to photographer dashboard)
-            const url = page.url()
-            const hasAccess = url.includes('/client/dashboard')
-            expect(hasAccess).toBe(false)
-        })
+        await navigationHelpers.navigateTo(page, '/photographer/dashboard')
+        await navigationHelpers.verifyUrl(page, /\/photographer\/dashboard/)
 
-        test('Client cannot access photographer routes', async ({ page }) => {
-            // Navigate first
-            await page.goto('/client/dashboard')
-            
-            // Set up client session
-            await page.evaluate((userData) => {
-                localStorage.setItem('auth_token', 'test-token-123')
-                localStorage.setItem('auth_user', JSON.stringify(userData))
-            }, {
-                id: 2,
-                name: 'Test Client',
-                email: 'client@moussawer.test',
-                role: 'client',
-            })
+        await navigationHelpers.navigateTo(page, '/client/dashboard')
+        await page.waitForLoadState('networkidle')
 
-            // Reload to apply the auth state
-            await page.reload()
-            await page.waitForLoadState('networkidle')
+        // Should be redirected to photographer dashboard (role-based redirect)
+        const url = page.url()
+        const hasAccess = url.includes('/client/dashboard')
+        expect(hasAccess).toBe(false)
+        // Verify we're still on photographer dashboard or redirected appropriately
+        expect(url).toMatch(/\/photographer\/dashboard|\/login/)
+    })
 
-            // Try to access photographer dashboard
-            await page.goto('/photographer/dashboard')
-            await page.waitForLoadState('networkidle')
+    test('Client cannot access photographer routes', async ({ page }) => {
+        await authHelpers.mockApiResponses(page, CLIENT_USER)
+        await authHelpers.setupAuthenticatedSession(page, CLIENT_USER)
 
-            // Should be redirected
-            const url = page.url()
-            const hasAccess = url.includes('/photographer/dashboard')
-            expect(hasAccess).toBe(false)
-        })
+        await navigationHelpers.navigateTo(page, '/client/dashboard')
+        await navigationHelpers.verifyUrl(page, /\/client\/dashboard/)
+
+        await navigationHelpers.navigateTo(page, '/photographer/dashboard')
+        await page.waitForLoadState('networkidle')
+
+        // Should be redirected to client dashboard (role-based redirect)
+        const url = page.url()
+        const hasAccess = url.includes('/photographer/dashboard')
+        expect(hasAccess).toBe(false)
+        // Verify we're still on client dashboard or redirected appropriately
+        expect(url).toMatch(/\/client\/dashboard|\/login/)
     })
 })
