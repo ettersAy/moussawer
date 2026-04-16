@@ -1,5 +1,24 @@
 @import 'tailwindcss';
 
+/* 
+ * CSS Module Imports
+ * Organized by component type and view specificity
+ */
+@import './components/buttons.css';
+@import './components/sections.css';
+@import './components/cards.css';
+@import './components/forms.css';
+@import './components/navigation.css';
+@import './components/auth.css';
+@import './components/layout.css';
+@import './components/admin.css';
+@import './components/client.css';
+@import './components/photographer.css';
+@import './components/bookings.css';
+@import './components/dashboard.css';
+@import './components/profile.css';
+@import './views/home.css';
+
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';

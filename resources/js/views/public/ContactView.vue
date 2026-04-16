@@ -1,6 +1,6 @@
 <template>
     <div class="contact-container">
-        <h1>Contact Us</h1>
+        <h1 class="page-header">Contact Us</h1>
         
         <div v-if="feedback" :class="['feedback', feedback.type]">
             {{ feedback.message }}
@@ -79,91 +79,6 @@ const sendToApi = async () => {
 </script>
 
 <style scoped>
-.contact-container {
-    max-width: 600px;
-    margin: 2rem auto;
-    padding: 2rem;
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-}
-
-h1 {
-    color: #1a1a1a;
-    margin-bottom: 1.5rem;
-    text-align: center;
-    font-weight: 700;
-}
-
-.contact-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-label {
-    font-weight: 600;
-    color: #4a4a4a;
-    font-size: 0.9rem;
-}
-
-input, textarea {
-    padding: 0.8rem;
-    border: 1px solid #e1e1e1;
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-input:focus, textarea:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.submit-btn {
-    padding: 1rem;
-    background: #3b82f6;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.submit-btn:hover:not(:disabled) {
-    background: #2563eb;
-}
-
-.submit-btn:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-}
-
-.feedback {
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
-    font-size: 0.9rem;
-    text-align: center;
-}
-
-.feedback.success {
-    background: #ecfdf5;
-    color: #065f46;
-    border: 1px solid #a7f3d0;
-}
-
-.feedback.error {
-    background: #fef2f2;
-    color: #991b1b;
-    border: 1px solid #fecaca;
-}
+/* ContactView specific styles that need to remain scoped */
+/* Most styles have been extracted to CSS modules */
 </style>

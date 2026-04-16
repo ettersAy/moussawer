@@ -3,13 +3,13 @@
         <h1>My Profile</h1>
         <p>Manage your photographer profile and availability.</p>
         
-        <div v-if="loading" class="loading">
+        <div v-if="loading" class="profile-loading">
             <p>Loading profile...</p>
         </div>
         
         <div v-else class="profile-container">
             <form @submit.prevent="updateProfile" class="profile-form">
-                <div class="form-group">
+                <div class="profile-form-group">
                     <label for="bio">Bio</label>
                     <textarea 
                         id="bio"
@@ -19,7 +19,7 @@
                     ></textarea>
                 </div>
                 
-                <div class="form-group">
+                <div class="profile-form-group">
                     <label for="portfolio_url">Portfolio URL</label>
                     <input 
                         id="portfolio_url"
@@ -29,7 +29,7 @@
                     />
                 </div>
                 
-                <div class="form-group">
+                <div class="profile-form-group">
                     <label for="hourly_rate">Hourly Rate ($)</label>
                     <input 
                         id="hourly_rate"
@@ -41,7 +41,7 @@
                     />
                 </div>
                 
-                <div class="form-group">
+                <div class="profile-form-group">
                     <label for="availability_status">Availability Status</label>
                     <select id="availability_status" v-model="profile.availability_status">
                         <option value="available">Available for Bookings</option>
@@ -50,15 +50,15 @@
                     </select>
                 </div>
                 
-                <div v-if="error" class="error-message">
+                <div v-if="error" class="profile-error-message">
                     {{ error }}
                 </div>
                 
-                <div v-if="success" class="success-message">
+                <div v-if="success" class="profile-success-message">
                     Profile updated successfully!
                 </div>
                 
-                <button type="submit" :disabled="updating" class="btn-submit">
+                <button type="submit" :disabled="updating" class="profile-btn-submit">
                     {{ updating ? 'Updating...' : 'Update Profile' }}
                 </button>
             </form>
@@ -140,96 +140,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.profile-container {
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-.profile-form {
-    background: white;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: bold;
-    color: #333;
-}
-
-.form-group input,
-.form-group textarea,
-.form-group select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-    font-family: inherit;
-    box-sizing: border-box;
-}
-
-.form-group input:focus,
-.form-group textarea:focus,
-.form-group select:focus {
-    outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
-}
-
-.form-group textarea {
-    resize: vertical;
-}
-
-.error-message {
-    background-color: #f8d7da;
-    color: #721c24;
-    padding: 12px;
-    border-radius: 4px;
-    margin-bottom: 15px;
-    border: 1px solid #f5c6cb;
-}
-
-.success-message {
-    background-color: #d4edda;
-    color: #155724;
-    padding: 12px;
-    border-radius: 4px;
-    margin-bottom: 15px;
-    border: 1px solid #c3e6cb;
-}
-
-.btn-submit {
-    background-color: #007bff;
-    color: white;
-    padding: 12px 24px;
-    border: none;
-    border-radius: 4px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: opacity 0.3s;
-    width: 100%;
-}
-
-.btn-submit:hover:not(:disabled) {
-    opacity: 0.8;
-}
-
-.btn-submit:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.loading {
-    text-align: center;
-    padding: 40px 20px;
-    color: #666;
-}
+/* PhotographerProfileView specific styles that need to remain scoped */
+/* Most styles have been extracted to CSS modules */
 </style>
