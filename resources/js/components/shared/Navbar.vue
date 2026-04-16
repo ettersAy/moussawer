@@ -1,53 +1,35 @@
 <template>
-  <nav class="bg-slate-900 shadow-lg border-b border-slate-800">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between items-center h-16">
-        <!-- Logo/Brand -->
-        <router-link to="/" class="text-xl font-bold text-white hover:text-slate-300 transition">
-          📸 Moussawer
-        </router-link>
-
-        <!-- Nav Links -->
-        <div class="hidden md:flex items-center gap-6">
-          <router-link 
-            to="/" 
-            class="text-slate-300 hover:text-white transition font-medium" 
-            active-class="text-white"
-          >
-            Home
-          </router-link>
-          <router-link 
-            to="/contact" 
-            class="text-slate-300 hover:text-white transition font-medium" 
-            active-class="text-white"
-          >
-            Contact
-          </router-link>
-        </div>
-
-        <!-- Auth Section -->
-        <div class="flex items-center gap-4">
-          <!-- Guest: Show Login Button -->
-          <router-link 
-            v-if="!isAuthenticated" 
-            to="/login" 
-            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
-          >
-            Login
-          </router-link>
-
-          <!-- Authenticated: Show User Info + Logout -->
-          <div v-else class="flex items-center gap-3">
-            <div class="text-right hidden sm:block">
-              <p class="text-sm font-medium text-white">{{ authStore.user?.name }}</p>
-              <p class="text-xs text-slate-400">{{ formatRole(authStore.user?.role) }}</p>
+    <nav class="main-nav">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <router-link to="/" class="brand-link">
+                    <span class="brand-icon">📷</span>
+                    <span class="brand-text">Moussawer</span>
+                </router-link>
             </div>
-            <LogoutButton />
-          </div>
+            
+            <div class="nav-links">
+                <router-link to="/" class="nav-item" active-class="active">Home</router-link>
+                <router-link to="/contact" class="nav-item" active-class="active">Contact</router-link>
+            </div>
+            
+            <div class="nav-auth">
+                <template v-if="!isAuthenticated">
+                    <router-link to="/login" class="auth-link login-link">Login</router-link>
+                    <router-link to="/register" class="auth-link register-link">Register</router-link>
+                </template>
+                <template v-else>
+                    <div class="auth-user-info" style="display: flex; align-items: center; gap: 1rem;">
+                        <div class="text-right hidden sm:block">
+                            <p class="text-sm font-medium">{{ authStore.user?.name }}</p>
+                            <p class="text-xs opacity-75">{{ formatRole(authStore.user?.role) }}</p>
+                        </div>
+                        <LogoutButton />
+                    </div>
+                </template>
+            </div>
         </div>
-      </div>
-    </div>
-  </nav>
+    </nav>
 </template>
 
 <script setup>
@@ -68,3 +50,8 @@ const formatRole = (role) => {
   return roles[role] || role
 }
 </script>
+
+<style scoped>
+/* Navbar specific styles that need to remain scoped */
+/* Most styles have been extracted to CSS modules */
+</style>

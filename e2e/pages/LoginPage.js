@@ -1,54 +1,54 @@
 /**
- * LoginPage Page Object
+ * Page Object Model — Login Page
  *
- * Encapsulates interactions with the login form on /login.
- * Follows Page Object Model pattern for maintainable E2E tests.
+ * Encapsulates all selectors and interactions for the /login page.
+ * Tests import this class and call its methods instead of scattering
+ * raw selectors across test files (easier to maintain when the UI changes).
+ *
+ * Pattern: https://playwright.dev/docs/pom
  */
 export class LoginPage {
-  constructor(page) {
-    this.page = page;
-    this.url = '/login';
+    /**
+     * @param {import('@playwright/test').Page} page
+     */
+    constructor(page) {
+        this.page = page;
 
-    // Locators
-    this.emailInput = page.locator('input[type="email"]');
-    this.passwordInput = page.locator('input[type="password"]');
-    this.loginButton = page.locator('button[type="submit"]');
-    this.errorMessage = page.locator('.text-red-600');
-  }
+        // --- Locators (single source of truth for all selectors) ---
+        this.emailInput = page.locator('input[name="email"]');
+        this.passwordInput = page.locator('input[name="password"]');
+        this.submitButton = page.locator('button[type="submit"]');
+        this.errorMessage = page.locator('.error-message');
+        this.heading = page.locator('h1');
+    }
 
-  /**
-   * Navigate to the login page.
-   */
-  async goto() {
-    await this.page.goto(this.url);
-  }
+    /** Navigate to the login page. */
+    async goto() {
+        await this.page.goto('/login', { waitUntil: 'domcontentloaded' });
+    }
 
-  /**
-   * Fill and submit the login form.
-   * @param {string} email
-   * @param {string} password
-   */
-  async login(email, password) {
-    await this.emailInput.fill(email);
-    await this.passwordInput.fill(password);
-    await this.loginButton.click();
-  }
+    /**
+     * Fill and submit the login form.
+     * @param {{ email: string, password: string }} credentials
+     */
+    async login(credentials) {
+        await this.emailInput.fill(credentials.email);
+        await this.passwordInput.fill(credentials.password);
+        await this.submitButton.click();
+    }
 
-  /**
-   * Get the error message text if present.
-   * @returns {string|null}
-   */
-  async getErrorMessage() {
-    return await this.errorMessage.textContent();
-  }
+    /** Wait for navigation after login */
+    async waitForNavigation() {
+        await this.page.waitForURL('**/dashboard', { timeout: 10000 });
+    }
 
-  /**
-   * Check if login was successful by checking URL or presence of logout button.
-   * @returns {boolean}
-   */
-  async isLoggedIn() {
-    // Assuming after login, redirects to / or shows logout
-    await this.page.waitForURL('**/dashboard', { timeout: 5000 });
-    return this.page.url().includes('/dashboard') || this.page.url().includes('/');
-  }
+    /** Check if error message is visible */
+    async hasErrorMessage() {
+        return await this.errorMessage.isVisible();
+    }
+
+    /** Get error message text */
+    async getErrorMessage() {
+        return await this.errorMessage.textContent();
+    }
 }

@@ -1,78 +1,63 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4 sm:px-6 lg:px-8">
-    <div class="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
-      <!-- Header -->
-      <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-slate-900 mb-2">📸 Moussawer</h1>
-        <p class="text-slate-600">Sign in to your account</p>
+
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="auth-icon">🔑</div>
+        <h1 class="auth-title">Welcome Back</h1>
+        <p class="auth-subtitle">Sign in to your Moussawer account</p>
       </div>
 
-      <!-- Form -->
-      <form @submit.prevent="handleLogin" class="space-y-5" novalidate>
-        <!-- Email Field -->
-        <div>
-          <label for="email" class="block text-sm font-medium text-slate-700 mb-2">
-            Email Address
-          </label>
+      <form @submit.prevent="handleLogin" class="auth-form">
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
           <input
-            id="email"
             v-model="form.email"
             type="email"
+            name="email"
             required
             placeholder="you@example.com"
-            aria-label="Email address"
-            :aria-invalid="!!error"
-            class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-slate-900 placeholder-slate-500"
-            :class="{ 'border-red-500 focus:ring-red-500': error }"
+            class="form-input"
+            :class="{ 'form-input-error': error }"
           />
         </div>
 
-        <!-- Password Field -->
-        <div>
-          <label for="password" class="block text-sm font-medium text-slate-700 mb-2">
-            Password
-          </label>
+        <div class="form-group">
+          <label class="form-label">Password</label>
           <input
-            id="password"
             v-model="form.password"
             type="password"
+            name="password"
             required
-            placeholder="••••••••"
-            aria-label="Password"
-            :aria-invalid="!!error"
-            class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-slate-900 placeholder-slate-500"
-            :class="{ 'border-red-500 focus:ring-red-500': error }"
+            placeholder="Enter your password"
+            class="form-input"
+            :class="{ 'form-input-error': error }"
           />
         </div>
 
-        <!-- Error Alert -->
-        <transition name="fade">
-          <div 
-            v-if="error" 
-            class="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3"
-            role="alert"
-          >
-            <span class="text-red-600 text-xl flex-shrink-0">⚠️</span>
-            <p class="text-red-700 text-sm font-medium">{{ error }}</p>
-          </div>
-        </transition>
+        <!-- Error feedback -->
+        <div v-if="error" class="error-message">
+          <div class="error-icon">⚠️</div>
+          <div class="error-text">{{ error }}</div>
+        </div>
 
-        <!-- Submit Button -->
         <button
           type="submit"
           :disabled="loading"
-          class="w-full bg-blue-600 text-white font-medium py-2.5 rounded-lg hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
-          :aria-busy="loading"
+          class="auth-submit-button"
         >
-          <span v-if="loading" class="inline-block animate-spin">⟳</span>
-          {{ loading ? 'Signing in...' : 'Sign in' }}
+          <span v-if="loading" class="loading-spinner"></span>
+          {{ loading ? 'Signing In...' : 'Sign In' }}
         </button>
+
+        <div class="auth-footer">
+          <p class="auth-footer-text">
+            Don't have an account?
+            <router-link to="/register" class="auth-footer-link">Create one here</router-link>
+          </p>
+        </div>
       </form>
 
-      <!-- Footer -->
-      <div class="mt-6 text-center text-sm text-slate-600">
-        <p>Don't have an account? <router-link to="#" class="text-blue-600 hover:text-blue-700 font-medium">Sign up</router-link></p>
-      </div>
     </div>
   </div>
 </template>
@@ -101,8 +86,14 @@ const handleLogin = async () => {
     await authStore.login(form.value)
     await authStore.fetchUser() // optional extra safety
 
-    // Redirect based on role or to dashboard
-    router.push(authStore.user?.role === 'admin' ? '/admin' : '/dashboard')
+    // Smart redirect based on role
+    const dashboardMap = {
+      admin: '/admin/dashboard',
+      photographer: '/photographer/dashboard',
+      client: '/client/dashboard',
+    }
+    const redirectPath = dashboardMap[authStore.user?.role] || '/'
+    router.push(redirectPath)
   } catch (err) {
     error.value = authStore.error || err.response?.data?.message || 'Invalid credentials.'
   } finally {
@@ -112,25 +103,5 @@ const handleLogin = async () => {
 </script>
 
 <style scoped>
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: all 0.3s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-  transform: translateY(-5px);
-}
-</style>
+/* LoginView specific styles that need to remain scoped */
+/* Most styles have been extracted to CSS modules */

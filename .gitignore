@@ -49,9 +49,10 @@ exec.sh
 scripts/extractor.sh
 scripts/install_startup_macro.sh
 scripts/setup_shortcut.sh
+doc/*
 doc/local/*
 .envdocker
-doc/diver/Doc-website-implementation-plan.md
+
 outlog
 Moussawer.sublime-project
 moussawer.code-workspace

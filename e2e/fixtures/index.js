@@ -23,12 +23,12 @@ export const test = base.extend({
   },
 
   /**
-   * Provides a LoginPage instance already navigated to /login.
+   * Provides a LoginPage instance (not pre-navigated).
    * Use in tests: `test('...', async ({ loginPage }) => { ... })`
    */
   loginPage: async ({ page }, use) => {
     const loginPage = new LoginPage(page);
-    await loginPage.goto();
+
     await use(loginPage);
   },
 });

@@ -2,8 +2,9 @@
 
 namespace Tests\Feature\Auth;
 
-use App\Models\User;
 use App\Enums\UserRole;
+use App\Models\User;
+use Laravel\Sanctum\PersonalAccessToken;
 use Tests\TestCase;
 
 class AuthenticationTest extends TestCase
@@ -132,7 +133,7 @@ class AuthenticationTest extends TestCase
             ->assertJsonPath('message', 'Logged out successfully.');
 
         // Verify token was deleted from database
-        $tokensAfter = \Laravel\Sanctum\PersonalAccessToken::where('tokenable_id', $user->id)->count();
+        $tokensAfter = PersonalAccessToken::where('tokenable_id', $user->id)->count();
         $this->assertEquals(0, $tokensAfter, 'Token should be deleted after logout');
     }
 

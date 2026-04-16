@@ -1,0 +1,143 @@
+/* Photographer Layout Components */
+.photographer-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #f5f5f5;
+}
+
+/* Photographer Navbar */
+.photographer-navbar {
+    background-color: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.photographer-navbar-brand {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.photographer-brand-link {
+    color: #333;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.photographer-brand-link:hover {
+    color: #007bff;
+}
+
+.photographer-navbar-content {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    flex: 1;
+    margin-left: 40px;
+}
+
+.photographer-nav-menu {
+    display: flex;
+    gap: 20px;
+}
+
+.photographer-nav-link {
+    color: #666;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 8px 12px;
+    border-radius: 4px;
+    transition: all 0.3s;
+}
+
+.photographer-nav-link:hover {
+    color: #007bff;
+    background-color: rgba(0, 123, 255, 0.1);
+}
+
+.photographer-nav-link.active {
+    color: #007bff;
+    background-color: rgba(0, 123, 255, 0.1);
+    font-weight: bold;
+}
+
+.photographer-nav-user {
+    margin-left: auto;
+}
+
+.photographer-user-menu {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.photographer-user-name {
+    color: #333;
+    font-weight: 500;
+}
+
+.photographer-btn-logout {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: opacity 0.3s;
+}
+
+.photographer-btn-logout:hover {
+    opacity: 0.8;
+}
+
+.photographer-main-content {
+    flex: 1;
+    padding: 30px;
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .photographer-navbar {
+        flex-direction: column;
+        height: auto;
+        padding: 15px;
+    }
+
+    .photographer-navbar-content {
+        flex-direction: column;
+        width: 100%;
+        gap: 15px;
+        margin-left: 0;
+    }
+
+    .photographer-nav-menu {
+        flex-direction: column;
+        width: 100%;
+        gap: 10px;
+    }
+
+    .photographer-nav-user {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .photographer-user-menu {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .photographer-main-content {
+        padding: 15px;
+    }
+}
