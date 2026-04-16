@@ -41,15 +41,27 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function logout() {
+    loading.value = true;
+    error.value = null;
+
     try {
-      await api.post('/logout')
-    } catch (e) {
-      // silent fail – token will be removed anyway
+      // Call logout endpoint (Sanctum will delete current token)
+      await api.post('/logout');
+    } catch (err) {
+      // Ignore backend errors (network, expired token, etc.)
+      console.warn('Backend logout failed, proceeding with local cleanup', err);
     } finally {
-      token.value = null
-      user.value = null
-      localStorage.removeItem('auth_token')
-      localStorage.removeItem('auth_user')
+      // ALWAYS clear local state
+      token.value = null;
+      user.value = null;
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_user');
+
+      // Redirect to login (using router)
+      const router = (await import('@/router')).default;
+      await router.push({ name: 'login' });
+
+      loading.value = false;
     }
   }
 

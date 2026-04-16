@@ -50,6 +50,7 @@ scripts/extractor.sh
 scripts/install_startup_macro.sh
 scripts/setup_shortcut.sh
 doc/*
+doc/local/*
 .envdocker
 
 outlog

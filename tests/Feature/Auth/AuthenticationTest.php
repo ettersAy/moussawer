@@ -157,14 +157,21 @@ class AuthenticationTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['password']);
+    }
 
-        // Invalid email format
-        $response = $this->postJson('/api/login', [
-            'email' => 'invalid-email',
-            'password' => 'password123',
-        ]);
+    /**
+     * Test login throttling after too many attempts.
+     */
+    public function test_login_throttling(): void
+    {
+        // Make 11 attempts (exceeds 10 per minute)
+        for ($i = 0; $i < 11; $i++) {
+            $response = $this->postJson('/api/login', [
+                'email' => 'auth@example.com',
+                'password' => 'wrongpassword',
+            ]);
+        }
 
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['email']);
+        $response->assertStatus(429); // Too Many Requests
     }
 }

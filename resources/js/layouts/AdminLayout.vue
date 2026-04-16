@@ -17,7 +17,7 @@
                 <div class="admin-nav-user">
                     <div class="admin-user-menu">
                         <span class="admin-user-name">{{ authStore.user?.name }}</span>
-                        <button @click="logout" class="admin-btn-logout">Logout</button>
+                        <LogoutButton />
                     </div>
                 </div>
             </div>
@@ -31,15 +31,9 @@
 
 <script setup>
 import { useAuthStore } from '@/stores/auth'
-import { useRouter } from 'vue-router'
+import LogoutButton from '@/components/shared/auth/LogoutButton.vue'
 
 const authStore = useAuthStore()
-const router = useRouter()
-
-const logout = async () => {
-    await authStore.logout()
-    router.push({ name: 'login' })
-}
 </script>
 
 <style scoped>

@@ -1,4 +1,5 @@
 <template>
+
   <div class="auth-container">
     <div class="auth-card">
       <div class="auth-header">
@@ -56,6 +57,7 @@
           </p>
         </div>
       </form>
+
     </div>
   </div>
 </template>
@@ -103,4 +105,3 @@ const handleLogin = async () => {
 <style scoped>
 /* LoginView specific styles that need to remain scoped */
 /* Most styles have been extracted to CSS modules */
-</style>
