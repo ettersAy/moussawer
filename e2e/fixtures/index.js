@@ -1,5 +1,6 @@
 import { test as base } from '@playwright/test';
 import { ContactPage } from '../pages/ContactPage.js';
+import { LoginPage } from '../pages/LoginPage.js';
 
 /**
  * Custom Fixtures
@@ -19,6 +20,15 @@ export const test = base.extend({
     const contactPage = new ContactPage(page);
     await contactPage.goto();
     await use(contactPage);
+  },
+
+  /**
+   * Provides a LoginPage instance (not pre-navigated).
+   * Use in tests: `test('...', async ({ loginPage }) => { ... })`
+   */
+  loginPage: async ({ page }, use) => {
+    const loginPage = new LoginPage(page);
+    await use(loginPage);
   },
 });
 

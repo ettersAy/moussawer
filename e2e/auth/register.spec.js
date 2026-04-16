@@ -14,7 +14,7 @@ test.describe('Registration Page', () => {
     
     // Check form fields
     await expect(page.getByText('Full Name', { exact: true })).toBeVisible();
-    await expect(page.getByText('Email', { exact: true })).toBeVisible();
+    await expect(page.getByText('Email Address', { exact: true })).toBeVisible();
     await expect(page.getByText('I am a', { exact: true })).toBeVisible();
     await expect(page.getByText('Password', { exact: true }).first()).toBeVisible();
     await expect(page.getByText('Confirm Password', { exact: true })).toBeVisible();
@@ -24,13 +24,13 @@ test.describe('Registration Page', () => {
     const submitBtn = page.locator('button[type="submit"]');
     await expect(submitBtn).toBeVisible();
     await expect(submitBtn).toBeEnabled();
-    await expect(submitBtn).toContainText('Sign Up');
+    await expect(submitBtn).toContainText('Create Account');
   });
 
   test('renders link to login page', async ({ page }) => {
-    const loginLink = page.locator('a[href="/login"]');
+    const loginLink = page.locator('a.auth-footer-link[href="/login"]');
     await expect(loginLink).toBeVisible();
-    await expect(loginLink).toContainText('Login here');
+    await expect(loginLink).toContainText('Sign in here');
   });
 
   // -----------------------------------------------------------------------
@@ -39,15 +39,15 @@ test.describe('Registration Page', () => {
 
   test('allows typing in all form fields', async ({ page }) => {
     await page.locator('input[placeholder="Your full name"]').fill('John Photographer');
-    await page.locator('input[placeholder="your@email.com"]').fill('john@example.com');
+    await page.locator('input[placeholder="you@example.com"]').fill('john@example.com');
     await page.locator('select').selectOption('photographer');
-    await page.locator('input[placeholder="Min. 8 characters"]').fill('SecurePass123');
+    await page.locator('input[placeholder="Minimum 8 characters"]').fill('SecurePass123');
     await page.locator('input[placeholder="Repeat your password"]').fill('SecurePass123');
 
     await expect(page.locator('input[placeholder="Your full name"]')).toHaveValue('John Photographer');
-    await expect(page.locator('input[placeholder="your@email.com"]')).toHaveValue('john@example.com');
+    await expect(page.locator('input[placeholder="you@example.com"]')).toHaveValue('john@example.com');
     await expect(page.locator('select')).toHaveValue('photographer');
-    await expect(page.locator('input[placeholder="Min. 8 characters"]')).toHaveValue('SecurePass123');
+    await expect(page.locator('input[placeholder="Minimum 8 characters"]')).toHaveValue('SecurePass123');
     await expect(page.locator('input[placeholder="Repeat your password"]')).toHaveValue('SecurePass123');
   });
 
@@ -70,9 +70,9 @@ test.describe('Registration Page', () => {
 
     // Fill form
     await page.locator('input[placeholder="Your full name"]').fill('Test User');
-    await page.locator('input[placeholder="your@email.com"]').fill('test@example.com');
+    await page.locator('input[placeholder="you@example.com"]').fill('test@example.com');
     await page.locator('select').selectOption('client');
-    await page.locator('input[placeholder="Min. 8 characters"]').fill('Password123');
+    await page.locator('input[placeholder="Minimum 8 characters"]').fill('Password123');
     await page.locator('input[placeholder="Repeat your password"]').fill('Password123');
 
     // Click submit
@@ -91,9 +91,9 @@ test.describe('Registration Page', () => {
   // -----------------------------------------------------------------------
 
   test('displays error for missing name', async ({ page }) => {
-    await page.locator('input[placeholder="your@email.com"]').fill('test@example.com');
+    await page.locator('input[placeholder="you@example.com"]').fill('test@example.com');
     await page.locator('select').selectOption('client');
-    await page.locator('input[placeholder="Min. 8 characters"]').fill('Password123');
+    await page.locator('input[placeholder="Minimum 8 characters"]').fill('Password123');
     await page.locator('input[placeholder="Repeat your password"]').fill('Password123');
 
     const submitBtn = page.locator('button[type="submit"]');
@@ -107,25 +107,25 @@ test.describe('Registration Page', () => {
 
   test('displays error for invalid email', async ({ page }) => {
     await page.locator('input[placeholder="Your full name"]').fill('Test User');
-    await page.locator('input[placeholder="your@email.com"]').fill('not-an-email');
+    await page.locator('input[placeholder="you@example.com"]').fill('not-an-email');
     await page.locator('select').selectOption('client');
-    await page.locator('input[placeholder="Min. 8 characters"]').fill('Password123');
+    await page.locator('input[placeholder="Minimum 8 characters"]').fill('Password123');
     await page.locator('input[placeholder="Repeat your password"]').fill('Password123');
 
     const submitBtn = page.locator('button[type="submit"]');
     await submitBtn.click();
 
     // Browser HTML5 validation
-    const emailInput = page.locator('input[placeholder="your@email.com"]');
+    const emailInput = page.locator('input[placeholder="you@example.com"]');
     const validity = await emailInput.evaluate(el => el.validity.valid);
     expect(validity).toBe(false);
   });
 
   test('displays error for short password', async ({ page }) => {
     await page.locator('input[placeholder="Your full name"]').fill('Test User');
-    await page.locator('input[placeholder="your@email.com"]').fill('test@example.com');
+    await page.locator('input[placeholder="you@example.com"]').fill('test@example.com');
     await page.locator('select').selectOption('client');
-    await page.locator('input[placeholder="Min. 8 characters"]').fill('Short1');
+    await page.locator('input[placeholder="Minimum 8 characters"]').fill('Short1');
     await page.locator('input[placeholder="Repeat your password"]').fill('Short1');
 
     // Should fail server-side validation or client-side
@@ -166,9 +166,9 @@ test.describe('Registration Page', () => {
     
     // Fill form
     await page.locator('input[placeholder="Your full name"]').fill('Jane Client');
-    await page.locator('input[placeholder="your@email.com"]').fill(uniqueEmail);
+    await page.locator('input[placeholder="you@example.com"]').fill(uniqueEmail);
     await page.locator('select').selectOption('client');
-    await page.locator('input[placeholder="Min. 8 characters"]').fill('ClientPass123');
+    await page.locator('input[placeholder="Minimum 8 characters"]').fill('ClientPass123');
     await page.locator('input[placeholder="Repeat your password"]').fill('ClientPass123');
 
     // Submit
@@ -208,9 +208,9 @@ test.describe('Registration Page', () => {
     
     // Fill form
     await page.locator('input[placeholder="Your full name"]').fill('John Photographer');
-    await page.locator('input[placeholder="your@email.com"]').fill(uniqueEmail);
+    await page.locator('input[placeholder="you@example.com"]').fill(uniqueEmail);
     await page.locator('select').selectOption('photographer');
-    await page.locator('input[placeholder="Min. 8 characters"]').fill('PhotoPass123');
+    await page.locator('input[placeholder="Minimum 8 characters"]').fill('PhotoPass123');
     await page.locator('input[placeholder="Repeat your password"]').fill('PhotoPass123');
 
     // Submit
@@ -228,9 +228,9 @@ test.describe('Registration Page', () => {
     // Note: This assumes a user with this email already exists
     // In real scenario, you'd set this up via test fixtures
     await page.locator('input[placeholder="Your full name"]').fill('Duplicate Test');
-    await page.locator('input[placeholder="your@email.com"]').fill('existing@example.com');
+    await page.locator('input[placeholder="you@example.com"]').fill('existing@example.com');
     await page.locator('select').selectOption('client');
-    await page.locator('input[placeholder="Min. 8 characters"]').fill('Password123');
+    await page.locator('input[placeholder="Minimum 8 characters"]').fill('Password123');
     await page.locator('input[placeholder="Repeat your password"]').fill('Password123');
 
     // Mock the API to return duplicate email error
@@ -274,9 +274,9 @@ test.describe('Registration Page', () => {
 
     // Fill form with invalid data
     await page.locator('input[placeholder="Your full name"]').fill('Test User');
-    await page.locator('input[placeholder="your@email.com"]').fill('test@example.com');
+    await page.locator('input[placeholder="you@example.com"]').fill('test@example.com');
     await page.locator('select').selectOption('client');
-    await page.locator('input[placeholder="Min. 8 characters"]').fill('short');
+    await page.locator('input[placeholder="Minimum 8 characters"]').fill('short');
     await page.locator('input[placeholder="Repeat your password"]').fill('short');
 
     // Submit
@@ -302,9 +302,9 @@ test.describe('Registration Page', () => {
 
     // Fill and submit
     await page.locator('input[placeholder="Your full name"]').fill('Test User');
-    await page.locator('input[placeholder="your@email.com"]').fill('test@example.com');
+    await page.locator('input[placeholder="you@example.com"]').fill('test@example.com');
     await page.locator('select').selectOption('client');
-    await page.locator('input[placeholder="Min. 8 characters"]').fill('Password123');
+    await page.locator('input[placeholder="Minimum 8 characters"]').fill('Password123');
     await page.locator('input[placeholder="Repeat your password"]').fill('Password123');
     await page.locator('button[type="submit"]').click();
 
