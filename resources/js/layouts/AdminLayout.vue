@@ -12,6 +12,9 @@
                     <router-link to="/admin/dashboard" class="admin-nav-link" active-class="active">
                         Dashboard
                     </router-link>
+                    <router-link to="/admin/users" class="admin-nav-link" active-class="active">
+                        Manage Users
+                    </router-link>
                 </div>
                 
                 <div class="admin-nav-user">

@@ -34,6 +34,12 @@ const routes = [
         component: () => import('./views/admin/DashboardView.vue'),
         meta: { layout: 'admin', requiresAuth: true, requiredRole: 'admin' },
     },
+    {
+        path: '/admin/users',
+        name: 'admin-users',
+        component: () => import('./views/admin/UsersView.vue'),
+        meta: { layout: 'admin', requiresAuth: true, requiredRole: 'admin' },
+    },
     // --- Photographer Routes ---
     {
         path: '/photographer/dashboard',

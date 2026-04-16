@@ -105,3 +105,4 @@ const handleLogin = async () => {
 <style scoped>
 /* LoginView specific styles that need to remain scoped */
 /* Most styles have been extracted to CSS modules */
+</style>
