@@ -1,35 +1,35 @@
 <template>
     <div class="photographer-layout">
-        <nav class="navbar">
-            <div class="navbar-brand">
-                <router-link to="/photographer/dashboard" class="brand-link">
+        <nav class="photographer-navbar">
+            <div class="photographer-navbar-brand">
+                <router-link to="/photographer/dashboard" class="photographer-brand-link">
                     Moussawer
                 </router-link>
             </div>
             
-            <div class="navbar-content">
-                <div class="nav-menu">
-                    <router-link to="/photographer/dashboard" class="nav-link" active-class="active">
+            <div class="photographer-navbar-content">
+                <div class="photographer-nav-menu">
+                    <router-link to="/photographer/dashboard" class="photographer-nav-link" active-class="active">
                         Dashboard
                     </router-link>
-                    <router-link to="/photographer/bookings" class="nav-link" active-class="active">
+                    <router-link to="/photographer/bookings" class="photographer-nav-link" active-class="active">
                         Bookings
                     </router-link>
-                    <router-link to="/photographer/profile" class="nav-link" active-class="active">
+                    <router-link to="/photographer/profile" class="photographer-nav-link" active-class="active">
                         My Profile
                     </router-link>
                 </div>
                 
-                <div class="nav-user">
-                    <div class="user-menu">
-                        <span class="user-name">{{ authStore.user?.name }}</span>
-                        <button @click="logout" class="btn-logout">Logout</button>
+                <div class="photographer-nav-user">
+                    <div class="photographer-user-menu">
+                        <span class="photographer-user-name">{{ authStore.user?.name }}</span>
+                        <button @click="logout" class="photographer-btn-logout">Logout</button>
                     </div>
                 </div>
             </div>
         </nav>
         
-        <main class="main-content">
+        <main class="photographer-main-content">
             <slot />
         </main>
     </div>
@@ -49,144 +49,6 @@ const logout = async () => {
 </script>
 
 <style scoped>
-.photographer-layout {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    background-color: #f5f5f5;
-}
-
-.navbar {
-    background-color: #fff;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    padding: 0 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 60px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
-
-.navbar-brand {
-    font-size: 24px;
-    font-weight: bold;
-}
-
-.brand-link {
-    color: #333;
-    text-decoration: none;
-    font-weight: bold;
-}
-
-.brand-link:hover {
-    color: #007bff;
-}
-
-.navbar-content {
-    display: flex;
-    align-items: center;
-    gap: 40px;
-    flex: 1;
-    margin-left: 40px;
-}
-
-.nav-menu {
-    display: flex;
-    gap: 20px;
-}
-
-.nav-link {
-    color: #666;
-    text-decoration: none;
-    font-weight: 500;
-    padding: 8px 12px;
-    border-radius: 4px;
-    transition: all 0.3s;
-}
-
-.nav-link:hover {
-    color: #007bff;
-    background-color: rgba(0, 123, 255, 0.1);
-}
-
-.nav-link.active {
-    color: #007bff;
-    background-color: rgba(0, 123, 255, 0.1);
-    font-weight: bold;
-}
-
-.nav-user {
-    margin-left: auto;
-}
-
-.user-menu {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.user-name {
-    color: #333;
-    font-weight: 500;
-}
-
-.btn-logout {
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: opacity 0.3s;
-}
-
-.btn-logout:hover {
-    opacity: 0.8;
-}
-
-.main-content {
-    flex: 1;
-    padding: 30px;
-    max-width: 1200px;
-    width: 100%;
-    margin: 0 auto;
-}
-
-@media (max-width: 768px) {
-    .navbar {
-        flex-direction: column;
-        height: auto;
-        padding: 15px;
-    }
-
-    .navbar-content {
-        flex-direction: column;
-        width: 100%;
-        gap: 15px;
-        margin-left: 0;
-    }
-
-    .nav-menu {
-        flex-direction: column;
-        width: 100%;
-        gap: 10px;
-    }
-
-    .nav-user {
-        width: 100%;
-        margin-left: 0;
-    }
-
-    .user-menu {
-        flex-direction: column;
-        width: 100%;
-    }
-
-    .main-content {
-        padding: 15px;
-    }
-}
+/* PhotographerLayout specific styles that need to remain scoped */
+/* Most styles have been extracted to CSS modules */
 </style>

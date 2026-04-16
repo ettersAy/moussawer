@@ -2,34 +2,24 @@
     <div>
         <h1>Admin Dashboard</h1>
         <p>Welcome to the Moussawer management area.</p>
-        <div class="stats-grid">
-            <div class="stat-card">
+        <div class="dashboard-stats-grid">
+            <div class="dashboard-stat-card">
                 <h3>Users</h3>
-                <p>150</p>
+                <p class="dashboard-stat-number">150</p>
             </div>
-            <div class="stat-card">
+            <div class="dashboard-stat-card">
                 <h3>Photographers</h3>
-                <p>45</p>
+                <p class="dashboard-stat-number">45</p>
             </div>
-            <div class="stat-card">
+            <div class="dashboard-stat-card">
                 <h3>Total Bookings</h3>
-                <p>320</p>
+                <p class="dashboard-stat-number">320</p>
             </div>
         </div>
     </div>
 </template>
 
 <style scoped>
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-    margin-top: 20px;
-}
-.stat-card {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
+/* AdminDashboardView specific styles that need to remain scoped */
+/* Most styles have been extracted to CSS modules */
 </style>

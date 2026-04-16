@@ -1,0 +1,143 @@
+/* Admin Layout Components */
+.admin-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #f5f5f5;
+}
+
+/* Admin Navbar */
+.admin-navbar {
+    background-color: #1a1a1a;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.admin-navbar-brand {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.admin-brand-link {
+    color: #fff;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.admin-brand-link:hover {
+    color: #ffc107;
+}
+
+.admin-navbar-content {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    flex: 1;
+    margin-left: 40px;
+}
+
+.admin-nav-menu {
+    display: flex;
+    gap: 20px;
+}
+
+.admin-nav-link {
+    color: #ccc;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 8px 12px;
+    border-radius: 4px;
+    transition: all 0.3s;
+}
+
+.admin-nav-link:hover {
+    color: #ffc107;
+    background-color: rgba(255, 193, 7, 0.1);
+}
+
+.admin-nav-link.active {
+    color: #ffc107;
+    background-color: rgba(255, 193, 7, 0.1);
+    font-weight: bold;
+}
+
+.admin-nav-user {
+    margin-left: auto;
+}
+
+.admin-user-menu {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.admin-user-name {
+    color: #ccc;
+    font-weight: 500;
+}
+
+.admin-btn-logout {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: opacity 0.3s;
+}
+
+.admin-btn-logout:hover {
+    opacity: 0.8;
+}
+
+.admin-main-content {
+    flex: 1;
+    padding: 30px;
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .admin-navbar {
+        flex-direction: column;
+        height: auto;
+        padding: 15px;
+    }
+
+    .admin-navbar-content {
+        flex-direction: column;
+        width: 100%;
+        gap: 15px;
+        margin-left: 0;
+    }
+
+    .admin-nav-menu {
+        flex-direction: column;
+        width: 100%;
+        gap: 10px;
+    }
+
+    .admin-nav-user {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .admin-user-menu {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .admin-main-content {
+        padding: 15px;
+    }
+}
