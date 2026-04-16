@@ -21,7 +21,9 @@ class UserController extends Controller
     public function index(): AnonymousResourceCollection
     {
         abort_if(! auth()->user() || ! auth()->user()->isAdmin(), 403);
-        $users = $this->userService->getAllPaginated();
+        $users = $this->userService->getAllPaginated(
+            search: request('search')
+        );
 
         return UserResource::collection($users);
     }

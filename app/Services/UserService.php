@@ -11,9 +11,18 @@ class UserService
     /**
      * Get paginated layout of users.
      */
-    public function getAllPaginated(int $perPage = 15): LengthAwarePaginator
+    public function getAllPaginated(int $perPage = 15, ?string $search = null): LengthAwarePaginator
     {
-        return User::latest()->paginate($perPage);
+        $query = User::latest();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        return $query->paginate($perPage);
     }
 
     /**
