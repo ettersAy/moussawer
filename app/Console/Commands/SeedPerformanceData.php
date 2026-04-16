@@ -79,9 +79,12 @@ class SeedPerformanceData extends Command
             // Random creation dates spanning the last 3 years
             $createdAt = Carbon::now()->subDays(mt_rand(0, 1095))->toDateTimeString();
 
+            $cleanFirst = preg_replace('/[^a-zA-Z0-9]/', '', $firstName);
+            $cleanLast = preg_replace('/[^a-zA-Z0-9]/', '', $lastName);
+
             $usersBatch[] = [
                 'name' => $name,
-                'email' => $faker->unique()->safeEmail(),
+                'email' => strtolower("{$cleanFirst}.{$cleanLast}.{$i}@example.test"),
                 'password' => $password,
                 'role' => $role,
                 'email_verified_at' => mt_rand(1, 100) > 10 ? $createdAt : null, // 90% verified
