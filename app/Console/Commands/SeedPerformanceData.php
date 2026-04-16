@@ -43,6 +43,8 @@ class SeedPerformanceData extends Command
 
         DB::disableQueryLog();
 
+        $startUserId = DB::table('users')->max('id') ?? 0;
+
         $faker = Factory::create();
         $password = Hash::make('password123'); // Cache password hash for speed
 
@@ -105,6 +107,7 @@ class SeedPerformanceData extends Command
         $this->info('Fetching user IDs for relationships...');
         // We get chunks to prevent memory exhaust
         DB::table('users')->select('id', 'role', 'created_at')
+            ->where('id', '>', $startUserId)
             ->orderBy('id')->chunk(5000, function ($users) use (&$photographerUserIds, &$clientUserIds) {
                 foreach ($users as $user) {
                     if ($user->role === UserRole::Photographer->value) {
@@ -176,8 +179,11 @@ class SeedPerformanceData extends Command
         $bookingTotal = count($clientUserIds) * 4;
         $this->info("Phase 3: Generating ~{$bookingTotal} Bookings (and associated payments/reviews)...");
 
-        // Fetch photographer internal IDs map
-        $photographers = DB::table('photographers')->pluck('id', 'user_id')->toArray();
+        $startBookingId = DB::table('bookings')->max('id') ?? 0;
+
+        // Fetch photographer internal IDs map, only for the newly created ones
+        $newPhotoUserIds = array_column($photographerUserIds, 'id');
+        $photographers = DB::table('photographers')->whereIn('user_id', $newPhotoUserIds)->pluck('id', 'user_id')->toArray();
 
         $bookingBatch = [];
         $paymentBatch = [];
@@ -247,6 +253,7 @@ class SeedPerformanceData extends Command
         // Fetch bookings needing payments/reviews
         DB::table('bookings')
             ->select('id', 'status', 'created_at', 'client_id', 'photographer_id')
+            ->where('id', '>', $startBookingId)
             ->orderBy('id')
             ->chunk(2000, function ($bookings) use ($faker, &$paymentBatch, &$reviewBatch, $chunkSize) {
                 foreach ($bookings as $booking) {
