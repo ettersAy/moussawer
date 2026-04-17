@@ -40,6 +40,12 @@ const routes = [
         component: () => import('./views/admin/UsersView.vue'),
         meta: { layout: 'admin', requiresAuth: true, requiredRole: 'admin' },
     },
+    {
+        path: '/admin/users/:id/portfolio',
+        name: 'admin-user-portfolio',
+        component: () => import('./views/admin/UserPortfolioView.vue'),
+        meta: { layout: 'admin', requiresAuth: true, requiredRole: 'admin' },
+    },
     // --- Photographer Routes ---
     {
         path: '/photographer/dashboard',
