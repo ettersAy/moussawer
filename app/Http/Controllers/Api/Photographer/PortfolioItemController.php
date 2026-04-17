@@ -21,7 +21,7 @@ class PortfolioItemController extends Controller
 
         abort_if(! $user->isPhotographer(), 403, 'Only photographers have portfolios.');
 
-        $photographer = $user->photographerProfile;
+        $photographer = $user->photographer;
 
         if (! $photographer) {
             return response()->json(['data' => []]);
@@ -48,7 +48,7 @@ class PortfolioItemController extends Controller
     {
         /** @var User $user */
         $user = auth()->user();
-        $photographer = $user->photographerProfile;
+        $photographer = $user->photographer;
 
         if (! $photographer) {
             return response()->json(['message' => 'Please complete your photographer profile first.'], 400);
