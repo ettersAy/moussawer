@@ -39,9 +39,6 @@ class BookingController extends Controller
         return (new BookingResource($booking))->response()->setStatusCode(201);
     }
 
-    /**
-     * Display a listing of bookings.
-     */
     public function index(Request $request)
     {
         $this->authorize('viewAny', Booking::class);
@@ -62,8 +59,19 @@ class BookingController extends Controller
         // Admin sees all bookings
 
         // Filter by status if provided
-        if ($request->has('status')) {
+        if ($request->filled('status')) {
             $query->where('status', $request->status);
+        }
+
+        // Sorting
+        $sortBy = $request->input('sort_by', 'scheduled_date');
+        $sortDirection = $request->input('sort_direction', 'desc');
+
+        $allowedSorts = ['scheduled_date', 'created_at', 'status'];
+        if (in_array($sortBy, $allowedSorts)) {
+            $query->orderBy($sortBy, $sortDirection);
+        } else {
+            $query->latest();
         }
 
         $bookings = $query->paginate(15);
