@@ -18,6 +18,9 @@
 @import './components/dashboard.css';
 @import './components/profile.css';
 @import './views/home.css';
+@import './views/admin/users.css';
+@import './views/admin/user-portfolio.css';
+@import './views/photographer/portfolio.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';

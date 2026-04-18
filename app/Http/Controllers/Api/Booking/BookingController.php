@@ -52,7 +52,12 @@ class BookingController extends Controller
         if (auth()->user()->role === UserRole::Client) {
             $query->where('client_id', auth()->id());
         } elseif (auth()->user()->role === UserRole::Photographer) {
-            $query->where('photographer_id', auth()->user()->photographer->id);
+            $photographer = auth()->user()->photographer;
+            if ($photographer) {
+                $query->where('photographer_id', $photographer->id);
+            } else {
+                $query->whereRaw('1 = 0'); // Return empty if no profile
+            }
         }
         // Admin sees all bookings
 

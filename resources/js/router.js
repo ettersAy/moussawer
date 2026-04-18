@@ -40,6 +40,12 @@ const routes = [
         component: () => import('./views/admin/UsersView.vue'),
         meta: { layout: 'admin', requiresAuth: true, requiredRole: 'admin' },
     },
+    {
+        path: '/admin/users/:id/portfolio',
+        name: 'admin-user-portfolio',
+        component: () => import('./views/admin/UserPortfolioView.vue'),
+        meta: { layout: 'admin', requiresAuth: true, requiredRole: 'admin' },
+    },
     // --- Photographer Routes ---
     {
         path: '/photographer/dashboard',
@@ -57,6 +63,12 @@ const routes = [
         path: '/photographer/profile',
         name: 'photographer-profile',
         component: () => import('./views/photographer/ProfileView.vue'),
+        meta: { layout: 'photographer', requiresAuth: true, requiredRole: 'photographer' },
+    },
+    {
+        path: '/photographer/portfolio',
+        name: 'photographer-portfolio',
+        component: () => import('./views/photographer/PortfolioView.vue'),
         meta: { layout: 'photographer', requiresAuth: true, requiredRole: 'photographer' },
     },
     // --- Client Routes ---

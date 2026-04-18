@@ -15,7 +15,16 @@ class PortfolioItem extends Model
         'title',
         'description',
         'image_url',
+        'category',
+        'tags',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'tags' => 'array',
+        ];
+    }
 
     // --- Relationships ---
 

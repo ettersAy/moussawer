@@ -15,6 +15,9 @@
                     <router-link to="/photographer/bookings" class="photographer-nav-link" active-class="active">
                         Bookings
                     </router-link>
+                    <router-link to="/photographer/portfolio" class="photographer-nav-link" active-class="active">
+                        Portfolio
+                    </router-link>
                     <router-link to="/photographer/profile" class="photographer-nav-link" active-class="active">
                         My Profile
                     </router-link>
