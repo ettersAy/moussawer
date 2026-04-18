@@ -1,5 +1,4 @@
 <template>
-
   <div class="auth-container">
     <div class="auth-card">
       <div class="auth-header">
@@ -64,41 +63,17 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useAuthStore } from '@/stores/auth'
-import { useRouter } from 'vue-router'
+import { useAuth } from '@/composables/useAuth'
 
-const authStore = useAuthStore()
-const router = useRouter()
+const { loading, error, login } = useAuth()
 
 const form = ref({
   email: '',
   password: ''
 })
 
-const loading = ref(false)
-const error = ref('')
-
 const handleLogin = async () => {
-  loading.value = true
-  error.value = ''
-
-  try {
-    await authStore.login(form.value)
-    await authStore.fetchUser() // optional extra safety
-
-    // Smart redirect based on role
-    const dashboardMap = {
-      admin: '/admin/dashboard',
-      photographer: '/photographer/dashboard',
-      client: '/client/dashboard',
-    }
-    const redirectPath = dashboardMap[authStore.user?.role] || '/'
-    router.push(redirectPath)
-  } catch (err) {
-    error.value = authStore.error || err.response?.data?.message || 'Invalid credentials.'
-  } finally {
-    loading.value = false
-  }
+  await login(form.value)
 }
 </script>
 

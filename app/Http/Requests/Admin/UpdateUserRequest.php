@@ -26,6 +26,7 @@ class UpdateUserRequest extends FormRequest
             'email' => ['sometimes', 'required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($this->user)],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
             'role' => ['sometimes', 'required', Rule::enum(UserRole::class)],
+            'status' => ['sometimes', 'required', Rule::in(['active', 'inactive'])],
         ];
     }
 }

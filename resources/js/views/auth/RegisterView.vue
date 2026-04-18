@@ -81,9 +81,9 @@
         </div>
 
         <!-- General error feedback -->
-        <div v-if="generalError" class="error-message">
+        <div v-if="error" class="error-message">
           <div class="error-icon">⚠️</div>
-          <div class="error-text">{{ generalError }}</div>
+          <div class="error-text">{{ error }}</div>
         </div>
 
         <!-- Submit button -->
@@ -109,13 +109,10 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
-import { useAuthStore } from '@/stores/auth'
-import { useRouter } from 'vue-router'
-import api from '@/services/api'
+import { reactive } from 'vue'
+import { useAuth } from '@/composables/useAuth'
 
-const authStore = useAuthStore()
-const router = useRouter()
+const { loading, error, fieldErrors, register } = useAuth()
 
 const form = reactive({
   name: '',
@@ -125,62 +122,8 @@ const form = reactive({
   role: '',
 })
 
-const loading = ref(false)
-const generalError = ref('')
-const fieldErrors = reactive({
-  name: null,
-  email: null,
-  password: null,
-  password_confirmation: null,
-  role: null,
-})
-
-const clearFieldErrors = () => {
-  fieldErrors.name = null
-  fieldErrors.email = null
-  fieldErrors.password = null
-  fieldErrors.password_confirmation = null
-  fieldErrors.role = null
-}
-
 const handleRegister = async () => {
-  loading.value = true
-  generalError.value = ''
-  clearFieldErrors()
-
-  try {
-    // Call register API
-    const response = await api.post('/register', {
-      name: form.name,
-      email: form.email,
-      password: form.password,
-      password_confirmation: form.password_confirmation,
-      role: form.role,
-    })
-
-    // Store token and user in auth store
-    authStore.token = response.data.token
-    authStore.user = response.data.user
-    localStorage.setItem('auth_token', response.data.token)
-    localStorage.setItem('auth_user', JSON.stringify(response.data.user))
-
-    // Redirect based on role
-    const redirectPath = response.data.user.role === 'admin' ? '/admin' : '/dashboard'
-    router.push(redirectPath)
-  } catch (err) {
-    // Extract validation errors
-    if (err.response?.status === 422) {
-      const errors = err.response.data.errors || {}
-      Object.keys(errors).forEach(field => {
-        fieldErrors[field] = errors[field]
-      })
-      generalError.value = 'Please correct the errors below.'
-    } else {
-      generalError.value = err.response?.data?.message || 'Registration failed. Please try again.'
-    }
-  } finally {
-    loading.value = false
-  }
+  await register({ ...form })
 }
 </script>
 

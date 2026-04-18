@@ -19,6 +19,9 @@ class UserResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'role' => $this->role?->value,
+            'status' => $this->status,
+            'portfolio_count' => $this->portfolio_count ?? 0,
+            'bookings_count' => (int) ($this->photographer_bookings_count ?? 0) + (int) ($this->client_bookings_count ?? 0),
             'email_verified_at' => $this->email_verified_at,
             'created_at' => $this->created_at,
         ];

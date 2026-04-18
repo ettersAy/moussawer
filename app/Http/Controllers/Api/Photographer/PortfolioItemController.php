@@ -56,9 +56,16 @@ class PortfolioItemController extends Controller
 
         $path = $request->file('image')->store('portfolios', 'public');
 
+        $tags = null;
+        if ($request->filled('tags')) {
+            $tags = json_decode($request->tags, true);
+        }
+
         $item = $photographer->portfolioItems()->create([
             'title' => $request->title,
             'description' => $request->description,
+            'category' => $request->category,
+            'tags' => $tags,
             'image_url' => $path,
         ]);
 
@@ -74,6 +81,30 @@ class PortfolioItemController extends Controller
     {
         // Add authorization check if needed
         return response()->json(['data' => $portfolio]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(\App\Http\Requests\Photographer\UpdatePortfolioItemRequest $request, PortfolioItem $portfolio): JsonResponse
+    {
+        $tags = $portfolio->tags;
+        if ($request->has('tags')) {
+            $tags = $request->tags ? json_decode($request->tags, true) : null;
+        }
+
+        $portfolio->update([
+            'title' => $request->title ?? $portfolio->title,
+            'description' => $request->has('description') ? $request->description : $portfolio->description,
+            'category' => $request->has('category') ? $request->category : $portfolio->category,
+            'tags' => $tags,
+        ]);
+
+        $portfolio->image_full_url = str_starts_with($portfolio->image_url, 'http')
+            ? $portfolio->image_url
+            : asset('storage/'.$portfolio->image_url);
+
+        return response()->json(['data' => $portfolio, 'message' => 'Portfolio item updated successfully.']);
     }
 
     /**

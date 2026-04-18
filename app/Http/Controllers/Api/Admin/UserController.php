@@ -22,7 +22,15 @@ class UserController extends Controller
     {
         abort_if(! auth()->user() || ! auth()->user()->isAdmin(), 403);
         $users = $this->userService->getAllPaginated(
-            search: request('search')
+            perPage: (int) request('per_page', 15),
+            search: request('search'),
+            role: request('role'),
+            status: request('status'),
+            hasPortfolio: request()->has('has_portfolio') ? filter_var(request('has_portfolio'), FILTER_VALIDATE_BOOLEAN) : null,
+            minPortfolioSize: request('min_portfolio_size') !== null ? (int) request('min_portfolio_size') : null,
+            minBookingCount: request('min_booking_count') !== null ? (int) request('min_booking_count') : null,
+            sortBy: request('sort_by', 'created_at'),
+            sortDirection: request('sort_direction', 'desc')
         );
 
         return UserResource::collection($users);

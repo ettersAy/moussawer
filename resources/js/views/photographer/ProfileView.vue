@@ -8,7 +8,7 @@
         </div>
         
         <div v-else class="profile-container">
-            <form @submit.prevent="updateProfile" class="profile-form">
+            <form @submit.prevent="handleUpdate" class="profile-form">
                 <div class="profile-form-group">
                     <label for="bio">Bio</label>
                     <textarea 
@@ -68,75 +68,35 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useAuthStore } from '@/stores/auth'
+import { useProfile } from '@/composables/useProfile'
 
-const authStore = useAuthStore()
-const profile = ref({
-    bio: '',
-    portfolio_url: '',
-    hourly_rate: 0,
-    availability_status: 'available'
-})
-const loading = ref(true)
-const updating = ref(false)
+const { profile, loading, updating, fetchProfile, updateProfile } = useProfile()
+
 const error = ref('')
 const success = ref('')
 
-const fetchProfile = async () => {
+onMounted(async () => {
     try {
-        loading.value = true
-        const response = await fetch('/api/photographers/me', {
-            headers: {
-                'Authorization': `Bearer ${authStore.token}`,
-            }
-        })
-        if (response.ok) {
-            const data = await response.json()
-            profile.value = data.data || data
-        }
+        await fetchProfile()
     } catch (err) {
-        console.error('Failed to load profile:', err)
         error.value = 'Failed to load profile'
-    } finally {
-        loading.value = false
     }
-}
+})
 
-const updateProfile = async () => {
+const handleUpdate = async () => {
     error.value = ''
     success.value = ''
     
     try {
-        updating.value = true
-        const response = await fetch('/api/photographers/me', {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authStore.token}`,
-            },
-            body: JSON.stringify(profile.value)
-        })
-        
-        if (response.ok) {
-            success.value = 'Profile updated successfully!'
-            setTimeout(() => {
-                success.value = ''
-            }, 3000)
-        } else {
-            const data = await response.json()
-            error.value = data.message || 'Failed to update profile'
-        }
+        await updateProfile()
+        success.value = 'Profile updated successfully!'
+        setTimeout(() => {
+            success.value = ''
+        }, 3000)
     } catch (err) {
-        console.error('Failed to update profile:', err)
-        error.value = 'An error occurred while updating profile'
-    } finally {
-        updating.value = false
+        error.value = err.message || 'An error occurred while updating profile'
     }
 }
-
-onMounted(() => {
-    fetchProfile()
-})
 </script>
 
 <style scoped>

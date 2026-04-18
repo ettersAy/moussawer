@@ -26,6 +26,8 @@ class StorePortfolioItemRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'image' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'], // Max 5MB
+            'category' => ['nullable', 'string', 'max:100'],
+            'tags' => ['nullable', 'string'], // Expected to be JSON string from FormData
         ];
     }
 }
