@@ -100,6 +100,11 @@
   overflow: hidden;
 }
 
+.table-responsive {
+  overflow-x: auto;
+  width: 100%;
+}
+
 .data-table {
   width: 100%;
   border-collapse: collapse;
@@ -132,8 +137,89 @@
   background-color: #f1f5f9;
 }
 
+/* Info Column */
+.info-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.status-dot.active { background-color: #22c55e; box-shadow: 0 0 0 2px #dcfce7; }
+.status-dot.inactive { background-color: #ef4444; box-shadow: 0 0 0 2px #fee2e2; }
+
+.date-row {
+  font-size: 0.8rem;
+  padding-left: 14px; /* Align with ID slightly */
+}
+
+/* Copyable Text */
+.copyable {
+  cursor: pointer;
+  transition: color 0.2s;
+  user-select: none;
+}
+.copyable:hover {
+  color: var(--accent);
+}
+
+/* Actions Column */
 .actions-col {
   text-align: right;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1.5rem;
+}
+
+.stats-group {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.stat-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.5rem;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-main);
+  transition: all 0.2s;
+}
+.stat-badge.cursor-pointer {
+  cursor: pointer;
+}
+.stat-badge.cursor-pointer:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.stat-icon {
+  font-size: 1rem;
+}
+
+.btn-group {
+  display: flex;
+  gap: 0.5rem;
 }
 
 /* Badges */
@@ -181,12 +267,6 @@
 }
 
 .btn-secondary:hover { background: #f1f5f9; }
-
-.actions {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: flex-end;
-}
 
 .btn-action {
   padding: 0.5rem;
