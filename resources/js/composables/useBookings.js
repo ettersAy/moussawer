@@ -26,7 +26,7 @@ export function useBookings() {
 
   const updateBookingStatus = async (bookingId, status) => {
     try {
-      await api.patch(`/bookings/${bookingId}`, { status })
+      await api.patch(`/bookings/${bookingId}/status`, { status })
     } catch (error) {
       console.error('Failed to update booking status:', error)
       throw error
