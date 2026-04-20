@@ -9,9 +9,8 @@ use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Booking\BookingController;
 use App\Http\Controllers\Api\Client\ProfileController as ClientProfileController;
 use App\Http\Controllers\Api\Photographer\PortfolioItemController;
-// ... (skipping some lines for brevity in replacement, will do a precise replace)
-
 use App\Http\Controllers\Api\Photographer\ProfileController as PhotographerProfileController;
+use App\Http\Controllers\Api\Photographer\ServiceController;
 use App\Http\Controllers\Api\Public\ContactSubmissionController;
 use Illuminate\Support\Facades\Route;
 
@@ -55,6 +54,7 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
         Route::get('/profile', [PhotographerProfileController::class, 'show']);
         Route::put('/profile', [PhotographerProfileController::class, 'update']);
         Route::apiResource('portfolios', PortfolioItemController::class);
+        Route::apiResource('services', ServiceController::class);
     });
 
     Route::prefix('client')->group(function () {

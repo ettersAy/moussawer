@@ -1,126 +1,132 @@
 # CSS Architecture Guidelines
 
 ## Overview
-This project uses a modular CSS architecture with global styles, component-specific styles, and view-specific styles. All CSS is extracted from Vue Single File Components (SFCs) to maintain separation of concerns and improve maintainability.
+This project uses a modular, traditional CSS architecture. We avoid inline styles and minimize `<style scoped>` blocks in Vue components. Instead, we use a centralized, modular CSS system imported via `resources/css/app.css`.
+
+**Constraint:** We are NOT using Tailwind CSS at this time. All styling is handled via standard CSS/SCSS modules.
 
 ## Directory Structure
 ```
+
 resources/css/
-├── app.css              # Global imports and base styles
-├── components/          # Reusable component styles
-│   ├── admin.css        # Admin layout and components
-│   ├── auth.css         # Authentication forms (login, register)
-│   ├── buttons.css      # Button styles
-│   ├── cards.css        # Card components
-│   ├── client.css       # Client layout and components
-│   ├── forms.css        # Form elements and layouts
-│   ├── layout.css       # Layout components (footer, containers)
-│   ├── navigation.css   # Navigation components (navbar)
-│   ├── photographer.css # Photographer layout and components
-│   └── sections.css     # Section layouts (hero, features, etc.)
-├── views/               # Page/view-specific styles
-│   └── home.css         # Home page specific styles
-└── CSS_GUIDELINES.md    # This file
+├── app.css              # Main entry point. Imports all modules.
+├── base/                # Resets, variables, typography
+│   ├── reset.css
+│   ├── variables.css    # :root { --primary-color: ... }
+│   └── typography.css
+├── components/          # Reusable UI patterns (NOT role-specific)
+│   ├── buttons.css
+│   ├── forms.css
+│   ├── tables.css       # Shared table styles for Admin/Photographer/Client
+│   ├── cards.css
+│   ├── modals.css
+│   └── badges.css
+├── layouts/             # Structural layouts
+│   ├── sidebar.css
+│   ├── header.css
+│   └── grid-system.css
+├── roles/               # Role-specific layout overrides ONLY
+│   ├── admin-layout.css
+│   ├── photographer-layout.css
+│   └── client-layout.css
+├── views/               # Page-specific styles (Unique to one route)
+│   ├── home.css
+│   ├── photographer-services.css
+│   └── admin-dashboard.css
+└── utilities.css        # Helper classes (.mt-4, .text-center, .hidden)
 ```
 
 ## Key Principles
 
 ### 1. Separation of Concerns
-- **Global styles** go in `app.css` (typography, colors, reset, utilities)
-- **Component styles** go in `components/` (reusable UI elements)
-- **View/page styles** go in `views/` (page-specific layouts)
+- **Base:** Global resets and CSS variables.
+- **Components:** Generic UI elements (Buttons, Inputs, Tables). These should be **role-agnostic**.
+- **Roles:** Only use these for layout differences (e.g., Admin has a wider sidebar than Client). Do NOT put button styles here.
+- **Views:** Styles that are unique to a single page and won't be reused.
 
-### 2. CSS Import Flow
+### 2. The Import Flow
+All CSS is bundled via `resources/js/app.js`:
 ```javascript
-// In resources/js/app.js
 import '../css/app.css'
 ```
 
-The `app.css` imports all other CSS files:
+`app.css` acts as the manifest:
 ```css
-/* app.css */
+/* 1. Base */
+@import './base/reset.css';
+@import './base/variables.css';
+@import './base/typography.css';
+
+/* 2. Utilities */
+@import './utilities.css';
+
+/* 3. Components (Shared) */
 @import './components/buttons.css';
-@import './components/cards.css';
-@import './components/sections.css';
 @import './components/forms.css';
-@import './components/navigation.css';
-@import './components/auth.css';
-@import './components/layout.css';
-@import './components/admin.css';
-@import './components/client.css';
-@import './components/photographer.css';
+@import './components/tables.css';
+@import './components/modals.css';
+
+/* 4. Layouts */
+@import './layouts/sidebar.css';
+@import './layouts/header.css';
+
+/* 5. Roles (Layout Overrides) */
+@import './roles/admin-layout.css';
+@import './roles/photographer-layout.css';
+
+/* 6. Views (Page Specific) */
 @import './views/home.css';
+@import './views/photographer-services.css';
 ```
 
 ### 3. Vue Component Guidelines
-- **DO NOT** put large CSS blocks in `<style scoped>` sections
-- **DO** use extracted CSS classes from the modular system
-- **DO** keep only truly component-specific scoped styles in Vue files
-- **Example:**
-```vue
-<template>
-  <div class="hero-section">
-    <h1 class="hero-title">Welcome</h1>
-    <button class="btn btn-primary">Get Started</button>
+- **Default:** Use class names from the modular CSS system.
+- **Scoped Styles:** ONLY use `<style scoped>` for:
+  1. Dynamic styles based on component state (e.g., `v-bind(color)`).
+  2. Highly complex animations specific to that component.
+  3. Temporary styling during refactoring.
+- **Rule of Thumb:** If the CSS is > 20 lines, it likely belongs in a `.css` file.
+
+### 4. Naming Conventions (BEM Lite)
+We use a simplified BEM approach to keep selectors flat and performant.
+- **Block:** `.card`
+- **Element:** `.card__header`
+- **Modifier:** `.card--featured`
+- **State:** `.is-active` (used with JS toggles)
+
+**Example:**
+```html
+<div class="service-card service-card--featured">
+  <div class="service-card__header">
+    <h3 class="service-card__title">Wedding Photography</h3>
   </div>
-</template>
-
-<script setup>
-// Component logic here
-</script>
-
-<style scoped>
-/* Only keep styles that MUST be scoped to this component */
-/* Example: dynamic styles based on component state */
-</style>
+</div>
 ```
 
-### 4. Naming Conventions
-- Use BEM-like naming: `.component-name__element--modifier`
-- Be descriptive: `.hero-section` not `.section1`
-- Follow existing patterns in the codebase
+### 5. Handling Role-Specific UI
+If a "Button" looks different for Admin vs Client:
+1. **Preferred:** Use a modifier class in HTML: `<button class="btn btn--admin">`.
+2. **Avoid:** Creating `admin-buttons.css` and `client-buttons.css`. Duplication is bad.
 
-### 5. When to Extract CSS
-Extract CSS from Vue files when:
-- CSS exceeds 50 lines
-- Styles are reusable across components
-- Styles define layout/theme rather than component behavior
-
-### 6. Adding New Pages/Views
-1. Create view-specific CSS in `resources/css/views/[view-name].css`
-2. Import it in `app.css`
-3. Use the classes in your Vue component
-4. Keep Vue file focused on template and logic
-
-### 7. Responsive Design
-- Use Tailwind-like breakpoints: `@media (min-width: 640px)`
-- Keep responsive styles with their component/view
-- Use mobile-first approach
-
-### 8. CSS Organization Within Files
+### 6. Utilities
+Since we don't have Tailwind, `utilities.css` is critical for layout speed.
 ```css
-/* 1. Base/Reset styles */
-/* 2. Component styles */
-/* 3. Layout styles */
-/* 4. Utility classes */
-/* 5. Responsive overrides */
+/* utilities.css */
+.mt-4 { margin-top: 1rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.text-center { text-align: center; }
+.flex { display: flex; }
+.hidden { display: none; }
 ```
 
-## Migration Process for Existing Vue Files
-1. Identify CSS blocks in `<style scoped>` section
-2. Move to appropriate CSS module (component/view)
-3. Update class names in template
-4. Remove moved CSS from Vue file
-5. Keep only truly scoped styles
-6. Test thoroughly
+### 7. Migration Strategy for Existing Files
+1. Identify repeated patterns (e.g., all tables). Move to `components/tables.css`.
+2. Identify page-specific layouts. Move to `views/[name].css`.
+3. Remove `<style scoped>` from Vue files.
+4. Update Vue templates to use the new class names.
 
 ## Benefits
-- **Maintainability**: Easier to find and update styles
-- **Reusability**: Components can share styles
-- **Performance**: Better caching with separate CSS files
-- **Scalability**: Scales well with large applications
-
-## Example: HomeView.vue Migration
-Original: 700+ lines with embedded CSS
-After: ~100 lines with extracted CSS modules
-Result: Cleaner separation, better organization
+- **Consistency:** A table looks the same in Admin and Photographer views.
+- **Maintainability:** Change a button color in one place (`buttons.css`).
+- **Performance:** Browser caches `app.css` globally.
+- **Clarity:** Developers know exactly where to look for styles.

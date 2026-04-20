@@ -1,13 +1,20 @@
 @import 'tailwindcss';
 
-/* 
- * CSS Module Imports
- * Organized by component type and view specificity
- */
+/* 1. Base */
+@import './base/reset.css';
+@import './base/variables.css';
+@import './base/typography.css';
+
+/* 2. Utilities */
+@import './utilities.css';
+
+/* 3. Components (Shared) */
 @import './components/buttons.css';
+@import './components/forms.css';
+@import './components/tables.css';
+@import './components/modals.css';
 @import './components/sections.css';
 @import './components/cards.css';
-@import './components/forms.css';
 @import './components/navigation.css';
 @import './components/auth.css';
 @import './components/layout.css';
@@ -17,10 +24,26 @@
 @import './components/bookings.css';
 @import './components/dashboard.css';
 @import './components/profile.css';
+@import './components/toast.css';
+
+/* 4. Layouts */
+@import './layouts/sidebar.css';
+@import './layouts/header.css';
+
+/* 5. Roles (Layout Overrides) */
+@import './roles/admin-layout.css';
+@import './roles/photographer-layout.css';
+
+/* 6. Views (Page Specific) */
 @import './views/home.css';
 @import './views/admin/users.css';
 @import './views/admin/user-portfolio.css';
 @import './views/photographer/portfolio.css';
+
+/* 
+ * CSS Module Imports
+ * Organized by component type and view specificity
+ */
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
