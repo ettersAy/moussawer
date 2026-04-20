@@ -48,4 +48,9 @@ class Photographer extends Model
     {
         return $this->hasMany(Review::class);
     }
+
+    public function services(): HasMany
+    {
+        return $this->hasMany(PhotographerService::class);
+    }
 }
