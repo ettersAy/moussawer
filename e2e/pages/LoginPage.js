@@ -24,7 +24,7 @@ export class LoginPage {
 
     /** Navigate to the login page. */
     async goto() {
-        await this.page.goto('/login', { waitUntil: 'domcontentloaded' });
+        await this.page.goto('/login', { waitUntil: 'networkidle' });
     }
 
     /**

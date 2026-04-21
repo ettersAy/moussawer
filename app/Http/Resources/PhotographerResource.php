@@ -20,6 +20,7 @@ class PhotographerResource extends JsonResource
             'hourly_rate' => (float) $this->hourly_rate,
             'availability_status' => $this->availability_status,
             'user' => new UserResource($this->whenLoaded('user')),
+            'services' => PhotographerServiceResource::collection($this->whenLoaded('services')),
             // Add other fields needed for the discovery page
             'portfolio_url' => $this->getValidPortfolioUrl(),
             'rating' => 5.0, // Placeholder for now, could be calculated from reviews

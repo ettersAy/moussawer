@@ -1,0 +1,65 @@
+.booking-request-view {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.booking-request-view__container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+}
+
+@media (min-width: 768px) {
+    .booking-request-view__container {
+        grid-template-columns: 2fr 1fr;
+    }
+}
+
+.booking-request-view__main {
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.booking-request-view__sidebar {
+    position: sticky;
+    top: 2rem;
+}
+
+.booking-request-view__title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: #1a1a1a;
+}
+
+.booking-request-view__section {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #eee;
+}
+
+.booking-request-view__section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.booking-request-view__loading {
+    display: flex;
+    justify-content: center;
+    padding: 4rem;
+}
+
+.booking-request-view__success {
+    text-align: center;
+    padding: 3rem;
+}
+
+.booking-request-view__success-icon {
+    font-size: 4rem;
+    color: #10b981;
+    margin-bottom: 1rem;
+}

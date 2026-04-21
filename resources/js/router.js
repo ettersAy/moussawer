@@ -102,6 +102,12 @@ const routes = [
         component: () => import('./views/client/SearchDiscoveryView.vue'),
         meta: { layout: 'public' },
     },
+    {
+        path: '/photographers/:id/book',
+        name: 'client-booking-request',
+        component: () => import('./views/client/BookingRequestView.vue'),
+        meta: { layout: 'client', requiresAuth: true, requiredRole: 'client' },
+    },
 ]
 
 const router = createRouter({
