@@ -20,6 +20,8 @@
 @import './components/layout.css';
 @import './components/admin.css';
 @import './components/client.css';
+@import './components/client/search-ui.css';
+@import './components/client/photographer-display.css';
 @import './components/photographer.css';
 @import './components/bookings.css';
 @import './components/dashboard.css';
@@ -39,6 +41,7 @@
 @import './views/admin/users.css';
 @import './views/admin/user-portfolio.css';
 @import './views/photographer/portfolio.css';
+@import './views/client/search.css';
 
 /* 
  * CSS Module Imports

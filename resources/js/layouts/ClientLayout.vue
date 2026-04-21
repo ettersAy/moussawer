@@ -15,6 +15,9 @@
                     <router-link to="/client/bookings" class="client-nav-link" active-class="active">
                         My Bookings
                     </router-link>
+                    <router-link :to="{ name: 'photographer-discovery' }" class="client-nav-link" active-class="active">
+                        Find Photographers
+                    </router-link>
                     <router-link to="/client/profile" class="client-nav-link" active-class="active">
                         My Profile
                     </router-link>
