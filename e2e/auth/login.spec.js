@@ -8,22 +8,34 @@ import { test, expect } from '../fixtures/index.js';
  */
 test.describe('Login', () => {
   test('successful login redirects to dashboard', async ({ loginPage }) => {
-    await loginPage.login('test@example.com', 'password');
+    await loginPage.goto();
+    await loginPage.login({
+      email: 'test@example.com',
+      password: 'password'
+    });
 
     // Wait for redirect
     await expect(loginPage.page).toHaveURL(/\/(dashboard|$)/);
   });
 
   test('invalid credentials show error message', async ({ loginPage }) => {
-    await loginPage.login('test@example.com', 'wrongpassword');
+    await loginPage.goto();
+    await loginPage.login({
+      email: 'test@example.com',
+      password: 'wrongpassword'
+    });
 
     const error = await loginPage.getErrorMessage();
     expect(error).toContain('Invalid credentials');
   });
 
   test('validation errors for empty fields', async ({ loginPage }) => {
+    await loginPage.goto();
     // Try to submit empty form
-    await loginPage.login('', '');
+    await loginPage.login({
+      email: '',
+      password: ''
+    });
 
     // Check for validation (assuming frontend validation or backend)
     // For simplicity, check if still on login page

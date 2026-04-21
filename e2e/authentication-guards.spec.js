@@ -8,6 +8,23 @@ import { navigateTo, verifyUrl } from './helpers/navigation-helpers.js';
  */
 test.describe('Authentication guards', () => {
     test('Logout clears session and redirects to login', async ({ page }) => {
+        // Mock API endpoints to prevent authentication failures
+        await page.route('**/api/user', async (route) => {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({ user: CLIENT_USER }),
+            });
+        });
+        
+        await page.route('**/api/logout', async (route) => {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({ message: 'Logged out' }),
+            });
+        });
+
         await navigateTo(page, '/client/dashboard');
         
         await page.evaluate((userData) => {
@@ -25,6 +42,15 @@ test.describe('Authentication guards', () => {
     });
 
     test('Authenticated users are redirected from login page', async ({ page }) => {
+        // Mock API endpoints to prevent authentication failures
+        await page.route('**/api/user', async (route) => {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({ user: CLIENT_USER }),
+            });
+        });
+
         await navigateTo(page, '/login');
         
         await page.evaluate((userData) => {

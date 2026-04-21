@@ -50,6 +50,7 @@ class UserControllerTest extends TestCase
             'password' => 'password123',
             'password_confirmation' => 'password123',
             'role' => UserRole::Client->value,
+            'status' => 'active',
         ];
 
         $response = $this->actingAs($this->admin, 'sanctum')->postJson('/api/admin/users', $payload);

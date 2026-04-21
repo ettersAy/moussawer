@@ -1,4 +1,4 @@
-import { expect } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
 /**
  * Helper functions for authentication operations in tests
@@ -8,7 +8,8 @@ import { expect } from '@playwright/test';
  * Set up authenticated session in localStorage
  */
 export async function setupAuthenticatedSession(page, userData) {
-    await page.goto('/login');
+    // Navigate to a blank page on the same domain first
+    await page.goto('/');
     await page.evaluate((data) => {
         localStorage.setItem('auth_token', 'test-token-123');
         localStorage.setItem('auth_user', JSON.stringify(data));
