@@ -26,7 +26,7 @@ class UserController extends Controller
             search: request('search'),
             role: request('role'),
             status: request('status'),
-            hasPortfolio: request()->has('has_portfolio') ? filter_var(request('has_portfolio'), FILTER_VALIDATE_BOOLEAN) : null,
+            hasPortfolio: request()->filled('has_portfolio') ? filter_var(request('has_portfolio'), FILTER_VALIDATE_BOOLEAN) : null,
             minPortfolioSize: request('min_portfolio_size') !== null ? (int) request('min_portfolio_size') : null,
             minBookingCount: request('min_booking_count') !== null ? (int) request('min_booking_count') : null,
             sortBy: request('sort_by', 'created_at'),

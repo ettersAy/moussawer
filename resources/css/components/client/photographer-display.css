@@ -1,0 +1,114 @@
+/* Photographer Grid */
+.photographer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.photographer-grid__empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem;
+  background: var(--color-white, #fff);
+  border-radius: var(--border-radius-lg, 12px);
+  color: var(--color-text-muted, #666);
+}
+
+/* Photographer Card */
+.photographer-card {
+  background: var(--color-white, #fff);
+  border-radius: var(--border-radius-lg, 12px);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.1));
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.photographer-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md, 0 4px 6px rgba(0,0,0,0.1));
+}
+
+.photographer-card__image-wrapper {
+  aspect-ratio: 4 / 3;
+  background: var(--color-bg-alt, #f7fafc);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.photographer-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photographer-card__content {
+  padding: 1.25rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.photographer-card__name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.photographer-card__rating {
+  font-size: 0.875rem;
+  color: var(--color-warning, #f59e0b);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.photographer-card__bio {
+  font-size: 0.875rem;
+  color: var(--color-text-muted, #666);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.photographer-card__footer {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border, #e2e8f0);
+}
+
+.photographer-card__price {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.photographer-card__price-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-primary, #333);
+}
+
+/* Skeleton Loading */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-card {
+  height: 350px;
+}

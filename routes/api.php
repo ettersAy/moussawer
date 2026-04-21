@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\Photographer\PortfolioItemController;
 use App\Http\Controllers\Api\Photographer\ProfileController as PhotographerProfileController;
 use App\Http\Controllers\Api\Photographer\ServiceController;
 use App\Http\Controllers\Api\Public\ContactSubmissionController;
+use App\Http\Controllers\Api\Public\PhotographerSearchController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -25,6 +26,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 // --- Public Routes (no auth required) ---
+Route::get('/photographers', PhotographerSearchController::class);
+
 Route::post('/contact', [ContactSubmissionController::class, 'store'])
     ->middleware('throttle:contact');
 

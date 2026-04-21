@@ -96,6 +96,12 @@ const routes = [
         component: () => import('./views/client/ProfileView.vue'),
         meta: { layout: 'client', requiresAuth: true, requiredRole: 'client' },
     },
+    {
+        path: '/photographers',
+        name: 'photographer-discovery',
+        component: () => import('./views/client/SearchDiscoveryView.vue'),
+        meta: { layout: 'public' },
+    },
 ]
 
 const router = createRouter({

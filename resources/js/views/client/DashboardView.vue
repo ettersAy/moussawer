@@ -25,6 +25,9 @@
         <div class="dashboard-quick-actions">
             <h2>Quick Actions</h2>
             <div class="dashboard-action-buttons">
+                <router-link :to="{ name: 'photographer-discovery' }" class="dashboard-btn-action">
+                    Find Photographers
+                </router-link>
                 <router-link to="/client/bookings" class="dashboard-btn-action">
                     View My Bookings
                 </router-link>

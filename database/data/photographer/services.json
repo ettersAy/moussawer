@@ -1,0 +1,62 @@
+[
+  {
+    "title": "Wedding Day Coverage",
+    "description": "Full day coverage including ceremony, reception, and couple portraits. High-res edited gallery included.",
+    "price_cents": 250000,
+    "duration_minutes": 480
+  },
+  {
+    "title": "Engagement Session",
+    "description": "Outdoor or studio session for couples. Includes 2 outfit changes and 20 edited digital images.",
+    "price_cents": 35000,
+    "duration_minutes": 90
+  },
+  {
+    "title": "Corporate Headshots",
+    "description": "Professional headshots for LinkedIn and company profiles. Studio lighting with neutral background.",
+    "price_cents": 15000,
+    "duration_minutes": 30
+  },
+  {
+    "title": "Newborn Photography",
+    "description": "In-home or studio session for babies under 2 weeks old. Props and wraps provided.",
+    "price_cents": 45000,
+    "duration_minutes": 150
+  },
+  {
+    "title": "Family Portrait Mini-Session",
+    "description": "Quick outdoor family photos. Perfect for holiday cards. Includes 5 edited digital images.",
+    "price_cents": 20000,
+    "duration_minutes": 20
+  },
+  {
+    "title": "Event Coverage (Hourly)",
+    "description": "Birthday parties, anniversaries, or corporate events. Minimum 2 hours booking.",
+    "price_cents": 17500,
+    "duration_minutes": 60
+  },
+  {
+    "title": "Real Estate Photography",
+    "description": "Interior and exterior shots for residential listings up to 3,000 sq ft.",
+    "price_cents": 30000,
+    "duration_minutes": 60
+  },
+  {
+    "title": "Senior Portrait Package",
+    "description": "Customized session for high school seniors. Two locations and outfit changes.",
+    "price_cents": 27500,
+    "duration_minutes": 60
+  },
+  {
+    "title": "Product Photography (Small Batch)",
+    "description": "Up to 15 products shot on white background or lifestyle setting. Ideal for e-commerce.",
+    "price_cents": 40000,
+    "duration_minutes": 240
+  },
+  {
+    "title": "Elopement Package",
+    "description": "Intimate ceremony coverage for couples eloping. Includes location scouting assistance.",
+    "price_cents": 120000,
+    "duration_minutes": 240
+  }
+]

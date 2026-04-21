@@ -27,29 +27,29 @@ class UserService
         // Include relationships with count
         $query->withCount([
             'photographer as portfolio_count' => function ($q) {
-                $q->join('portfolio_items', 'photographers.id', '=', 'portfolio_items.photographer_id');
+                $q->leftJoin('portfolio_items', 'photographers.id', '=', 'portfolio_items.photographer_id');
             },
             'photographer as photographer_bookings_count' => function ($q) {
-                $q->join('bookings', 'photographers.id', '=', 'bookings.photographer_id');
+                $q->leftJoin('bookings', 'photographers.id', '=', 'bookings.photographer_id');
             },
-            'bookingsAsClient as client_bookings_count'
+            'bookingsAsClient as client_bookings_count',
         ]);
 
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
+                $q->where('users.name', 'like', "%{$search}%")
+                    ->orWhere('users.email', 'like', "%{$search}%");
             });
         }
-        
+
         if ($role) {
             $query->where('role', $role);
         }
-        
-        if ($status) {
+
+        if (! empty($status)) {
             $query->where('status', $status);
         }
-        
+
         // Photographers specific filters
         if ($hasPortfolio !== null) {
             if ($hasPortfolio) {
@@ -58,7 +58,7 @@ class UserService
                 $query->whereDoesntHave('photographer.portfolioItems');
             }
         }
-        
+
         if ($minPortfolioSize !== null) {
             $query->has('photographer.portfolioItems', '>=', $minPortfolioSize);
         }
@@ -72,11 +72,13 @@ class UserService
         $sortDirection = strtolower($sortDirection) === 'asc' ? 'asc' : 'desc';
 
         if ($sortBy === 'total_bookings') {
-            $query->orderByRaw('(IFNULL(photographer_bookings_count, 0) + IFNULL(client_bookings_count, 0)) ' . $sortDirection);
+            $query->orderByRaw('(IFNULL(photographer_bookings_count, 0) + IFNULL(client_bookings_count, 0)) '.$sortDirection);
+        } elseif ($sortBy === 'name' || $sortBy === 'created_at') {
+            $query->orderBy('users.'.$sortBy, $sortDirection);
         } else {
             $query->orderBy($sortBy, $sortDirection);
         }
-
+        
         return $query->paginate($perPage);
     }
 
