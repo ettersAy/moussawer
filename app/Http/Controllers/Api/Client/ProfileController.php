@@ -48,7 +48,7 @@ class ProfileController extends Controller
      */
     public function show()
     {
-        $client = Client::where('user_id', auth()->id())->firstOrFail();
+        $client = Client::with('user')->where('user_id', auth()->id())->firstOrFail();
 
         return (new ClientProfileResource($client))->response();
     }
@@ -62,6 +62,9 @@ class ProfileController extends Controller
 
         // Update only provided fields
         $client->update($request->validated());
+
+        // Reload with user relationship for response
+        $client->load('user');
 
         return (new ClientProfileResource($client))->response();
     }

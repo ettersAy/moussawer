@@ -14,6 +14,7 @@
             v-model="form.email"
             type="email"
             name="email"
+            data-testid="email-input"
             required
             placeholder="you@example.com"
             class="form-input"
@@ -27,6 +28,7 @@
             v-model="form.password"
             type="password"
             name="password"
+            data-testid="password-input"
             required
             placeholder="Enter your password"
             class="form-input"

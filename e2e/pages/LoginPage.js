@@ -15,8 +15,8 @@ export class LoginPage {
         this.page = page;
 
         // --- Locators (single source of truth for all selectors) ---
-        this.emailInput = page.locator('input[name="email"]');
-        this.passwordInput = page.locator('input[name="password"]');
+        this.emailInput = page.locator('input[name="email"], [data-testid="email-input"]');
+        this.passwordInput = page.locator('input[name="password"], [data-testid="password-input"]');
         this.submitButton = page.locator('button[type="submit"]');
         this.errorMessage = page.locator('.error-message');
         this.heading = page.locator('h1');

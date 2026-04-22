@@ -63,22 +63,22 @@
                 
                 <div class="profile-form-row">
                     <div class="profile-form-group">
-                        <label for="state">State</label>
+                        <label for="province">Province</label>
                         <input 
-                            id="state"
-                            v-model="profile.state"
+                            id="province"
+                            v-model="profile.province"
                             type="text"
                             placeholder="State/Province"
                         />
                     </div>
                     
                     <div class="profile-form-group">
-                        <label for="zip">ZIP/Postal Code</label>
+                        <label for="postal_code">Postal Code</label>
                         <input 
-                            id="zip"
-                            v-model="profile.zip"
+                            id="postal_code"
+                            v-model="profile.postal_code"
                             type="text"
-                            placeholder="12345"
+                            placeholder="A1A 1A1"
                         />
                     </div>
                 </div>
@@ -118,8 +118,8 @@ const profile = ref({
     phone: '',
     address: '',
     city: '',
-    state: '',
-    zip: '',
+    province: '',
+    postal_code: '',
     preferred_contact: 'email'
 })
 const loading = ref(true)
@@ -130,22 +130,65 @@ const success = ref('')
 const fetchProfile = async () => {
     try {
         loading.value = true
-        // Initialize with authenticated user's data
-        if (authStore.user) {
+        error.value = ''
+        
+        const response = await fetch('/api/client/profile', {
+            headers: {
+                'Authorization': `Bearer ${authStore.token}`,
+            }
+        })
+        
+        if (response.ok) {
+            const data = await response.json()
+            // The API returns { data: { ...profileData, user: { ...userData } } }
+            const profileData = data.data || data
+            
+            // Map the API response to our form fields
             profile.value = {
-                name: authStore.user.name || '',
-                email: authStore.user.email || '',
-                phone: authStore.user.phone || '',
-                address: authStore.user.address || '',
-                city: authStore.user.city || '',
-                state: authStore.user.state || '',
-                zip: authStore.user.zip || '',
-                preferred_contact: authStore.user.preferred_contact || 'email'
+                name: profileData.user?.name || authStore.user?.name || '',
+                email: profileData.user?.email || authStore.user?.email || '',
+                phone: profileData.phone || '',
+                address: profileData.address || '',
+                city: profileData.city || '',
+                province: profileData.province || '',
+                postal_code: profileData.postal_code || '',
+                preferred_contact: profileData.preferred_contact || 'email'
+            }
+        } else {
+            const data = await response.json()
+            error.value = data.message || 'Failed to load profile'
+            
+            // If no profile exists yet, initialize with user data
+            if (authStore.user) {
+                profile.value = {
+                    name: authStore.user.name || '',
+                    email: authStore.user.email || '',
+                    phone: '',
+                    address: '',
+                    city: '',
+                    province: '',
+                    postal_code: '',
+                    preferred_contact: 'email'
+                }
             }
         }
     } catch (err) {
         console.error('Failed to load profile:', err)
-        error.value = 'Failed to load profile'
+        error.value = 'An error occurred while loading profile'
+        
+        // Initialize with user data as fallback
+        if (authStore.user) {
+            profile.value = {
+                name: authStore.user.name || '',
+                email: authStore.user.email || '',
+                phone: '',
+                address: '',
+                city: '',
+                province: '',
+                postal_code: '',
+                preferred_contact: 'email'
+            }
+        }
     } finally {
         loading.value = false
     }
@@ -157,18 +200,28 @@ const updateProfile = async () => {
     
     try {
         updating.value = true
-        const response = await fetch('/api/profile', {
-            method: 'PATCH',
+        
+        // Prepare data for API (match the expected fields)
+        const updateData = {
+            phone: profile.value.phone,
+            address: profile.value.address,
+            city: profile.value.city,
+            province: profile.value.province,
+            postal_code: profile.value.postal_code,
+            preferred_contact: profile.value.preferred_contact
+        }
+        
+        const response = await fetch('/api/client/profile', {
+            method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${authStore.token}`,
             },
-            body: JSON.stringify(profile.value)
+            body: JSON.stringify(updateData)
         })
         
         if (response.ok) {
             const data = await response.json()
-            authStore.user = data.data || data
             success.value = 'Profile updated successfully!'
             setTimeout(() => {
                 success.value = ''

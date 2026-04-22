@@ -5,6 +5,8 @@
 
 The Laravel Boost guidelines are specifically curated by Laravel maintainers for this application. These guidelines should be followed closely to ensure the best experience when building Laravel applications.
 
+Mandatory Protocol: For every task, you have access to configured MCP servers (Filesystem, Docker, MySQL, Playwright). You must proactively leverage these tools to analyze project state, execute tests, or inspect database schemas before proposing code changes. Do not rely on assumptions; query the tools to confirm file paths, schema structures, and test results.
+
 ## Foundational Context
 
 This application is a Laravel application and its main Laravel ecosystems package & versions are below. You are an expert with them all. Ensure you abide by these specific packages & versions.
@@ -180,5 +182,284 @@ This project has domain-specific skills available. You MUST activate the relevan
 - To run all tests: `sail artisan test --compact`.
 - To run all tests in a file: `sail artisan test --compact tests/Feature/ExampleTest.php`.
 - To filter on a particular test name: `sail artisan test --compact --filter=testName` (recommended after making a change to a related file).
+
+=== browser-automation rules ===
+
+# Browser Automation Decision Framework
+
+## Automatic Approach Selection
+
+For browser automation tasks, automatically choose between MCP Playwright Server and Direct Playwright Installation based on these criteria:
+
+### **Use MCP Playwright Server When:**
+1. **Task is simple & exploratory** (1-3 actions, quick validation)
+2. **Interactive debugging needed** (console logs, network inspection)
+3. **Single action requests** (screenshot, page navigation, element check)
+4. **Real-time feedback required** (immediate visual verification)
+5. **No script reuse anticipated** (one-off tasks)
+
+### **Use Direct Playwright Installation When:**
+1. **Complex workflows** (4+ sequential actions)
+2. **Data-driven tasks** (multiple test cases, parameterized inputs)
+3. **Script reuse needed** (save to `/scripts/` directory)
+4. **Integration with existing tests** (use `/e2e/` page objects)
+5. **CI/CD or automation** (needs to run without MCP overhead)
+
+## Decision Flowchart Implementation
+
+When receiving a browser automation request:
+1. **Analyze task complexity**: Count expected actions/steps
+2. **Check for reuse indicators**: Words like "reusable", "script", "automate", "test"
+3. **Look for integration needs**: References to existing tests, CI/CD, or data files
+4. **Evaluate debugging requirements**: Console, network, or performance inspection
+5. **Default to MCP** for ambiguous cases, with fallback to Direct if issues arise
+
+## Execution Protocol
+
+### For MCP Playwright Server:
+- Use available MCP tools (`playwright_navigate`, `playwright_fill`, etc.)
+- Handle version compatibility via updated wrapper configuration
+- Clean up any temporary resources after task completion
+
+### For Direct Playwright Installation:
+- Create script in `/scripts/` directory with descriptive name
+- Use ES module syntax (`import` not `require`)
+- Leverage existing page objects from `/e2e/pages/` when possible
+- Include error handling and logging
+- Clean up script file unless explicitly asked to keep it
+
+## Fallback Strategy
+
+If chosen approach fails:
+1. **MCP fails**: Switch to Direct Playwright with explanatory comment
+2. **Direct Playwright fails**: Check browser installation and dependencies
+3. **Both fail**: Report specific error and suggest manual verification
+
+=== tinker-enum-handling ===
+
+# Tinker Enum Handling Guidelines
+
+## Enum Casting in Models
+When models use Enum casting (e.g., `protected $casts = ['role' => UserRole::class]`):
+
+## Correct Usage Patterns
+```php
+// INCORRECT - Will fail with conversion error
+echo $user->role;
+
+// CORRECT - Access enum value
+echo $user->role->value;
+
+// CORRECT - Cast to string
+echo (string) $user->role;
+
+// CORRECT - Use enum methods
+echo $user->role === UserRole::Client ? 'Client' : 'Other';
+```
+
+## Common Enums in This Project
+- `UserRole::Admin`, `UserRole::Photographer`, `UserRole::Client`
+- Always use `->value` for string representation in Tinker
+
+## Tinker Output Requirement
+- **Always use `echo`** for Tinker commands to ensure output display
+- Example: `sail artisan tinker --execute 'echo User::count();'`
+
+=== playwright-headless-requirement ===
+
+# Playwright Headless Mode Requirement
+
+## Environment Context
+This project runs in environments without graphical display servers (X11). Playwright requires headless mode.
+
+## Default Configuration
+- **Always use `headless: true`** for Playwright MCP tools
+- Headed mode (`headless: false`) will fail with "Missing X server or $DISPLAY"
+- Exception: Only use headed mode if explicitly testing UI interactions in GUI environment
+
+## Tool Usage Pattern
+```javascript
+// CORRECT - Always use in this environment
+playwright_navigate(url: "http://localhost", headless: true)
+
+// INCORRECT - Will fail
+playwright_navigate(url: "http://localhost", headless: false)
+```
+
+## Fallback Strategy
+If Playwright MCP fails:
+1. Check if headless mode is enabled
+2. Verify application is running (`sail up -d`)
+3. Use HTTP tools directly for API testing
+
+=== api-validation-patterns ===
+
+# API Validation Patterns
+
+## Client Profile Validation
+### Required Fields & Formats:
+- `phone`: E.164 format - `+15551234567` (no spaces/parentheses)
+- `address`: string, max 255 chars
+- `city`: string, max 100 chars  
+- `province`: string, max 100 chars
+- `postal_code`: Canadian format - `A1A1A1` or `A1A 1A1`
+- `preferred_contact`: `email`, `phone`, or `sms`
+
+### Example Valid Payload:
+```json
+{
+  "phone": "+15551234567",
+  "address": "123 Main Street",
+  "city": "Toronto",
+  "province": "ON",
+  "postal_code": "M5H2N2",
+  "preferred_contact": "email"
+}
+```
+
+## Common Validation Failures
+1. **Phone format** - Remove spaces/parentheses, use E.164
+2. **Postal code** - Canadian format only
+3. **Missing required fields** - All fields are required
+
+## Authentication Flow
+### Login Process:
+- **Endpoint:** `POST /api/login`
+- **Returns:** User data + Sanctum token
+- **Token Usage:** `Authorization: Bearer {token}`
+
+### Profile Endpoints:
+- Client: `POST/GET/PUT/DELETE /api/client/profile`
+- Photographer: `POST/GET/PUT /api/photographer/profile`
+
+=== mcp-server-status ===
+
+# MCP Server Status & Best Practices
+
+## Available Servers (Based on Tool Analysis):
+1. **czZ_-_0mcp0** (Playwright) - ✅ Working (requires headless mode)
+2. **cI5hUp0mcp0** (Filesystem) - ✅ Working
+3. **cSlD5l0mcp0** (MySQL) - ✅ WORKING (fixed - server running successfully)
+4. **cTy-lz0mcp0** (GitHub) - ✅ Working
+5. **cUCfDl0mcp0** (Docker) - ✅ Working
+
+## Database Access Best Practices:
+1. **Primary Method: Laravel Boost Database Tools**
+   - Use `database-query` for read-only SQL queries
+   - Use `database-schema` for table structure inspection
+   - These tools integrate with Laravel's database configuration
+
+2. **Secondary Method: Tinker for Eloquent Operations**
+   - Use for simple Eloquent queries and model operations
+   - Always use `echo` for output: `sail artisan tinker --execute 'echo User::count();'`
+   - Use single quotes for shell, double quotes for PHP strings
+
+3. **Tertiary Method: Sail MySQL Client**
+   - Use for raw SQL queries: `sail mysql -u sail -ppassword -e "SELECT 1;"`
+   - Useful for quick database inspections
+
+4. **MySQL MCP Server Status**: 
+   - ✅ WORKING (fixed - server running successfully)
+   - Server ID: `cSlD5l0mcp0` (MySQL MCP server)
+   - Connection: `127.0.0.1:3306` (sail/password, database: moussawer)
+   - Tools available: `mysql_query`, `mysql_list_databases`
+
+## General MCP Best Practices:
+1. **Filesystem MCP**: Preferred over manual file operations
+2. **Playwright MCP**: Use for HTTP requests and browser automation (always use headless mode)
+3. **GitHub MCP**: Use for repository operations
+4. **Docker MCP**: Use for container management
+
+## Health Check Recommendations:
+- Test MCP server availability before complex operations
+- Have fallback strategies for critical servers
+- Document server status in this file
+- For database operations, default to Tinker or Laravel Boost tools
+
+## MySQL MCP Server Installation & Benefits
+
+### Installation Guide
+For complete step-by-step installation instructions, see: `/srv/dev/moussawer/doc/MYSQL_MCP_REINSTALLATION_GUIDE.md`
+
+**Quick Fix for JSON Errors**: If you see "Unexpected token 'D', 'Database c'... is not valid JSON" errors:
+1. Ensure wrapper script has `ENABLE_LOGGING=false` and `MYSQL_LOG_LEVEL=error`
+2. Redirect stderr to /dev/null: `exec npx -y @benborla29/mcp-server-mysql 2>/dev/null`
+3. Test with: `echo '{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {...}}' | /path/to/wrapper.sh`
+
+### How MySQL MCP Helps AI Agents
+
+#### Speed Benefits
+1. **Direct SQL Execution**: Run queries without context switching to terminal
+2. **Instant Schema Inspection**: Check table structures before writing migrations
+3. **Data Validation**: Verify data exists before implementing features
+4. **Performance Comparison**:
+   - ⚡ **MySQL MCP**: Fastest for raw SQL
+   - ⚡ **Laravel Boost**: Fast for Laravel-integrated queries  
+   - 🐢 **Tinker**: Slow for Eloquent operations
+   - ⚡ **Sail MySQL**: Fast for one-off commands
+
+#### Common Use Cases for AI Agents
+1. **Before writing migrations**: `SHOW CREATE TABLE users;`
+2. **Debugging data issues**: `SELECT * FROM failed_jobs ORDER BY failed_at DESC LIMIT 5;`
+3. **Verifying test data**: `SELECT COUNT(*) FROM users WHERE email LIKE '%@test.com';`
+4. **Planning database changes**: `SHOW TABLES; SELECT table_name, table_rows FROM information_schema.tables;`
+
+#### Integration Tips
+- Use MySQL MCP for quick raw SQL queries and schema inspection
+- Use Laravel Boost tools for Laravel-integrated queries when available
+- Fall back to Tinker for complex Eloquent operations
+- Use Sail MySQL for one-off commands in terminal
+
+### Troubleshooting MySQL MCP
+1. **JSON parsing errors**: Disable debug logging in wrapper script
+2. "No connection found": Restart agent/IDE after configuration changes  
+3. Connection timeout: Verify MySQL is running (`sail up -d`)
+4. Permission denied: `chmod +x /path/to/wrapper.sh`
+
+=== basic-project-info ===
+
+# Basic Project Information
+
+## Project Structure
+- **Frontend**: Vue 3 SPA with Vite, located in `resources/js/`
+- **Backend**: Laravel 13 API with Sanctum authentication
+- **Database**: MySQL with Sail
+- **Testing**: PHPUnit for backend, Playwright for E2E
+
+## Common Commands Reference
+- Start services: `./vendor/bin/sail up -d`
+- Stop services: `./vendor/bin/sail stop`
+- Run tests: `./vendor/bin/sail artisan test --compact`
+- Build frontend: `npm run build`
+- Run dev server: `npm run dev`
+- Format PHP: `./vendor/bin/sail bin pint --dirty --format agent`
+
+## Key Directories
+- `app/Http/Controllers/Api/` - API controllers
+- `app/Http/Resources/` - API resources (transformers)
+- `resources/js/views/` - Vue components organized by role
+- `tests/Feature/` - Feature tests
+
+## Authentication & Roles
+- Three user roles: `admin`, `photographer`, `client`
+- Sanctum token-based authentication
+- Login endpoint: `POST /api/login`
+- Token usage: `Authorization: Bearer {token}`
+
+## Common API Endpoints
+- Client profile: `GET/PUT/DELETE /api/client/profile`
+- Photographer profile: `GET/PUT /api/photographer/profile`
+- Bookings: `/api/client/bookings`, `/api/photographer/bookings`
+
+## Test Accounts
+- Client: `test@example.com` | `password`
+- Check database for other test users if needed
+- Reset password if login fails: `./vendor/bin/sail artisan tinker --execute 'echo \App\Models\User::where("email", "test@example.com")->update(["password" => \Illuminate\Support\Facades\Hash::make("password")]);'`
+
+## Quick Troubleshooting
+1. **"sail: command not found"**: Use `./vendor/bin/sail` instead
+2. **Frontend changes not visible**: Run `npm run build`
+3. **API returns 500 error**: Check if services are running (`./vendor/bin/sail up -d`)
+4. **Database issues**: Use MySQL MCP or `./vendor/bin/sail mysql`
 
 </laravel-boost-guidelines>
