@@ -53,7 +53,7 @@ onMounted(() => {
         </div>
 
         <router-link
-          :to="{ name: 'photographer-discovery' }"
+          :to="{ name: 'client-booking-request', params: { id: photographer.id } }"
           class="btn btn--primary btn--sm"
         >
           View Profile

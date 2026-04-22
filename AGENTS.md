@@ -121,6 +121,53 @@ This project has domain-specific skills available. You MUST activate the relevan
     - Execute PHP scripts: `sail php [script]`
 - View all available Sail commands by running `vendor/bin/sail` without arguments.
 
+## Persistent Sail Alias Configuration
+**Critical for VS Code/Cline Integration:** VS Code terminals may run as login/non-interactive shells that don't source `.zshrc` properly. For permanent `sail` availability:
+
+1. **Robust Sail Function** (preferred): Use a shell function instead of alias for better error handling and directory independence:
+```bash
+sail() {
+    local sail_cmd
+    if [ -f "./sail" ]; then
+        sail_cmd="./sail"
+    elif [ -f "./vendor/bin/sail" ]; then
+        sail_cmd="./vendor/bin/sail"
+    elif [ -f "/srv/dev/moussawer/vendor/bin/sail" ]; then
+        sail_cmd="/srv/dev/moussawer/vendor/bin/sail"
+    else
+        echo "Error: sail command not found"
+        echo "Looked for: ./sail, ./vendor/bin/sail, /srv/dev/moussawer/vendor/bin/sail"
+        return 1
+    fi
+    sh "$sail_cmd" "$@"
+}
+```
+
+2. **Configuration Files**: Add to both `~/.zshrc` (interactive shells) and `~/.zshenv` (all shells including non-interactive/login).
+
+3. **Check for Conflicts**: Ensure no duplicate `sail` aliases/functions in shell config files.
+
+=== shell-configuration-rules ===
+
+# Shell Configuration Best Practices
+
+## Zsh Configuration Files
+- **`.zshenv`**: Always sourced - use for environment variables and functions needed everywhere
+- **`.zshrc`**: Sourced for interactive shells - use for aliases, prompts, completion
+- **`.zprofile`**: Sourced for login shells - use for login-specific setup
+- **`.zlogin`**: Sourced after `.zshrc` for login shells
+
+## VS Code Terminal Integration
+- VS Code terminals often run as login shells (`zsh -l`)
+- Ensure critical functions/aliases are in `.zshenv` for availability in all shell types
+- Test with: `zsh -l -c "type sail"` to verify login shell availability
+
+## Debugging Shell Issues
+1. Check shell type: `echo $SHELL` and `ps -p $$ -o comm=`
+2. Test in new shell: `zsh -c "type sail"`
+3. Test in login shell: `zsh -l -c "type sail"`
+4. Check config files: `grep -n "sail" ~/.zsh* ~/.bash*`
+
 === tests rules ===
 
 # Test Enforcement
@@ -292,35 +339,6 @@ If Playwright MCP fails:
 2. Verify application is running (`sail up -d`)
 3. Use HTTP tools directly for API testing
 
-=== api-validation-patterns ===
-
-# API Validation Patterns
-
-## Client Profile Validation
-### Required Fields & Formats:
-- `phone`: E.164 format - `+15551234567` (no spaces/parentheses)
-- `address`: string, max 255 chars
-- `city`: string, max 100 chars  
-- `province`: string, max 100 chars
-- `postal_code`: Canadian format - `A1A1A1` or `A1A 1A1`
-- `preferred_contact`: `email`, `phone`, or `sms`
-
-### Example Valid Payload:
-```json
-{
-  "phone": "+15551234567",
-  "address": "123 Main Street",
-  "city": "Toronto",
-  "province": "ON",
-  "postal_code": "M5H2N2",
-  "preferred_contact": "email"
-}
-```
-
-## Common Validation Failures
-1. **Phone format** - Remove spaces/parentheses, use E.164
-2. **Postal code** - Canadian format only
-3. **Missing required fields** - All fields are required
 
 ## Authentication Flow
 ### Login Process:
@@ -331,6 +349,10 @@ If Playwright MCP fails:
 ### Profile Endpoints:
 - Client: `POST/GET/PUT/DELETE /api/client/profile`
 - Photographer: `POST/GET/PUT /api/photographer/profile`
+
+### Portfolio Endpoints:
+- Photographer: `GET/POST/PUT/DELETE /api/photographer/portfolios`
+- Admin portfolio management: `GET /api/admin/users/{user}/portfolios`, `DELETE /api/admin/users/{user}/portfolios/{portfolio}`
 
 === mcp-server-status ===
 
@@ -453,8 +475,19 @@ For complete step-by-step installation instructions, see: `/srv/dev/moussawer/do
 
 ## Test Accounts
 - Client: `test@example.com` | `password`
+- Admin: `admin@example.com` | `password` (may need password reset: `sail artisan tinker --execute 'echo \App\Models\User::where("email", "admin@example.com")->update(["password" => \Illuminate\Support\Facades\Hash::make("password")]);'`)
+- Photographer: `photographer-one@example.com` | `password`
 - Check database for other test users if needed
 - Reset password if login fails: `./vendor/bin/sail artisan tinker --execute 'echo \App\Models\User::where("email", "test@example.com")->update(["password" => \Illuminate\Support\Facades\Hash::make("password")]);'`
+
+## Portfolio Testing Insights
+- Portfolio items require photographer profile completion first (returns 400 error if missing)
+- Image uploads go to `storage/app/public/portfolios/` with unique filenames
+- Portfolio items support: title (required), description (optional), category (optional), tags (JSON optional)
+- Image files are automatically deleted when portfolio item is deleted
+- Admin can view photographer portfolios via `/api/admin/users/{user}/portfolios`
+- Admin can delete photographer portfolios via `/api/admin/users/{user}/portfolios/{portfolio}`
+- Clients cannot access photographer portfolio endpoints (403 Forbidden)
 
 ## GitHub Workflow Guidelines
 
@@ -504,10 +537,10 @@ For complete step-by-step installation instructions, see: `/srv/dev/moussawer/do
 - [ ] Local main branch synchronized with latest changes
 
 ## Quick Troubleshooting
-1. **"sail: command not found"**: Use `./vendor/bin/sail` instead
+1. **"sail: command not found"**: Ensure sail function is in ~/.zshenv and ~/.zshrc (see "Persistent Sail Alias Configuration" section)
 2. **Frontend changes not visible**: Run `npm run build`
-3. **API returns 500 error**: Check if services are running (`./vendor/bin/sail up -d`)
-4. **Database issues**: Use MySQL MCP or `./vendor/bin/sail mysql`
+3. **API returns 500 error**: Check if services are running (`sail up -d`)
+4. **Database issues**: Use MySQL MCP or `sail mysql`
 
 === comprehensive-testing-workflow ===
 
