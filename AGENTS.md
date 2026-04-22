@@ -456,10 +456,111 @@ For complete step-by-step installation instructions, see: `/srv/dev/moussawer/do
 - Check database for other test users if needed
 - Reset password if login fails: `./vendor/bin/sail artisan tinker --execute 'echo \App\Models\User::where("email", "test@example.com")->update(["password" => \Illuminate\Support\Facades\Hash::make("password")]);'`
 
+## GitHub Workflow Guidelines
+
+### Mission-ID Determination
+- Mission-IDs are typically found in `.ai/` directory files (e.g., `.ai/mission-frontend.md`, `.ai/mission-backend.md`)
+- Look for patterns like `MP-XXXX` or descriptive mission names in documentation
+- When no explicit mission-ID is found, derive from task context (e.g., "login-profile-update" for login/profile tasks)
+- Mission-IDs should be lowercase with hyphens: `feature-name`, `bugfix-issue`, `login-profile-update`
+
+### Conventional Commit Format
+- Use format: `feat(mission-ID): [brief description]`
+- Examples:
+  - `feat(login-profile-update): Enhance login flow and profile update`
+  - `fix(auth-bug): Resolve authentication token expiration issue`
+  - `docs(agents-md): Update AGENTS.md with GitHub workflow guidelines`
+- Keep descriptions concise but descriptive (50-72 characters recommended)
+
+### Branch Naming Conventions
+- Feature branches: `feature/ai/[mission-ID]` (e.g., `feature/ai/login-profile-update`)
+- Bug fix branches: `bugfix/[mission-ID]`
+- Documentation branches: `docs/[mission-ID]`
+- Hotfix branches: `hotfix/[mission-ID]`
+
+### Complete GitHub Workflow Process
+1. **Stage changes**: `git add .` or `git add -A`
+2. **Commit with conventional format**: `git commit -m "feat(mission-ID): [description]"`
+3. **Create feature branch**: `git checkout -b feature/ai/[mission-ID]`
+4. **Push to GitHub**: `git push origin feature/ai/[mission-ID]`
+5. **Create Pull Request**: Use GitHub CLI: `gh pr create --title "feat(mission-ID): [description]" --body "Detailed description of changes"`
+6. **Merge PR**: `gh pr merge [PR-number] --merge --delete-branch`
+7. **Sync local main**: `git checkout main && git pull origin main`
+
+### GitHub MCP Server vs CLI Fallback
+- **Preferred**: Use GitHub MCP server (`cf4mzR0mcp0` tools) when authenticated
+- **Fallback**: Use GitHub CLI (`gh`) when MCP server requires authentication
+- **GitHub CLI Commands**:
+  - `gh pr create --title "Title" --body "Description"`
+  - `gh pr merge [number] --merge --delete-branch`
+  - `gh pr view [number] --web` (to review in browser)
+
+### Verification Checklist
+- [ ] All changes staged and committed with proper mission-ID
+- [ ] Feature branch created with correct naming convention
+- [ ] Branch pushed to remote repository
+- [ ] Pull request created with descriptive title and body
+- [ ] PR reviewed and merged (if permissions allow)
+- [ ] Local main branch synchronized with latest changes
+
 ## Quick Troubleshooting
 1. **"sail: command not found"**: Use `./vendor/bin/sail` instead
 2. **Frontend changes not visible**: Run `npm run build`
 3. **API returns 500 error**: Check if services are running (`./vendor/bin/sail up -d`)
 4. **Database issues**: Use MySQL MCP or `./vendor/bin/sail mysql`
+
+=== comprehensive-testing-workflow ===
+
+# Comprehensive Testing Workflow Guidelines
+
+## 1. End-to-End Validation Checklist
+**Before declaring task completion, verify ALL of the following:**
+
+### API Layer (Backend):
+- [ ] Authentication works (login/logout)
+- [ ] CRUD operations return correct status codes
+- [ ] Data validation rules are enforced
+- [ ] Database changes persist correctly
+
+### Frontend Layer (UI):
+- [ ] User can navigate through complete workflow via browser
+- [ ] All form fields are present and functional
+- [ ] Success/error messages display correctly
+- [ ] No console errors (404, 405, 500, etc.)
+- [ ] UI matches design expectations (compare with similar pages)
+
+### Integration Layer:
+- [ ] Frontend uses correct API endpoints
+- [ ] Headers and authentication tokens are properly set
+- [ ] Data flows correctly between frontend and backend
+- [ ] Error handling works on both sides
+
+## 2. UI Completeness Verification
+**For any profile/forms pages:**
+- Compare with existing similar pages (e.g., client profile vs photographer profile)
+- Verify all expected fields are present
+- Check field types match requirements (read-only vs editable)
+- Validate CSS styling is applied correctly
+
+## 3. Error Handling Protocol
+**When errors are encountered:**
+1. **Log all errors** with context (API endpoint, response, UI state)
+2. **Fix iteratively** - don't declare victory after fixing just one issue
+3. **Re-test complete workflow** after each fix
+4. **Verify error is truly resolved** (not just masked)
+
+## 4. Task Completion Criteria
+**A task is ONLY complete when:**
+- All explicit requirements in the task description are met
+- No errors remain in console or API responses
+- Frontend UI is complete and functional
+- User can accomplish the goal through the browser interface
+- Data integrity is verified in the database
+
+## 5. Common Pitfalls to Avoid
+1. **Premature Completion**: Don't declare victory after API success alone
+2. **Ignoring Console Errors**: 404/405 errors indicate unresolved issues
+3. **Missing UI Elements**: Always compare with similar pages
+4. **Assuming Design Intent**: Verify missing elements are intentional, not bugs
 
 </laravel-boost-guidelines>

@@ -7,7 +7,11 @@ export function useProfile() {
         bio: '',
         portfolio_url: '',
         hourly_rate: 0,
-        availability_status: 'available'
+        availability_status: 'available',
+        user: {
+            name: '',
+            email: ''
+        }
     })
     const loading = ref(true)
     const updating = ref(false)
@@ -15,7 +19,7 @@ export function useProfile() {
     const fetchProfile = async () => {
         try {
             loading.value = true
-            const response = await fetch('/api/photographers/me', {
+            const response = await fetch('/api/photographer/profile', {
                 headers: {
                     'Authorization': `Bearer ${authStore.token}`,
                 }
@@ -34,13 +38,21 @@ export function useProfile() {
     const updateProfile = async () => {
         try {
             updating.value = true
-            const response = await fetch('/api/photographers/me', {
-                method: 'PATCH',
+            // Only send photographer fields, not user data
+            const updateData = {
+                bio: profile.value.bio,
+                portfolio_url: profile.value.portfolio_url,
+                hourly_rate: profile.value.hourly_rate,
+                availability_status: profile.value.availability_status
+            }
+            
+            const response = await fetch('/api/photographer/profile', {
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${authStore.token}`,
                 },
-                body: JSON.stringify(profile.value)
+                body: JSON.stringify(updateData)
             })
             
             if (!response.ok) {

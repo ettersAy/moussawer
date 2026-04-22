@@ -48,7 +48,7 @@ class ProfileController extends Controller
      */
     public function show()
     {
-        $photographer = Photographer::where('user_id', auth()->id())->firstOrFail();
+        $photographer = Photographer::with('user')->where('user_id', auth()->id())->firstOrFail();
 
         return (new PhotographerProfileResource($photographer))->response();
     }
