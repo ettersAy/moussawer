@@ -234,38 +234,18 @@ sail() {
 
 # Browser Automation Decision Framework
 
-## Automatic Approach Selection
+For browser automation tasks, automatically choose between MCP Playwright Server and Direct Playwright Installation:
 
-For browser automation tasks, automatically choose between MCP Playwright Server and Direct Playwright Installation based on these criteria:
+- **Use MCP Playwright Server** for simple/exploratory tasks (1-3 actions, quick validation, screenshots, console inspection)
+- **Use Direct Playwright Installation** for complex workflows (4+ actions), reusable scripts, or CI/CD integration
 
-### **Use MCP Playwright Server When:**
-1. **Task is simple & exploratory** (1-3 actions, quick validation)
-2. **Interactive debugging needed** (console logs, network inspection)
-3. **Single action requests** (screenshot, page navigation, element check)
-4. **Real-time feedback required** (immediate visual verification)
-5. **No script reuse anticipated** (one-off tasks)
-
-### **Use Direct Playwright Installation When:**
-1. **Complex workflows** (4+ sequential actions)
-2. **Data-driven tasks** (multiple test cases, parameterized inputs)
-3. **Script reuse needed** (save to `/scripts/` directory)
-4. **Integration with existing tests** (use `/e2e/` page objects)
-5. **CI/CD or automation** (needs to run without MCP overhead)
-
-## Decision Flowchart Implementation
-
-When receiving a browser automation request:
-1. **Analyze task complexity**: Count expected actions/steps
-2. **Check for reuse indicators**: Words like "reusable", "script", "automate", "test"
-3. **Look for integration needs**: References to existing tests, CI/CD, or data files
-4. **Evaluate debugging requirements**: Console, network, or performance inspection
-5. **Default to MCP** for ambiguous cases, with fallback to Direct if issues arise
+If chosen approach fails, fall back to the other. If both fail, report the error and suggest manual verification.
 
 ## Execution Protocol
 
 ### For MCP Playwright Server:
 - Use available MCP tools (`playwright_navigate`, `playwright_fill`, etc.)
-- Handle version compatibility via updated wrapper configuration
+- Always use `headless: true` (see headless requirement section)
 - Clean up any temporary resources after task completion
 
 ### For Direct Playwright Installation:
@@ -274,13 +254,6 @@ When receiving a browser automation request:
 - Leverage existing page objects from `/e2e/pages/` when possible
 - Include error handling and logging
 - Clean up script file unless explicitly asked to keep it
-
-## Fallback Strategy
-
-If chosen approach fails:
-1. **MCP fails**: Switch to Direct Playwright with explanatory comment
-2. **Direct Playwright fails**: Check browser installation and dependencies
-3. **Both fail**: Report specific error and suggest manual verification
 
 === tinker-enum-handling ===
 
@@ -339,7 +312,6 @@ If Playwright MCP fails:
 2. Verify application is running (`sail up -d`)
 3. Use HTTP tools directly for API testing
 
-
 ## Authentication Flow
 ### Login Process:
 - **Endpoint:** `POST /api/login`
@@ -358,85 +330,30 @@ If Playwright MCP fails:
 
 # MCP Server Status & Best Practices
 
-## Available Servers (Based on Tool Analysis):
-1. **czZ_-_0mcp0** (Playwright) - ✅ Working (requires headless mode)
-2. **cI5hUp0mcp0** (Filesystem) - ✅ Working
-3. **cSlD5l0mcp0** (MySQL) - ✅ WORKING (fixed - server running successfully)
-4. **cTy-lz0mcp0** (GitHub) - ✅ Working
-5. **cUCfDl0mcp0** (Docker) - ✅ Working
+## Available Servers:
+- **Playwright** - ✅ Working (requires headless mode)
+- **Filesystem** - ✅ Working
+- **MySQL** - ✅ Working (connection: 127.0.0.1:3306, sail/password, database: moussawer)
+- **GitHub** - ✅ Working
+- **Docker** - ✅ Working
 
-## Database Access Best Practices:
-1. **Primary Method: Laravel Boost Database Tools**
-   - Use `database-query` for read-only SQL queries
-   - Use `database-schema` for table structure inspection
-   - These tools integrate with Laravel's database configuration
+## Database Access (Priority Order):
+1. **Laravel Boost** (`database-query`, `database-schema`) — Best for Laravel-integrated queries
+2. **MySQL MCP** (`mysql_query`) — Fastest for raw SQL and schema inspection
+3. **Tinker** (`sail artisan tinker --execute`) — For complex Eloquent operations
+4. **Sail MySQL** (`sail mysql -u sail -ppassword -e "QUERY"`) — For one-off commands
 
-2. **Secondary Method: Tinker for Eloquent Operations**
-   - Use for simple Eloquent queries and model operations
-   - Always use `echo` for output: `sail artisan tinker --execute 'echo User::count();'`
-   - Use single quotes for shell, double quotes for PHP strings
-
-3. **Tertiary Method: Sail MySQL Client**
-   - Use for raw SQL queries: `sail mysql -u sail -ppassword -e "SELECT 1;"`
-   - Useful for quick database inspections
-
-4. **MySQL MCP Server Status**: 
-   - ✅ WORKING (fixed - server running successfully)
-   - Server ID: `cSlD5l0mcp0` (MySQL MCP server)
-   - Connection: `127.0.0.1:3306` (sail/password, database: moussawer)
-   - Tools available: `mysql_query`, `mysql_list_databases`
+## MySQL MCP Quick Reference
+- **JSON parsing errors**: Disable debug logging in wrapper script (`ENABLE_LOGGING=false`)
+- **Connection timeout**: Verify MySQL is running (`sail up -d`)
+- **Permission denied**: `chmod +x /path/to/wrapper.sh`
+- For full installation guide: `/srv/dev/moussawer/doc/MYSQL_MCP_REINSTALLATION_GUIDE.md`
 
 ## General MCP Best Practices:
 1. **Filesystem MCP**: Preferred over manual file operations
 2. **Playwright MCP**: Use for HTTP requests and browser automation (always use headless mode)
 3. **GitHub MCP**: Use for repository operations
 4. **Docker MCP**: Use for container management
-
-## Health Check Recommendations:
-- Test MCP server availability before complex operations
-- Have fallback strategies for critical servers
-- Document server status in this file
-- For database operations, default to Tinker or Laravel Boost tools
-
-## MySQL MCP Server Installation & Benefits
-
-### Installation Guide
-For complete step-by-step installation instructions, see: `/srv/dev/moussawer/doc/MYSQL_MCP_REINSTALLATION_GUIDE.md`
-
-**Quick Fix for JSON Errors**: If you see "Unexpected token 'D', 'Database c'... is not valid JSON" errors:
-1. Ensure wrapper script has `ENABLE_LOGGING=false` and `MYSQL_LOG_LEVEL=error`
-2. Redirect stderr to /dev/null: `exec npx -y @benborla29/mcp-server-mysql 2>/dev/null`
-3. Test with: `echo '{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {...}}' | /path/to/wrapper.sh`
-
-### How MySQL MCP Helps AI Agents
-
-#### Speed Benefits
-1. **Direct SQL Execution**: Run queries without context switching to terminal
-2. **Instant Schema Inspection**: Check table structures before writing migrations
-3. **Data Validation**: Verify data exists before implementing features
-4. **Performance Comparison**:
-   - ⚡ **MySQL MCP**: Fastest for raw SQL
-   - ⚡ **Laravel Boost**: Fast for Laravel-integrated queries  
-   - 🐢 **Tinker**: Slow for Eloquent operations
-   - ⚡ **Sail MySQL**: Fast for one-off commands
-
-#### Common Use Cases for AI Agents
-1. **Before writing migrations**: `SHOW CREATE TABLE users;`
-2. **Debugging data issues**: `SELECT * FROM failed_jobs ORDER BY failed_at DESC LIMIT 5;`
-3. **Verifying test data**: `SELECT COUNT(*) FROM users WHERE email LIKE '%@test.com';`
-4. **Planning database changes**: `SHOW TABLES; SELECT table_name, table_rows FROM information_schema.tables;`
-
-#### Integration Tips
-- Use MySQL MCP for quick raw SQL queries and schema inspection
-- Use Laravel Boost tools for Laravel-integrated queries when available
-- Fall back to Tinker for complex Eloquent operations
-- Use Sail MySQL for one-off commands in terminal
-
-### Troubleshooting MySQL MCP
-1. **JSON parsing errors**: Disable debug logging in wrapper script
-2. "No connection found": Restart agent/IDE after configuration changes  
-3. Connection timeout: Verify MySQL is running (`sail up -d`)
-4. Permission denied: `chmod +x /path/to/wrapper.sh`
 
 === basic-project-info ===
 
@@ -460,6 +377,7 @@ For complete step-by-step installation instructions, see: `/srv/dev/moussawer/do
 - `app/Http/Controllers/Api/` - API controllers
 - `app/Http/Resources/` - API resources (transformers)
 - `resources/js/views/` - Vue components organized by role
+- `resources/js/composables/` - Vue composables (reusable state logic)
 - `tests/Feature/` - Feature tests
 
 ## Authentication & Roles
@@ -471,7 +389,19 @@ For complete step-by-step installation instructions, see: `/srv/dev/moussawer/do
 ## Common API Endpoints
 - Client profile: `GET/PUT/DELETE /api/client/profile`
 - Photographer profile: `GET/PUT /api/photographer/profile`
-- Bookings: `/api/client/bookings`, `/api/photographer/bookings`
+- Bookings: `GET/POST /api/bookings`, `POST /api/client/bookings`, `PATCH /api/bookings/{id}/status`, `DELETE /api/bookings/{id}`
+- Photographer search (public): `GET /api/photographers`
+- Photographer profile (public): `GET /api/photographers/{id}`
+
+## Booking System Overview
+- **Status lifecycle**: `pending → confirmed → completed` or `pending/confirmed → cancelled`
+- **Authorization** (via `BookingPolicy`):
+  - **Client**: Create bookings, view own, list own, delete pending only. Cannot update status.
+  - **Photographer**: View assigned, list assigned, update status (confirm/complete/cancel). Cannot delete.
+  - **Admin**: View all, list all, update any status, delete any.
+- **Frontend routes**: `/client/bookings` (client list), `/photographers/{id}/book` (booking request), `/photographer/bookings` (photographer management)
+- **Shared components**: `BookingsTable.vue` (role-based actions), `BookingFilters.vue` (status/sort)
+- **Composables**: `useBookingForm.js` (booking form state), `useBookings.js` (bookings list CRUD)
 
 ## Test Accounts
 - Client: `test@example.com` | `password`
@@ -521,7 +451,7 @@ For complete step-by-step installation instructions, see: `/srv/dev/moussawer/do
 7. **Sync local main**: `git checkout main && git pull origin main`
 
 ### GitHub MCP Server vs CLI Fallback
-- **Preferred**: Use GitHub MCP server (`cf4mzR0mcp0` tools) when authenticated
+- **Preferred**: Use GitHub MCP server tools when authenticated
 - **Fallback**: Use GitHub CLI (`gh`) when MCP server requires authentication
 - **GitHub CLI Commands**:
   - `gh pr create --title "Title" --body "Description"`
@@ -546,7 +476,7 @@ For complete step-by-step installation instructions, see: `/srv/dev/moussawer/do
 
 # Comprehensive Testing Workflow Guidelines
 
-## 1. End-to-End Validation Checklist
+## End-to-End Validation Checklist
 **Before declaring task completion, verify ALL of the following:**
 
 ### API Layer (Backend):
@@ -568,21 +498,14 @@ For complete step-by-step installation instructions, see: `/srv/dev/moussawer/do
 - [ ] Data flows correctly between frontend and backend
 - [ ] Error handling works on both sides
 
-## 2. UI Completeness Verification
-**For any profile/forms pages:**
-- Compare with existing similar pages (e.g., client profile vs photographer profile)
-- Verify all expected fields are present
-- Check field types match requirements (read-only vs editable)
-- Validate CSS styling is applied correctly
-
-## 3. Error Handling Protocol
+## Error Handling Protocol
 **When errors are encountered:**
 1. **Log all errors** with context (API endpoint, response, UI state)
 2. **Fix iteratively** - don't declare victory after fixing just one issue
 3. **Re-test complete workflow** after each fix
 4. **Verify error is truly resolved** (not just masked)
 
-## 4. Task Completion Criteria
+## Task Completion Criteria
 **A task is ONLY complete when:**
 - All explicit requirements in the task description are met
 - No errors remain in console or API responses
@@ -590,7 +513,7 @@ For complete step-by-step installation instructions, see: `/srv/dev/moussawer/do
 - User can accomplish the goal through the browser interface
 - Data integrity is verified in the database
 
-## 5. Common Pitfalls to Avoid
+## Common Pitfalls to Avoid
 1. **Premature Completion**: Don't declare victory after API success alone
 2. **Ignoring Console Errors**: 404/405 errors indicate unresolved issues
 3. **Missing UI Elements**: Always compare with similar pages

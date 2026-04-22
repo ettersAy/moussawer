@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Photographer;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Photographer\StorePortfolioItemRequest;
+use App\Http\Requests\Photographer\UpdatePortfolioItemRequest;
 use App\Models\PortfolioItem;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -86,7 +87,7 @@ class PortfolioItemController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(\App\Http\Requests\Photographer\UpdatePortfolioItemRequest $request, PortfolioItem $portfolio): JsonResponse
+    public function update(UpdatePortfolioItemRequest $request, PortfolioItem $portfolio): JsonResponse
     {
         $tags = $portfolio->tags;
         if ($request->has('tags')) {

@@ -78,7 +78,7 @@ class UserService
         } else {
             $query->orderBy($sortBy, $sortDirection);
         }
-        
+
         return $query->paginate($perPage);
     }
 

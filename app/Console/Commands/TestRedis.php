@@ -28,10 +28,11 @@ class TestRedis extends Command
 
             // 4. Cleanup (optional)
             Redis::del('test_key');
-            
+
             return Command::SUCCESS;
         } catch (\Exception $e) {
-            $this->error("Redis Error: " . $e->getMessage());
+            $this->error('Redis Error: '.$e->getMessage());
+
             return Command::FAILURE;
         }
     }
