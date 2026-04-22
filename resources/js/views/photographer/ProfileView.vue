@@ -10,6 +10,30 @@
         <div v-else class="profile-container">
             <form @submit.prevent="handleUpdate" class="profile-form">
                 <div class="profile-form-group">
+                    <label for="name">Name</label>
+                    <input 
+                        id="name"
+                        v-model="profile.user.name"
+                        type="text"
+                        placeholder="Your full name"
+                        readonly
+                        class="readonly-field"
+                    />
+                </div>
+                
+                <div class="profile-form-group">
+                    <label for="email">Email</label>
+                    <input 
+                        id="email"
+                        v-model="profile.user.email"
+                        type="email"
+                        placeholder="your@email.com"
+                        readonly
+                        class="readonly-field"
+                    />
+                </div>
+                
+                <div class="profile-form-group">
                     <label for="bio">Bio</label>
                     <textarea 
                         id="bio"
