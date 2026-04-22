@@ -40,6 +40,14 @@ class BookingResource extends JsonResource
                     'email' => $this->photographer->user->email,
                 ],
             ],
+            'service' => $this->photographerService ? [
+                'id' => $this->photographerService->id,
+                'name' => $this->photographerService->name,
+                'description' => $this->photographerService->description,
+                'price' => $this->photographerService->price,
+                'duration_minutes' => $this->photographerService->duration_minutes,
+                'minimum_hours' => $this->photographerService->minimum_hours,
+            ] : null,
         ];
     }
 }

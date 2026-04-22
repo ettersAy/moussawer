@@ -43,7 +43,7 @@ class BookingController extends Controller
     {
         $this->authorize('viewAny', Booking::class);
 
-        $query = Booking::with(['client', 'photographer.user']);
+        $query = Booking::with(['client', 'photographer.user', 'photographerService']);
 
         // Filter by role
         if (auth()->user()->role === UserRole::Client) {
@@ -61,6 +61,15 @@ class BookingController extends Controller
         // Filter by status if provided
         if ($request->filled('status')) {
             $query->where('status', $request->status);
+        }
+
+        // Filter by date range
+        if ($request->filled('date_from')) {
+            $query->whereDate('scheduled_date', '>=', $request->date_from);
+        }
+        
+        if ($request->filled('date_to')) {
+            $query->whereDate('scheduled_date', '<=', $request->date_to);
         }
 
         // Sorting
@@ -113,6 +122,54 @@ class BookingController extends Controller
         $booking->update(['status' => $request->status]);
 
         return new BookingResource($booking);
+    }
+
+    /**
+     * Get booking statistics for the authenticated photographer.
+     */
+    public function stats(Request $request)
+    {
+        $this->authorize('viewAny', Booking::class);
+
+        $query = Booking::query();
+
+        // Filter by photographer role
+        if (auth()->user()->role === UserRole::Photographer) {
+            $photographer = auth()->user()->photographer;
+            if ($photographer) {
+                $query->where('photographer_id', $photographer->id);
+            } else {
+                $query->whereRaw('1 = 0'); // Return empty if no profile
+            }
+        } else {
+            // Only photographers can access stats
+            abort(403, 'Only photographers can access booking statistics.');
+        }
+
+        // Current month stats
+        $currentMonthStart = now()->startOfMonth();
+        $currentMonthEnd = now()->endOfMonth();
+
+        $pendingCount = (clone $query)->where('status', 'pending')->count();
+        $confirmedCount = (clone $query)->where('status', 'confirmed')->count();
+        $completedCount = (clone $query)->where('status', 'completed')->count();
+        
+        // Calculate monthly revenue from completed bookings in current month
+        $monthlyRevenue = (clone $query)
+            ->where('status', 'completed')
+            ->whereBetween('scheduled_date', [$currentMonthStart, $currentMonthEnd])
+            ->with('photographerService')
+            ->get()
+            ->sum(function ($booking) {
+                return $booking->photographerService ? (float) $booking->photographerService->price : 0;
+            });
+
+        return response()->json([
+            'pending' => $pendingCount,
+            'confirmed' => $confirmedCount,
+            'completed' => $completedCount,
+            'total_revenue_month' => $monthlyRevenue,
+        ]);
     }
 
     /**

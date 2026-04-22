@@ -46,6 +46,11 @@ class Booking extends Model
         return $this->hasOne(Payment::class);
     }
 
+    public function photographerService(): BelongsTo
+    {
+        return $this->belongsTo(PhotographerService::class, 'photographer_service_id');
+    }
+
     public function review(): HasOne
     {
         return $this->hasOne(Review::class);

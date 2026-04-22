@@ -74,6 +74,7 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::post('/bookings', [BookingController::class, 'store']);
     Route::post('/client/bookings', [BookingRequestController::class, 'store']);
     Route::get('/bookings', [BookingController::class, 'index']);
+    Route::get('/bookings/stats', [BookingController::class, 'stats']);
     Route::get('/bookings/{booking}', [BookingController::class, 'show']);
     Route::patch('/bookings/{booking}/status', [BookingController::class, 'updateStatus']);
     Route::delete('/bookings/{booking}', [BookingController::class, 'destroy']);
