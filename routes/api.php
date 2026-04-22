@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Auth\LogoutController;
 use App\Http\Controllers\Api\Auth\MeController;
 use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Booking\BookingController;
+use App\Http\Controllers\Api\Client\BookingRequestController;
 use App\Http\Controllers\Api\Client\ProfileController as ClientProfileController;
 use App\Http\Controllers\Api\Photographer\PortfolioItemController;
 use App\Http\Controllers\Api\Photographer\ProfileController as PhotographerProfileController;
@@ -27,7 +28,7 @@ use Illuminate\Support\Facades\Route;
 
 // --- Public Routes (no auth required) ---
 Route::get('/photographers', PhotographerSearchController::class);
-Route::get('/photographers/{photographer}', \App\Http\Controllers\Api\Public\PhotographerProfileController::class);
+Route::get('/photographers/{photographer}', App\Http\Controllers\Api\Public\PhotographerProfileController::class);
 
 Route::post('/contact', [ContactSubmissionController::class, 'store'])
     ->middleware('throttle:contact');
@@ -71,7 +72,7 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
 
     // Booking routes
     Route::post('/bookings', [BookingController::class, 'store']);
-    Route::post('/client/bookings', [\App\Http\Controllers\Api\Client\BookingRequestController::class, 'store']);
+    Route::post('/client/bookings', [BookingRequestController::class, 'store']);
     Route::get('/bookings', [BookingController::class, 'index']);
     Route::get('/bookings/{booking}', [BookingController::class, 'show']);
     Route::patch('/bookings/{booking}/status', [BookingController::class, 'updateStatus']);

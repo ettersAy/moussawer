@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api\Public;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PhotographerResource;
 use App\Models\Photographer;
-use Illuminate\Http\Request;
 
 class PhotographerProfileController extends Controller
 {
