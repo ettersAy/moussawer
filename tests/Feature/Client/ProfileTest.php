@@ -151,13 +151,15 @@ class ProfileTest extends TestCase
     }
 
     /**
-     * Test that client cannot fetch non-existent profile (404).
+     * Test that client gets null data when no profile exists.
      */
-    public function test_client_cannot_fetch_non_existent_profile(): void
+    public function test_client_gets_null_data_when_no_profile(): void
     {
         $response = $this->actingAs($this->client)->getJson('/api/client/profile');
 
-        $response->assertStatus(404);
+        $response->assertStatus(200)
+            ->assertJsonPath('data', null)
+            ->assertJsonPath('message', 'Client profile not found. Please create one.');
     }
 
     /**

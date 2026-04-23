@@ -48,7 +48,14 @@ class ProfileController extends Controller
      */
     public function show()
     {
-        $client = Client::with('user')->where('user_id', auth()->id())->firstOrFail();
+        $client = Client::with('user')->where('user_id', auth()->id())->first();
+
+        if (! $client) {
+            return response()->json([
+                'data' => null,
+                'message' => 'Client profile not found. Please create one.',
+            ]);
+        }
 
         return (new ClientProfileResource($client))->response();
     }
@@ -58,7 +65,13 @@ class ProfileController extends Controller
      */
     public function update(UpdateProfileRequest $request)
     {
-        $client = Client::where('user_id', auth()->id())->firstOrFail();
+        $client = Client::where('user_id', auth()->id())->first();
+
+        if (! $client) {
+            return response()->json([
+                'message' => 'Client profile not found. Please create one first.',
+            ], Response::HTTP_NOT_FOUND);
+        }
 
         // Update only provided fields
         $client->update($request->validated());
@@ -74,7 +87,13 @@ class ProfileController extends Controller
      */
     public function destroy()
     {
-        $client = Client::where('user_id', auth()->id())->firstOrFail();
+        $client = Client::where('user_id', auth()->id())->first();
+
+        if (! $client) {
+            return response()->json([
+                'message' => 'Client profile not found.',
+            ], Response::HTTP_NOT_FOUND);
+        }
 
         $client->delete();
 

@@ -1,22 +1,24 @@
 <template>
     <div>
         <h1>My Profile</h1>
-        <p>Manage your client profile and contact information.</p>
+        <p v-if="!noProfile">Manage your client profile and contact information.</p>
+        <p v-else>Set up your client profile to get started.</p>
         
         <div v-if="loading" class="profile-loading">
             <p>Loading profile...</p>
         </div>
         
         <div v-else class="profile-container">
-            <form @submit.prevent="updateProfile" class="profile-form">
+            <form @submit.prevent="handleSubmit" class="profile-form">
                 <div class="profile-form-group">
                     <label for="name">Name</label>
                     <input 
                         id="name"
-                        v-model="profile.name"
+                        :value="displayName"
                         type="text"
                         placeholder="Your full name"
-                        required
+                        readonly
+                        class="readonly-field"
                     />
                 </div>
                 
@@ -24,10 +26,11 @@
                     <label for="email">Email</label>
                     <input 
                         id="email"
-                        v-model="profile.email"
+                        :value="displayEmail"
                         type="email"
                         placeholder="your@email.com"
-                        required
+                        readonly
+                        class="readonly-field"
                     />
                 </div>
                 
@@ -96,11 +99,12 @@
                 </div>
                 
                 <div v-if="success" class="profile-success-message">
-                    Profile updated successfully!
+                    {{ success }}
                 </div>
                 
                 <button type="submit" :disabled="updating" class="profile-btn-submit">
-                    {{ updating ? 'Updating...' : 'Update Profile' }}
+                    <span v-if="updating" class="loading-spinner"></span>
+                    {{ updating ? (noProfile ? 'Creating...' : 'Updating...') : (noProfile ? 'Create Profile' : 'Update Profile') }}
                 </button>
             </form>
         </div>
@@ -108,10 +112,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import api from '@/services/api'
 
 const authStore = useAuthStore()
+
+const displayName = computed(() => authStore.user?.name || '')
+const displayEmail = computed(() => authStore.user?.email || '')
+
 const profile = ref({
     name: '',
     email: '',
@@ -124,6 +133,7 @@ const profile = ref({
 })
 const loading = ref(true)
 const updating = ref(false)
+const noProfile = ref(false)
 const error = ref('')
 const success = ref('')
 
@@ -131,19 +141,24 @@ const fetchProfile = async () => {
     try {
         loading.value = true
         error.value = ''
+        noProfile.value = false
         
-        const response = await fetch('/api/client/profile', {
-            headers: {
-                'Authorization': `Bearer ${authStore.token}`,
+        const response = await api.get('/client/profile')
+        
+        if (response.data.data === null) {
+            noProfile.value = true
+            profile.value = {
+                name: authStore.user?.name || '',
+                email: authStore.user?.email || '',
+                phone: '',
+                address: '',
+                city: '',
+                province: '',
+                postal_code: '',
+                preferred_contact: 'email'
             }
-        })
-        
-        if (response.ok) {
-            const data = await response.json()
-            // The API returns { data: { ...profileData, user: { ...userData } } }
-            const profileData = data.data || data
-            
-            // Map the API response to our form fields
+        } else {
+            const profileData = response.data.data
             profile.value = {
                 name: profileData.user?.name || authStore.user?.name || '',
                 email: profileData.user?.email || authStore.user?.email || '',
@@ -154,93 +169,75 @@ const fetchProfile = async () => {
                 postal_code: profileData.postal_code || '',
                 preferred_contact: profileData.preferred_contact || 'email'
             }
-        } else {
-            const data = await response.json()
-            error.value = data.message || 'Failed to load profile'
-            
-            // If no profile exists yet, initialize with user data
-            if (authStore.user) {
-                profile.value = {
-                    name: authStore.user.name || '',
-                    email: authStore.user.email || '',
-                    phone: '',
-                    address: '',
-                    city: '',
-                    province: '',
-                    postal_code: '',
-                    preferred_contact: 'email'
-                }
-            }
         }
     } catch (err) {
         console.error('Failed to load profile:', err)
-        error.value = 'An error occurred while loading profile'
-        
-        // Initialize with user data as fallback
-        if (authStore.user) {
-            profile.value = {
-                name: authStore.user.name || '',
-                email: authStore.user.email || '',
-                phone: '',
-                address: '',
-                city: '',
-                province: '',
-                postal_code: '',
-                preferred_contact: 'email'
-            }
+        noProfile.value = true
+        profile.value = {
+            name: authStore.user?.name || '',
+            email: authStore.user?.email || '',
+            phone: '',
+            address: '',
+            city: '',
+            province: '',
+            postal_code: '',
+            preferred_contact: 'email'
         }
     } finally {
         loading.value = false
     }
 }
 
+const createProfile = async () => {
+    const createData = {
+        phone: profile.value.phone,
+        address: profile.value.address,
+        city: profile.value.city,
+        province: profile.value.province,
+        postal_code: profile.value.postal_code,
+        preferred_contact: profile.value.preferred_contact
+    }
+    const response = await api.post('/client/profile', createData)
+    profile.value = {
+        ...profile.value,
+        ...response.data.data
+    }
+    noProfile.value = false
+}
+
 const updateProfile = async () => {
+    const updateData = {
+        phone: profile.value.phone,
+        address: profile.value.address,
+        city: profile.value.city,
+        province: profile.value.province,
+        postal_code: profile.value.postal_code,
+        preferred_contact: profile.value.preferred_contact
+    }
+    await api.put('/client/profile', updateData)
+}
+
+const handleSubmit = async () => {
     error.value = ''
     success.value = ''
-    
     try {
         updating.value = true
-        
-        // Prepare data for API (match the expected fields)
-        const updateData = {
-            phone: profile.value.phone,
-            address: profile.value.address,
-            city: profile.value.city,
-            province: profile.value.province,
-            postal_code: profile.value.postal_code,
-            preferred_contact: profile.value.preferred_contact
-        }
-        
-        const response = await fetch('/api/client/profile', {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authStore.token}`,
-            },
-            body: JSON.stringify(updateData)
-        })
-        
-        if (response.ok) {
-            const data = await response.json()
-            success.value = 'Profile updated successfully!'
-            setTimeout(() => {
-                success.value = ''
-            }, 3000)
+        if (noProfile.value) {
+            await createProfile()
+            success.value = 'Profile created successfully!'
         } else {
-            const data = await response.json()
-            error.value = data.message || 'Failed to update profile'
+            await updateProfile()
+            success.value = 'Profile updated successfully!'
         }
+        setTimeout(() => { success.value = '' }, 3000)
     } catch (err) {
-        console.error('Failed to update profile:', err)
-        error.value = 'An error occurred while updating profile'
+        error.value = err.response?.data?.message || err.message || 'An error occurred'
     } finally {
         updating.value = false
     }
 }
 
-onMounted(() => {
-    fetchProfile()
-})
+onMounted(() => { fetchProfile() })
 </script>
 
 <style scoped>
