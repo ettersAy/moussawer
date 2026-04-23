@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Booking\StoreBookingRequest;
 use App\Http\Requests\Booking\UpdateBookingStatusRequest;
 use App\Http\Resources\BookingResource;
+use App\Models\AvailabilitySlot;
 use App\Models\Booking;
 use App\Models\Photographer;
 use Illuminate\Http\Request;
@@ -27,6 +28,18 @@ class BookingController extends Controller
             ])->setStatusCode(409);
         }
 
+        // Check if there's already a booked slot for this photographer on this date
+        $existingBookedSlot = AvailabilitySlot::where('photographer_id', $request->photographer_id)
+            ->whereDate('date', $request->scheduled_date)
+            ->where('status', 'booked')
+            ->exists();
+
+        if ($existingBookedSlot) {
+            return response()->json([
+                'message' => 'Photographer already has a booking for this date.',
+            ])->setStatusCode(409);
+        }
+
         // Create booking
         $booking = Booking::create([
             'client_id' => auth()->id(),
@@ -34,6 +47,14 @@ class BookingController extends Controller
             'scheduled_date' => $request->scheduled_date,
             'notes' => $request->notes,
             'status' => 'pending',
+        ]);
+
+        // Create availability slot for this booking
+        AvailabilitySlot::create([
+            'photographer_id' => $request->photographer_id,
+            'date' => $request->scheduled_date,
+            'status' => 'booked',
+            'booking_id' => $booking->id,
         ]);
 
         return (new BookingResource($booking))->response()->setStatusCode(201);
@@ -67,7 +88,7 @@ class BookingController extends Controller
         if ($request->filled('date_from')) {
             $query->whereDate('scheduled_date', '>=', $request->date_from);
         }
-        
+
         if ($request->filled('date_to')) {
             $query->whereDate('scheduled_date', '<=', $request->date_to);
         }
@@ -124,6 +145,12 @@ class BookingController extends Controller
 
         $booking->update(['status' => $request->status]);
 
+        // Update availability slot when booking is cancelled
+        if ($request->status === 'cancelled') {
+            AvailabilitySlot::where('booking_id', $booking->id)
+                ->update(['status' => 'available', 'booking_id' => null]);
+        }
+
         return new BookingResource($booking);
     }
 
@@ -156,7 +183,7 @@ class BookingController extends Controller
         $pendingCount = (clone $query)->where('status', 'pending')->count();
         $confirmedCount = (clone $query)->where('status', 'confirmed')->count();
         $completedCount = (clone $query)->where('status', 'completed')->count();
-        
+
         // Calculate monthly revenue from completed bookings in current month
         $monthlyRevenue = (clone $query)
             ->where('status', 'completed')
