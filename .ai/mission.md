@@ -1,10 +1,19 @@
-# Photographe - Improve List Bookings Interface
+# Photographer: Availability Calendar
 
-## Mission-ID: 0035-Photographe-improve-list-bookings-interface
+## Mission-ID: 0036-Photographer-Availability-Calendar
 
-Improve the existing **Photographer Bookings (List View)** interface. 
+**Description:** Visual scheduling tool allowing photographers to block dates and sync confirmed bookings before clients can request them.
+**Features:**
+- Interactive monthly calendar with color-coded markers for existing bookings and manual blocks.
+- Click-to-toggle specific dates as `available` or `unavailable` with immediate API sync.
+- Bulk select utility for blocking vacation periods or non-working days.
+- Visual lock overlay preventing client selection on blocked dates.
+**Contextual References:**
+- Maps directly to `availability_status` enum in `photographers` table (`available`, `unavailable`, `booked`).
+- CSS: `resources/css/views/photographer/calendar.css`
+- Logic: `resources/js/views/photographer/calendar.js` (strictly follows `useUsers.js` extraction pattern).
+- Route group requires `middleware('role:photographer')`.
 
-- main file: `resources/js/views/photographer/BookingsView.vue`
 
 ### Current folder resources
 
@@ -59,15 +68,5 @@ css
 
 ```
 
-
-**Requirements:**
-1.  **Enhanced Features:**
-    *   **Booking List (Table/Card):**
-        *   *Add:* "View Details" button for every row (not just pending). right now when the user press this btn it show only a window alert, it should open a model to list details
-2.  **Design & UX:**
-    *   refactor all native window alerts and confimation to use vue.js dialog components.
-
-
-Implement this now.
 
 

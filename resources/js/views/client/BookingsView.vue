@@ -23,9 +23,17 @@
       role="client"
       :current-page="currentPage"
       :total-pages="totalPages"
-      @view="handleView"
+      @view="handleViewDetails"
       @cancel="openCancelDialog"
       @page-change="handlePageChange"
+    />
+
+    <!-- Booking Details Modal -->
+    <BookingDetailsModal 
+      :show="showDetailsModal"
+      :booking-id="currentBookingId"
+      @close="closeDetailsModal"
+      @cancel="openCancelDialogFromModal"
     />
 
     <!-- Confirmation Dialog -->
@@ -45,13 +53,12 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { useBookings } from '@/composables/useBookings'
 import BookingFilters from '@/components/shared/BookingFilters.vue'
 import BookingsTable from '@/components/shared/BookingsTable.vue'
 import ConfirmationDialog from '@/components/shared/ConfirmationDialog.vue'
+import BookingDetailsModal from '@/components/client/BookingDetailsModal.vue'
 
-const router = useRouter()
 const { bookings, loading, currentPage, totalPages, fetchBookings, cancelBooking } = useBookings()
 
 const filters = ref({
@@ -61,6 +68,7 @@ const filters = ref({
 })
 
 // Modal states
+const showDetailsModal = ref(false)
 const showCancelDialog = ref(false)
 const currentBookingId = ref(null)
 const actionLoading = ref(false)
@@ -82,13 +90,19 @@ const handlePageChange = (page) => {
   loadBookings()
 }
 
-const handleView = (id) => {
-  router.push(`/client/bookings/${id}`)
+const handleViewDetails = (id) => {
+  currentBookingId.value = id
+  showDetailsModal.value = true
 }
 
 const openCancelDialog = (id) => {
   currentBookingId.value = id
   showCancelDialog.value = true
+}
+
+const openCancelDialogFromModal = (id) => {
+  showDetailsModal.value = false
+  openCancelDialog(id)
 }
 
 const handleCancel = async () => {
@@ -102,6 +116,11 @@ const handleCancel = async () => {
   } finally {
     actionLoading.value = false
   }
+}
+
+const closeDetailsModal = () => {
+  showDetailsModal.value = false
+  currentBookingId.value = null
 }
 
 const closeCancelDialog = () => {

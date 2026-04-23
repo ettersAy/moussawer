@@ -46,6 +46,22 @@ Activate the relevant skill **proactively** — don't wait until you're stuck.
 
 For every task, proactively leverage configured MCP servers (Filesystem, Docker, MySQL, Playwright) to analyze project state, execute tests, and inspect database schemas **before** proposing code changes. Do not rely on assumptions — query tools to confirm file paths, schema structures, and test results.
 
+## Mandatory Workflow Sequence
+
+For ALL tasks, follow this exact sequence. Deviations will be rejected:
+
+1. **Checkout main & pull latest**: `git checkout main && git pull origin main`
+2. **Create feature branch**: `git checkout -b feature/ai/[mission-id]`
+3. **Implement changes**: Write code following project conventions
+4. **Write tests**: Add PHPUnit and/or E2E tests for new/modified functionality
+5. **Run test suite**: `sail artisan test --compact` — iterate until all tests pass
+6. **Format code**: `sail bin pint --dirty --format agent`
+7. **Provide manual testing guide**: Include clear step-by-step instructions for the user to verify the implementation
+8. **Commit & push**: Use proper commit format with Mission-ID
+9. **Create PR**: Use GitHub MCP server or `gh` CLI
+
+**Exception**: If the task is purely documentation (no code changes), steps 3-6 may be skipped.
+
 ## Quick Commands Reference
 
 ```bash

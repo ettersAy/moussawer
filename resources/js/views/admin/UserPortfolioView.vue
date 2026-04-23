@@ -30,12 +30,25 @@
             <h4>{{ item.title }}</h4>
             <p v-if="item.description">{{ item.description }}</p>
           </div>
-          <button class="btn-delete" @click="deleteItem(item.id)" title="Delete Photo">
+          <button class="btn-delete" @click="openDeleteDialog(item.id)" title="Delete Photo">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
           </button>
         </div>
       </div>
     </div>
+
+    <!-- Delete Photo Confirmation Dialog -->
+    <ConfirmationDialog 
+      :show="showDeleteDialog"
+      title="Delete Photo"
+      message="Are you sure you want to permanently delete this photo? This cannot be undone."
+      confirm-text="Delete Photo"
+      variant="danger"
+      :loading="deleteLoading"
+      @confirm="handleDeleteItem"
+      @cancel="closeDeleteDialog"
+      @close="closeDeleteDialog"
+    />
   </div>
 </template>
 
@@ -43,6 +56,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/services/api'
+import ConfirmationDialog from '@/components/shared/ConfirmationDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -53,6 +67,9 @@ const photographerName = ref('')
 const loading = ref(true)
 const successMsg = ref('')
 const errorMsg = ref('')
+const showDeleteDialog = ref(false)
+const deleteLoading = ref(false)
+const itemToDelete = ref(null)
 
 const fetchItems = async () => {
   loading.value = true
@@ -91,16 +108,29 @@ const flashMessage = (type, msg) => {
   }
 }
 
-const deleteItem = async (id) => {
-  if (!confirm('Are you sure you want to permanently delete this photo? This cannot be undone.')) return
-  
+const openDeleteDialog = (id) => {
+  itemToDelete.value = id
+  showDeleteDialog.value = true
+}
+
+const handleDeleteItem = async () => {
+  deleteLoading.value = true
   try {
-    const response = await api.delete(`/admin/users/${userId}/portfolios/${id}`)
+    const response = await api.delete(`/admin/users/${userId}/portfolios/${itemToDelete.value}`)
     flashMessage('success', response.data.message || 'Photo deleted successfully.')
+    showDeleteDialog.value = false
     fetchItems()
   } catch (err) {
     flashMessage('error', 'Failed to delete photo.')
+  } finally {
+    deleteLoading.value = false
+    itemToDelete.value = null
   }
+}
+
+const closeDeleteDialog = () => {
+  showDeleteDialog.value = false
+  itemToDelete.value = null
 }
 </script>
 

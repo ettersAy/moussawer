@@ -59,6 +59,19 @@
       @saved="handleUserSaved"
       @error="handleUserError"
     />
+
+    <!-- Delete User Confirmation Dialog -->
+    <ConfirmationDialog 
+      :show="showDeleteDialog"
+      title="Delete User"
+      message="Are you sure you want to delete this user? This action cannot be undone."
+      confirm-text="Delete User"
+      variant="danger"
+      :loading="deleteLoading"
+      @confirm="handleDeleteUser"
+      @cancel="closeDeleteDialog"
+      @close="closeDeleteDialog"
+    />
   </div>
 </template>
 
@@ -71,6 +84,7 @@ import { useToast } from '@/composables/useToast'
 import UserFilters from '@/components/admin/UserFilters.vue'
 import UsersTable from '@/components/admin/UsersTable.vue'
 import UserModal from '@/components/admin/UserModal.vue'
+import ConfirmationDialog from '@/components/shared/ConfirmationDialog.vue'
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -85,6 +99,9 @@ const { toasts, showToast } = useToast()
 
 const showModal = ref(false)
 const editingUser = ref(null)
+const showDeleteDialog = ref(false)
+const deleteLoading = ref(false)
+const userToDelete = ref(null)
 
 const viewPortfolio = (userId) => {
   router.push(`/admin/users/${userId}/portfolio`)
@@ -117,18 +134,28 @@ const handleUserError = (message) => {
   showToast(message, 'error')
 }
 
-const confirmDeleteUser = async (id) => {
-  if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) return
+const confirmDeleteUser = (id) => {
+  userToDelete.value = id
+  showDeleteDialog.value = true
+}
+
+const handleDeleteUser = async () => {
+  deleteLoading.value = true
   try {
-    await deleteUser(id)
+    await deleteUser(userToDelete.value)
     showToast('User deleted successfully.')
+    showDeleteDialog.value = false
+    fetchUsers(currentPage.value)
   } catch (err) {
     showToast('Failed to delete user.', 'error')
+  } finally {
+    deleteLoading.value = false
+    userToDelete.value = null
   }
 }
-</script>
 
-<style scoped>
-/* File specific styles that need to remain scoped */
-/* Most styles have been extracted to CSS modules */
-</style>
+const closeDeleteDialog = () => {
+  showDeleteDialog.value = false
+  userToDelete.value = null
+}
+</script>
