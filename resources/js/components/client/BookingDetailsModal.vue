@@ -203,7 +203,8 @@ const fetchBookingDetails = async () => {
   loading.value = true
   try {
     const response = await api.get(`/bookings/${props.bookingId}`)
-    booking.value = response.data
+    // Laravel JsonResource wraps in 'data' key, so unwrap it
+    booking.value = response.data.data || response.data
   } catch (err) {
     console.error('Failed to load booking details:', err)
     booking.value = null
