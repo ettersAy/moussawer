@@ -57,7 +57,12 @@ export function useAuth() {
       localStorage.setItem('auth_token', response.data.token)
       localStorage.setItem('auth_user', JSON.stringify(response.data.user))
 
-      const redirectPath = response.data.user.role === 'admin' ? '/admin' : '/dashboard'
+      const dashboardMap = {
+        admin: '/admin/dashboard',
+        photographer: '/photographer/dashboard',
+        client: '/client/dashboard',
+      }
+      const redirectPath = dashboardMap[response.data.user.role] || '/'
       router.push(redirectPath)
     } catch (err) {
       if (err.response?.status === 422) {

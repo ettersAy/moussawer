@@ -60,6 +60,7 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
         Route::post('/profile', [PhotographerProfileController::class, 'store']);
         Route::get('/profile', [PhotographerProfileController::class, 'show']);
         Route::put('/profile', [PhotographerProfileController::class, 'update']);
+        Route::delete('/profile', [PhotographerProfileController::class, 'destroy']);
         Route::apiResource('portfolios', PortfolioItemController::class);
         Route::apiResource('services', ServiceController::class);
 

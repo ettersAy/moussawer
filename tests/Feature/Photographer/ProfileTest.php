@@ -135,13 +135,15 @@ class ProfileTest extends TestCase
     }
 
     /**
-     * Test that photographer cannot fetch non-existent profile (404).
+     * Test that photographer gets null data when no profile exists.
      */
-    public function test_photographer_cannot_fetch_non_existent_profile(): void
+    public function test_photographer_gets_null_data_when_no_profile(): void
     {
         $response = $this->actingAs($this->photographer)->getJson('/api/photographer/profile');
 
-        $response->assertStatus(404);
+        $response->assertStatus(200)
+            ->assertJsonPath('data', null)
+            ->assertJsonPath('message', 'Photographer profile not found. Please create one.');
     }
 
     /**

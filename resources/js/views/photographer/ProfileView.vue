@@ -1,19 +1,20 @@
 <template>
     <div>
         <h1>My Profile</h1>
-        <p>Manage your photographer profile and availability.</p>
+        <p v-if="!noProfile">Manage your photographer profile and availability.</p>
+        <p v-else>Set up your photographer profile to get started.</p>
         
         <div v-if="loading" class="profile-loading">
             <p>Loading profile...</p>
         </div>
         
         <div v-else class="profile-container">
-            <form @submit.prevent="handleUpdate" class="profile-form">
+            <form @submit.prevent="handleSubmit" class="profile-form">
                 <div class="profile-form-group">
                     <label for="name">Name</label>
                     <input 
                         id="name"
-                        v-model="profile.user.name"
+                        :value="displayName"
                         type="text"
                         placeholder="Your full name"
                         readonly
@@ -25,7 +26,7 @@
                     <label for="email">Email</label>
                     <input 
                         id="email"
-                        v-model="profile.user.email"
+                        :value="displayEmail"
                         type="email"
                         placeholder="your@email.com"
                         readonly
@@ -79,11 +80,12 @@
                 </div>
                 
                 <div v-if="success" class="profile-success-message">
-                    Profile updated successfully!
+                    {{ success }}
                 </div>
                 
                 <button type="submit" :disabled="updating" class="profile-btn-submit">
-                    {{ updating ? 'Updating...' : 'Update Profile' }}
+                    <span v-if="updating" class="loading-spinner"></span>
+                    {{ updating ? (noProfile ? 'Creating...' : 'Updating...') : (noProfile ? 'Create Profile' : 'Update Profile') }}
                 </button>
             </form>
         </div>
@@ -91,10 +93,23 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useProfile } from '@/composables/useProfile'
+import { ref, computed, onMounted } from 'vue'
 
-const { profile, loading, updating, fetchProfile, updateProfile } = useProfile()
+const displayName = computed(() => {
+    return authUser.value?.name || profile.value.user?.name || ''
+})
+
+const displayEmail = computed(() => {
+    return authUser.value?.email || profile.value.user?.email || ''
+})
+
+import { useProfile } from '@/composables/useProfile'
+import { useAuthStore } from '@/stores/auth'
+
+const authStore = useAuthStore()
+const authUser = computed(() => authStore.user)
+
+const { profile, loading, updating, noProfile, fetchProfile, createProfile, updateProfile } = useProfile()
 
 const error = ref('')
 const success = ref('')
@@ -103,22 +118,27 @@ onMounted(async () => {
     try {
         await fetchProfile()
     } catch (err) {
-        error.value = 'Failed to load profile'
+        // Silently handle - noProfile flag is set by the composable
     }
 })
 
-const handleUpdate = async () => {
+const handleSubmit = async () => {
     error.value = ''
     success.value = ''
     
     try {
-        await updateProfile()
-        success.value = 'Profile updated successfully!'
+        if (noProfile.value) {
+            await createProfile()
+            success.value = 'Profile created successfully!'
+        } else {
+            await updateProfile()
+            success.value = 'Profile updated successfully!'
+        }
         setTimeout(() => {
             success.value = ''
         }, 3000)
     } catch (err) {
-        error.value = err.message || 'An error occurred while updating profile'
+        error.value = err.response?.data?.message || err.message || 'An error occurred'
     }
 }
 </script>
