@@ -11,7 +11,7 @@
         <button class="availability-calendar__nav-btn" @click="nextMonth" :disabled="loading">
           Next &rarr;
         </button>
-        <button class="availability-calendar__nav-btn" @click="goToToday" :disabled="loading">
+        <button class="availability-calendar__nav-btn" @click="goToTodayAndLoad" :disabled="loading">
           Today
         </button>
       </div>
@@ -49,15 +49,17 @@
       <button class="btn-primary" @click="loadCalendar">Retry</button>
     </div>
 
-    <!-- Empty State -->
-    <div v-else-if="!hasAnySlots" class="availability-calendar__empty">
-      <div class="availability-calendar__empty-icon">📅</div>
-      <h3>No Availability Set</h3>
-      <p>You haven't set any availability slots yet. Click on a day to start managing your schedule.</p>
-    </div>
+    <!-- Calendar Grid (always rendered when not loading/error) -->
+    <template v-else>
+      <!-- Empty State Banner (shown above grid when no slots) -->
+      <div v-if="!hasAnySlots" class="availability-calendar__empty">
+        <div class="availability-calendar__empty-icon">📅</div>
+        <h3>No Availability Set</h3>
+        <p>You haven't set any availability slots yet. Click on a day below to start managing your schedule.</p>
+      </div>
 
-    <!-- Calendar Grid -->
-    <div v-else class="availability-calendar__grid">
+      <!-- Calendar Grid -->
+      <div class="availability-calendar__grid">
       <div
         v-for="dayName in dayHeaders"
         :key="dayName"
@@ -108,6 +110,7 @@
       @close="closeDayManager"
       @updated="onSlotsUpdated"
     />
+  </template>
   </div>
 </template>
 
