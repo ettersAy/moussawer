@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Booking\BookingController;
 use App\Http\Controllers\Api\Client\BookingRequestController;
 use App\Http\Controllers\Api\Client\ProfileController as ClientProfileController;
+use App\Http\Controllers\Api\Photographer\AvailabilitySlotController;
 use App\Http\Controllers\Api\Photographer\PortfolioItemController;
 use App\Http\Controllers\Api\Photographer\ProfileController as PhotographerProfileController;
 use App\Http\Controllers\Api\Photographer\ServiceController;
@@ -60,6 +61,14 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
         Route::put('/profile', [PhotographerProfileController::class, 'update']);
         Route::apiResource('portfolios', PortfolioItemController::class);
         Route::apiResource('services', ServiceController::class);
+
+        // Availability slot routes
+        Route::get('/availability-slots', [AvailabilitySlotController::class, 'index']);
+        Route::post('/availability-slots', [AvailabilitySlotController::class, 'store']);
+        Route::post('/availability-slots/bulk', [AvailabilitySlotController::class, 'bulkUpdate']);
+        Route::get('/availability-slots/{availabilitySlot}', [AvailabilitySlotController::class, 'show']);
+        Route::put('/availability-slots/{availabilitySlot}', [AvailabilitySlotController::class, 'update']);
+        Route::delete('/availability-slots/{availabilitySlot}', [AvailabilitySlotController::class, 'destroy']);
     });
 
     Route::prefix('client')->group(function () {

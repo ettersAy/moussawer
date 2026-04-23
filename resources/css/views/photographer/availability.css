@@ -1,0 +1,355 @@
+/* Availability Calendar Styles */
+
+.availability-calendar {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1.5rem;
+}
+
+.availability-calendar__header {
+    margin-bottom: 1.5rem;
+}
+
+.availability-calendar__title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 0.25rem;
+}
+
+.availability-calendar__subtitle {
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.availability-calendar__loading {
+    text-align: center;
+    padding: 2rem;
+    color: #6b7280;
+}
+
+.availability-calendar__error {
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+}
+
+.availability-calendar__success {
+    background-color: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #16a34a;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+}
+
+/* Navigation */
+.availability-calendar__nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.availability-calendar__nav-btn {
+    padding: 0.5rem 1rem;
+    background-color: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: #374151;
+    transition: background-color 0.2s;
+}
+
+.availability-calendar__nav-btn:hover {
+    background-color: #e5e7eb;
+}
+
+.availability-calendar__month-year {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+/* Legend */
+.availability-calendar__legend {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background-color: #f9fafb;
+    border-radius: 0.5rem;
+}
+
+.availability-calendar__legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    color: #6b7280;
+}
+
+.availability-calendar__legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.availability-calendar__legend-dot--available {
+    background-color: #22c55e;
+}
+
+.availability-calendar__legend-dot--unavailable {
+    background-color: #ef4444;
+}
+
+.availability-calendar__legend-dot--booked {
+    background-color: #3b82f6;
+}
+
+/* Calendar Grid */
+.availability-calendar__grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    background-color: #e5e7eb;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.availability-calendar__day-header {
+    background-color: #f9fafb;
+    padding: 0.75rem 0.5rem;
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+}
+
+.availability-calendar__day {
+    background-color: #ffffff;
+    min-height: 80px;
+    padding: 0.5rem;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+.availability-calendar__day:hover:not(.availability-calendar__day--empty):not(.availability-calendar__day--past) {
+    background-color: #f0f9ff;
+}
+
+.availability-calendar__day--empty {
+    background-color: #f9fafb;
+    cursor: default;
+}
+
+.availability-calendar__day--today {
+    background-color: #eff6ff;
+    border: 2px solid #3b82f6;
+}
+
+.availability-calendar__day--past {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.availability-calendar__day--available {
+    background-color: #f0fdf4;
+}
+
+.availability-calendar__day--unavailable {
+    background-color: #fef2f2;
+}
+
+.availability-calendar__day--booked {
+    background-color: #eff6ff;
+}
+
+.availability-calendar__day-number {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+}
+
+.availability-calendar__day-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-top: 4px;
+}
+
+.availability-calendar__day--available .availability-calendar__day-indicator {
+    background-color: #22c55e;
+}
+
+.availability-calendar__day--unavailable .availability-calendar__day-indicator {
+    background-color: #ef4444;
+}
+
+.availability-calendar__day--booked .availability-calendar__day-indicator {
+    background-color: #3b82f6;
+}
+
+/* Modal */
+.availability-calendar__modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+}
+
+.availability-calendar__modal {
+    background-color: #ffffff;
+    border-radius: 0.75rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    width: 100%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.availability-calendar__modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.availability-calendar__modal-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+.availability-calendar__modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 0.25rem;
+    line-height: 1;
+}
+
+.availability-calendar__modal-close:hover {
+    color: #6b7280;
+}
+
+.availability-calendar__modal-body {
+    padding: 1.5rem;
+}
+
+/* Form */
+.availability-calendar__form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.availability-calendar__form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.availability-calendar__label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #374151;
+}
+
+.availability-calendar__input,
+.availability-calendar__select,
+.availability-calendar__textarea {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    color: #374151;
+    background-color: #ffffff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.availability-calendar__input:focus,
+.availability-calendar__select:focus,
+.availability-calendar__textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.availability-calendar__textarea {
+    resize: vertical;
+    min-height: 60px;
+}
+
+.availability-calendar__form-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    margin-top: 0.5rem;
+}
+
+.availability-calendar__btn {
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: background-color 0.2s;
+}
+
+.availability-calendar__btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.availability-calendar__btn--primary {
+    background-color: #3b82f6;
+    color: #ffffff;
+    border-color: #3b82f6;
+}
+
+.availability-calendar__btn--primary:hover:not(:disabled) {
+    background-color: #2563eb;
+}
+
+.availability-calendar__btn--secondary {
+    background-color: #ffffff;
+    color: #374151;
+    border-color: #d1d5db;
+}
+
+.availability-calendar__btn--secondary:hover:not(:disabled) {
+    background-color: #f9fafb;
+}
+
+.availability-calendar__btn--danger {
+    background-color: #ef4444;
+    color: #ffffff;
+    border-color: #ef4444;
+}
+
+.availability-calendar__btn--danger:hover:not(:disabled) {
+    background-color: #dc2626;
+}

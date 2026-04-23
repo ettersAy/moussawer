@@ -56,11 +56,14 @@ For ALL tasks, follow this exact sequence. Deviations will be rejected:
 4. **Write tests**: Add PHPUnit and/or E2E tests for new/modified functionality
 5. **Run test suite**: `sail artisan test --compact` — iterate until all tests pass
 6. **Format code**: `sail bin pint --dirty --format agent`
-7. **Provide manual testing guide**: Include clear step-by-step instructions for the user to verify the implementation
-8. **Commit & push**: Use proper commit format with Mission-ID
-9. **Create PR**: Use GitHub MCP server or `gh` CLI
+7. **Run database migrations**: `sail artisan migrate` — ensure all new migrations are executed on the main database
+8. **Add navigation links**: If adding a new route/page, ensure it is linked in the relevant navigation/layout component
+9. **Write E2E tests**: For any UI/interface change, add Playwright E2E tests that verify the new interface renders correctly
+10. **Provide manual testing guide**: Include clear step-by-step instructions for the user to verify the implementation
+11. **Commit & push**: Use proper commit format with Mission-ID
+12. **Create PR**: Use GitHub MCP server or `gh` CLI
 
-**Exception**: If the task is purely documentation (no code changes), steps 3-6 may be skipped.
+**Exception**: If the task is purely documentation (no code changes), steps 3-6 and 7-9 may be skipped.
 
 ## Quick Commands Reference
 
