@@ -77,6 +77,12 @@ const routes = [
         component: () => import('./views/photographer/ServicesView.vue'),
         meta: { layout: 'photographer', requiresAuth: true, requiredRole: 'photographer' },
     },
+    {
+        path: '/photographer/availability',
+        name: 'photographer-availability',
+        component: () => import('./views/photographer/AvailabilityView.vue'),
+        meta: { layout: 'photographer', requiresAuth: true, requiredRole: 'photographer' },
+    },
     // --- Client Routes ---
     {
         path: '/client/dashboard',

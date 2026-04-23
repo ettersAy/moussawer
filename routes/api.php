@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Booking\BookingController;
 use App\Http\Controllers\Api\Client\BookingRequestController;
 use App\Http\Controllers\Api\Client\ProfileController as ClientProfileController;
+use App\Http\Controllers\Api\Photographer\AvailabilitySlotController;
 use App\Http\Controllers\Api\Photographer\PortfolioItemController;
 use App\Http\Controllers\Api\Photographer\ProfileController as PhotographerProfileController;
 use App\Http\Controllers\Api\Photographer\ServiceController;
@@ -29,6 +30,7 @@ use Illuminate\Support\Facades\Route;
 // --- Public Routes (no auth required) ---
 Route::get('/photographers', PhotographerSearchController::class);
 Route::get('/photographers/{photographer}', App\Http\Controllers\Api\Public\PhotographerProfileController::class);
+Route::get('/photographers/{photographer}/availability', [AvailabilitySlotController::class, 'publicAvailability']);
 
 Route::post('/contact', [ContactSubmissionController::class, 'store'])
     ->middleware('throttle:contact');
@@ -60,6 +62,13 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
         Route::put('/profile', [PhotographerProfileController::class, 'update']);
         Route::apiResource('portfolios', PortfolioItemController::class);
         Route::apiResource('services', ServiceController::class);
+
+        // Availability routes
+        Route::get('/availability/calendar', [AvailabilitySlotController::class, 'calendar']);
+        Route::get('/availability', [AvailabilitySlotController::class, 'index']);
+        Route::post('/availability', [AvailabilitySlotController::class, 'store']);
+        Route::put('/availability/{slot}', [AvailabilitySlotController::class, 'update']);
+        Route::delete('/availability/{slot}', [AvailabilitySlotController::class, 'destroy']);
     });
 
     Route::prefix('client')->group(function () {
