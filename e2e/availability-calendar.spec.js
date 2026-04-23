@@ -14,6 +14,14 @@ test.describe('Photographer Availability Calendar', () => {
      * Navigates to the availability page and sets localStorage auth state.
      */
     async function setupAuthenticatedPage(page, mockRoutes = {}) {
+        // Set localStorage auth state BEFORE navigation so the router guard
+        // can read it during the initial page load
+        await page.goto('about:blank');
+        await page.evaluate((userData) => {
+            localStorage.setItem('auth_token', 'test-token-123');
+            localStorage.setItem('auth_user', JSON.stringify(userData));
+        }, PHOTOGRAPHER_USER);
+
         // Mock auth endpoints
         await page.route('**/api/user', async (route) => {
             await route.fulfill({
@@ -126,8 +134,8 @@ test.describe('Photographer Availability Calendar', () => {
             }
         });
 
-        // Mock the delete slot endpoint
-        await page.route('**/api/photographer/availability/*', async (route, request) => {
+        // Mock the delete/update slot endpoint (specific ID routes)
+        await page.route(/\/api\/photographer\/availability\/\d+/, async (route, request) => {
             if (request.method() === 'DELETE') {
                 await route.fulfill({
                     status: 204,
@@ -163,16 +171,6 @@ test.describe('Photographer Availability Calendar', () => {
             console.log('Server connection failed, skipping test:', error.message);
             throw error;
         }
-
-        // Set localStorage auth state
-        await page.evaluate((userData) => {
-            localStorage.setItem('auth_token', 'test-token-123');
-            localStorage.setItem('auth_user', JSON.stringify(userData));
-            window.dispatchEvent(new StorageEvent('storage', {
-                key: 'auth_token',
-                newValue: 'test-token-123',
-            }));
-        }, PHOTOGRAPHER_USER);
 
         // Wait for Vue to process auth state and render
         await page.waitForTimeout(1000);
