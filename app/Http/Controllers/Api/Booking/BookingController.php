@@ -43,7 +43,7 @@ class BookingController extends Controller
     {
         $this->authorize('viewAny', Booking::class);
 
-        $query = Booking::with(['client', 'photographer.user', 'photographerService']);
+        $query = Booking::with(['client', 'photographer.user', 'photographerService', 'payment', 'review']);
 
         // Filter by role
         if (auth()->user()->role === UserRole::Client) {
@@ -94,6 +94,9 @@ class BookingController extends Controller
     public function show(Booking $booking)
     {
         $this->authorize('view', $booking);
+
+        // Load all relationships for detailed view
+        $booking->load(['client', 'photographer.user', 'photographerService', 'payment', 'review']);
 
         return new BookingResource($booking);
     }

@@ -29,6 +29,7 @@ class BookingResource extends JsonResource
                 'id' => $this->client->id,
                 'name' => $this->client->name,
                 'email' => $this->client->email,
+                'phone' => $this->client->phone,
             ],
             'photographer' => [
                 'id' => $this->photographer->id,
@@ -47,6 +48,22 @@ class BookingResource extends JsonResource
                 'price' => $this->photographerService->price,
                 'duration_minutes' => $this->photographerService->duration_minutes,
                 'minimum_hours' => $this->photographerService->minimum_hours,
+                'is_active' => $this->photographerService->is_active,
+                'sort_order' => $this->photographerService->sort_order,
+            ] : null,
+            'payment' => $this->payment ? [
+                'id' => $this->payment->id,
+                'amount' => $this->payment->amount,
+                'status' => $this->payment->status,
+                'method' => $this->payment->method,
+                'transaction_id' => $this->payment->transaction_id,
+                'created_at' => $this->payment->created_at,
+            ] : null,
+            'review' => $this->review ? [
+                'id' => $this->review->id,
+                'rating' => $this->review->rating,
+                'comment' => $this->review->comment,
+                'created_at' => $this->review->created_at,
             ] : null,
         ];
     }
