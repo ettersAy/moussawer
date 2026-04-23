@@ -85,7 +85,10 @@ test.describe('Navigation menu shows correct role-specific links', () => {
         // If layout is found, verify links
         await verifyLinkVisible(page, /dashboard/i);
         await verifyLinkVisible(page, /bookings/i);
-        await verifyLinkVisible(page, /profile/i);
+        await verifyLinkVisible(page, /portfolio/i);
+        await verifyLinkVisible(page, /services & rates/i);
+        await verifyLinkVisible(page, /availability/i);
+        await verifyLinkVisible(page, /my profile/i);
         await expect(page.getByRole('button', { name: /logout/i })).toBeVisible();
     });
 

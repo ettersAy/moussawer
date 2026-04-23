@@ -127,7 +127,17 @@ test.describe('Client Bookings', () => {
     };
 
     test.beforeEach(async ({ page }) => {
-        // Mock auth
+        // Register catch-all FIRST. In Playwright, the LAST registered handler wins,
+        // so specific mocks registered AFTER the catch-all will take precedence.
+        await page.route('**/api/**', async (route) => {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({ data: {}, message: 'Mocked' }),
+            });
+        });
+
+        // Mock auth endpoints (registered after catch-all, so they take precedence)
         await page.route('**/api/user', async (route) => {
             await route.fulfill({
                 status: 200,
@@ -144,9 +154,22 @@ test.describe('Client Bookings', () => {
             });
         });
 
-        // Mock bookings list
-        await page.route('**/api/bookings', async (route) => {
-            const url = route.request().url();
+        // Mock booking detail view FIRST (more specific, must be before bookings list)
+        // Use a regex that matches the full URL: http://localhost/api/bookings/1
+        await page.route(/\/api\/bookings\/1(\?|$)/, async (route) => {
+            if (route.request().method() === 'GET') {
+                await route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify(mockBookingDetail),
+                });
+            } else {
+                await route.continue();
+            }
+        });
+
+        // Mock bookings list (use regex to avoid matching /api/bookings/1)
+        await page.route(/\/api\/bookings(\?|$)/, async (route) => {
             // Only mock GET requests (list), not DELETE
             if (route.request().method() === 'GET') {
                 await route.fulfill({
@@ -159,28 +182,14 @@ test.describe('Client Bookings', () => {
             }
         });
 
-        // Mock booking detail view
-        await page.route('**/api/bookings/1', async (route) => {
-            if (route.request().method() === 'GET') {
-                await route.fulfill({
-                    status: 200,
-                    contentType: 'application/json',
-                    body: JSON.stringify(mockBookingDetail),
-                });
-            } else {
-                await route.continue();
-            }
-        });
+        // Navigate to the app first to establish a secure context for localStorage
+        await page.goto('/', { waitUntil: 'networkidle' });
 
         // Set auth in localStorage
-        await page.goto('/', { waitUntil: 'networkidle' });
         await page.evaluate((user) => {
             localStorage.setItem('auth_user', JSON.stringify(user));
             localStorage.setItem('auth_token', 'test-token');
         }, clientUser);
-
-        await page.reload({ waitUntil: 'networkidle' });
-        await page.waitForTimeout(500);
 
         // Navigate to client bookings page
         await page.goto('/client/bookings', { waitUntil: 'networkidle' });
@@ -240,19 +249,19 @@ test.describe('Client Bookings', () => {
         // Click cancel button on first row (pending booking)
         await page.locator('.btn-action.delete').first().click();
 
-        // Verify confirmation dialog appears
-        await expect(page.locator('.confirmation-dialog')).toBeVisible();
-        await expect(page.locator('.confirmation-dialog')).toContainText('Cancel Booking');
+        // Verify confirmation dialog appears (uses modal-overlay with modal-content)
+        await expect(page.locator('.modal-overlay')).toBeVisible();
+        await expect(page.locator('.modal-overlay .modal-header h2')).toContainText('Cancel Booking');
     });
 
     test('should close confirmation dialog on cancel', async ({ page }) => {
         // Open cancel dialog
         await page.locator('.btn-action.delete').first().click();
-        await expect(page.locator('.confirmation-dialog')).toBeVisible();
+        await expect(page.locator('.modal-overlay')).toBeVisible();
 
         // Click cancel button in dialog
-        await page.locator('.confirmation-dialog .btn-secondary').click();
-        await expect(page.locator('.confirmation-dialog')).not.toBeVisible();
+        await page.locator('.modal-actions .btn-secondary').first().click();
+        await expect(page.locator('.modal-overlay')).not.toBeVisible();
     });
 
     test('should cancel booking from details modal', async ({ page }) => {
@@ -263,9 +272,9 @@ test.describe('Client Bookings', () => {
         // Click cancel button inside modal
         await page.locator('.booking-details-modal .btn-danger').click();
 
-        // Verify modal closed and confirmation dialog opened
-        await expect(page.locator('.modal-overlay')).not.toBeVisible();
-        await expect(page.locator('.confirmation-dialog')).toBeVisible();
-        await expect(page.locator('.confirmation-dialog')).toContainText('Cancel Booking');
+        // Verify booking details modal closed and confirmation dialog opened
+        await expect(page.locator('.booking-details-modal')).not.toBeVisible();
+        await expect(page.locator('.modal-overlay')).toBeVisible();
+        await expect(page.locator('.modal-overlay .modal-header h2')).toContainText('Cancel Booking');
     });
 });

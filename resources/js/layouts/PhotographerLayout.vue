@@ -21,6 +21,9 @@
                     <router-link to="/photographer/services" class="photographer-nav-link" active-class="active">
                         Services & Rates
                     </router-link>
+                    <router-link to="/photographer/availability" class="photographer-nav-link" active-class="active">
+                        Availability
+                    </router-link>
                     <router-link to="/photographer/profile" class="photographer-nav-link" active-class="active">
                         My Profile
                     </router-link>

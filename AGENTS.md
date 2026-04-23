@@ -54,13 +54,17 @@ For ALL tasks, follow this exact sequence. Deviations will be rejected:
 2. **Create feature branch**: `git checkout -b feature/ai/[mission-id]`
 3. **Implement changes**: Write code following project conventions
 4. **Write tests**: Add PHPUnit and/or E2E tests for new/modified functionality
+   - **E2E tests must be comprehensive**: For any new UI/interface, write tests covering ALL features (page load, navigation, CRUD operations, error handling, auth, edge cases)
+   - **Use mocked API responses** via `page.route()` for reliable E2E tests
+   - **Use `setupAuthenticatedPage(page, mockRoutes)` helper** for authenticated E2E tests
 5. **Run test suite**: `sail artisan test --compact` — iterate until all tests pass
 6. **Format code**: `sail bin pint --dirty --format agent`
-7. **Provide manual testing guide**: Include clear step-by-step instructions for the user to verify the implementation
-8. **Commit & push**: Use proper commit format with Mission-ID
-9. **Create PR**: Use GitHub MCP server or `gh` CLI
+7. **Self-verify with MCP tools**: Use Playwright MCP to open the app in a browser, verify the UI renders correctly, check the Network tab for API calls, and confirm no console errors
+8. **Provide manual testing guide**: Include clear step-by-step instructions for the user to verify the implementation
+9. **Commit & push**: Use proper commit format with Mission-ID
+10. **Create PR**: Use GitHub MCP server or `gh` CLI
 
-**Exception**: If the task is purely documentation (no code changes), steps 3-6 may be skipped.
+**Exception**: If the task is purely documentation (no code changes), steps 3-7 may be skipped.
 
 ## Quick Commands Reference
 
