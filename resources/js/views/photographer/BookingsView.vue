@@ -161,20 +161,20 @@
                   </button>
                   
                   <!-- Quick Actions based on status -->
-                  <button v-if="booking.status === 'pending'" class="btn-action confirm" @click="handleConfirm(booking.id)" title="Confirm Booking">
+                  <button v-if="booking.status === 'pending'" class="btn-action confirm" @click="openConfirmDialog(booking.id)" title="Confirm Booking">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
                   </button>
                   
-                  <button v-if="booking.status === 'confirmed'" class="btn-action complete" @click="handleComplete(booking.id)" title="Mark Complete">
+                  <button v-if="booking.status === 'confirmed'" class="btn-action complete" @click="openCompleteDialog(booking.id)" title="Mark Complete">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                       <polyline points="22 4 12 14.01 9 11.01"></polyline>
                     </svg>
                   </button>
                   
-                  <button v-if="['pending', 'confirmed'].includes(booking.status)" class="btn-action cancel" @click="handleCancel(booking.id)" title="Cancel Booking">
+                  <button v-if="['pending', 'confirmed'].includes(booking.status)" class="btn-action cancel" @click="openCancelDialog(booking.id)" title="Cancel Booking">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <line x1="18" y1="6" x2="6" y2="18"></line>
                       <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -215,12 +215,56 @@
         </button>
       </div>
     </div>
+
+    <!-- Booking Details Modal -->
+    <BookingDetailsModal 
+      :show="showDetailsModal"
+      :booking-id="currentBookingId"
+      @close="closeDetailsModal"
+    />
+
+    <!-- Confirmation Dialogs -->
+    <ConfirmationDialog 
+      :show="showConfirmDialog"
+      title="Confirm Booking"
+      message="Are you sure you want to confirm this booking? This will notify the client and mark the booking as confirmed."
+      confirm-text="Confirm Booking"
+      :loading="actionLoading"
+      @confirm="handleConfirm"
+      @cancel="closeConfirmDialog"
+      @close="closeConfirmDialog"
+    />
+
+    <ConfirmationDialog 
+      :show="showCompleteDialog"
+      title="Mark Booking as Complete"
+      message="Are you sure you want to mark this booking as complete? This will finalize the booking and allow the client to leave a review."
+      confirm-text="Mark Complete"
+      :loading="actionLoading"
+      @confirm="handleComplete"
+      @cancel="closeCompleteDialog"
+      @close="closeCompleteDialog"
+    />
+
+    <ConfirmationDialog 
+      :show="showCancelDialog"
+      title="Cancel Booking"
+      message="Are you sure you want to cancel this booking? This action cannot be undone and will notify the client."
+      confirm-text="Cancel Booking"
+      variant="danger"
+      :loading="actionLoading"
+      @confirm="handleCancel"
+      @cancel="closeCancelDialog"
+      @close="closeCancelDialog"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { usePhotographerBookings } from './bookings.js'
+import ConfirmationDialog from '@/components/shared/ConfirmationDialog.vue'
+import BookingDetailsModal from '@/components/photographer/BookingDetailsModal.vue'
 
 const { 
   bookings, 
@@ -241,6 +285,16 @@ const {
   getStatusLabel
 } = usePhotographerBookings()
 
+// Modal states
+const showDetailsModal = ref(false)
+const showConfirmDialog = ref(false)
+const showCompleteDialog = ref(false)
+const showCancelDialog = ref(false)
+
+// Current booking being acted upon
+const currentBookingId = ref(null)
+const actionLoading = ref(false)
+
 const loadData = () => {
   fetchBookings()
   fetchStats()
@@ -252,27 +306,85 @@ const updateFilter = (key, value) => {
   fetchBookings()
 }
 
-const handleConfirm = async (id) => {
-  if (confirm('Are you sure you want to confirm this booking?')) {
-    await updateBookingStatus(id, 'confirmed')
-  }
-}
-
-const handleComplete = async (id) => {
-  if (confirm('Are you sure you want to mark this booking as complete?')) {
-    await updateBookingStatus(id, 'completed')
-  }
-}
-
-const handleCancel = async (id) => {
-  if (confirm('Are you sure you want to cancel this booking?')) {
-    await cancelBooking(id)
-  }
-}
-
+// View Details
 const handleViewDetails = (id) => {
-  // TODO: Implement view details modal or page
-  alert(`View details for booking #${id}`)
+  currentBookingId.value = id
+  showDetailsModal.value = true
+}
+
+// Confirm Booking
+const openConfirmDialog = (id) => {
+  currentBookingId.value = id
+  showConfirmDialog.value = true
+}
+
+const handleConfirm = async () => {
+  actionLoading.value = true
+  try {
+    await updateBookingStatus(currentBookingId.value, 'confirmed')
+    showConfirmDialog.value = false
+  } catch (error) {
+    console.error('Failed to confirm booking:', error)
+  } finally {
+    actionLoading.value = false
+  }
+}
+
+// Complete Booking
+const openCompleteDialog = (id) => {
+  currentBookingId.value = id
+  showCompleteDialog.value = true
+}
+
+const handleComplete = async () => {
+  actionLoading.value = true
+  try {
+    await updateBookingStatus(currentBookingId.value, 'completed')
+    showCompleteDialog.value = false
+  } catch (error) {
+    console.error('Failed to complete booking:', error)
+  } finally {
+    actionLoading.value = false
+  }
+}
+
+// Cancel Booking
+const openCancelDialog = (id) => {
+  currentBookingId.value = id
+  showCancelDialog.value = true
+}
+
+const handleCancel = async () => {
+  actionLoading.value = true
+  try {
+    await cancelBooking(currentBookingId.value)
+    showCancelDialog.value = false
+  } catch (error) {
+    console.error('Failed to cancel booking:', error)
+  } finally {
+    actionLoading.value = false
+  }
+}
+
+// Close modals
+const closeDetailsModal = () => {
+  showDetailsModal.value = false
+  currentBookingId.value = null
+}
+
+const closeConfirmDialog = () => {
+  showConfirmDialog.value = false
+  currentBookingId.value = null
+}
+
+const closeCompleteDialog = () => {
+  showCompleteDialog.value = false
+  currentBookingId.value = null
+}
+
+const closeCancelDialog = () => {
+  showCancelDialog.value = false
+  currentBookingId.value = null
 }
 
 onMounted(() => {

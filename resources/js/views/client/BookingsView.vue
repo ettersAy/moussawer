@@ -24,8 +24,21 @@
       :current-page="currentPage"
       :total-pages="totalPages"
       @view="handleView"
-      @cancel="handleCancel"
+      @cancel="openCancelDialog"
       @page-change="handlePageChange"
+    />
+
+    <!-- Confirmation Dialog -->
+    <ConfirmationDialog 
+      :show="showCancelDialog"
+      title="Cancel Booking"
+      message="Are you sure you want to cancel this booking? This action cannot be undone and may be subject to cancellation fees."
+      confirm-text="Cancel Booking"
+      variant="danger"
+      :loading="actionLoading"
+      @confirm="handleCancel"
+      @cancel="closeCancelDialog"
+      @close="closeCancelDialog"
     />
   </div>
 </template>
@@ -36,6 +49,7 @@ import { useRouter } from 'vue-router'
 import { useBookings } from '@/composables/useBookings'
 import BookingFilters from '@/components/shared/BookingFilters.vue'
 import BookingsTable from '@/components/shared/BookingsTable.vue'
+import ConfirmationDialog from '@/components/shared/ConfirmationDialog.vue'
 
 const router = useRouter()
 const { bookings, loading, currentPage, totalPages, fetchBookings, cancelBooking } = useBookings()
@@ -45,6 +59,11 @@ const filters = ref({
   sort_by: 'scheduled_date',
   sort_direction: 'desc'
 })
+
+// Modal states
+const showCancelDialog = ref(false)
+const currentBookingId = ref(null)
+const actionLoading = ref(false)
 
 const loadBookings = () => {
   fetchBookings({
@@ -67,11 +86,27 @@ const handleView = (id) => {
   router.push(`/client/bookings/${id}`)
 }
 
-const handleCancel = async (id) => {
-  if (confirm('Are you sure you want to cancel this booking?')) {
-      await cancelBooking(id)
-      loadBookings()
+const openCancelDialog = (id) => {
+  currentBookingId.value = id
+  showCancelDialog.value = true
+}
+
+const handleCancel = async () => {
+  actionLoading.value = true
+  try {
+    await cancelBooking(currentBookingId.value)
+    showCancelDialog.value = false
+    loadBookings()
+  } catch (error) {
+    console.error('Failed to cancel booking:', error)
+  } finally {
+    actionLoading.value = false
   }
+}
+
+const closeCancelDialog = () => {
+  showCancelDialog.value = false
+  currentBookingId.value = null
 }
 
 onMounted(() => {
