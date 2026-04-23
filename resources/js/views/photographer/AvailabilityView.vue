@@ -204,6 +204,12 @@ const loadCalendar = async () => {
     calendarData.value = data
   } catch (err) {
     console.error('Failed to load calendar:', err)
+    // If the photographer profile doesn't exist (freshly registered),
+    // show a helpful message instead of an error
+    if (err.response?.status === 404 && err.response?.data?.message?.includes('Photographer profile')) {
+      // Clear the error from the composable to show our custom message
+      error.value = 'Please create your photographer profile first before managing availability.'
+    }
   }
 }
 

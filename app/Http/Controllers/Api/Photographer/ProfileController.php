@@ -48,7 +48,14 @@ class ProfileController extends Controller
      */
     public function show()
     {
-        $photographer = Photographer::with('user')->where('user_id', auth()->id())->firstOrFail();
+        $photographer = Photographer::with('user')->where('user_id', auth()->id())->first();
+
+        if (! $photographer) {
+            return response()->json([
+                'data' => null,
+                'message' => 'Photographer profile not found. Please create one.',
+            ]);
+        }
 
         return (new PhotographerProfileResource($photographer))->response();
     }
@@ -58,7 +65,13 @@ class ProfileController extends Controller
      */
     public function update(UpdateProfileRequest $request)
     {
-        $photographer = Photographer::where('user_id', auth()->id())->firstOrFail();
+        $photographer = Photographer::where('user_id', auth()->id())->first();
+
+        if (! $photographer) {
+            return response()->json([
+                'message' => 'Photographer profile not found. Please create one first.',
+            ], Response::HTTP_NOT_FOUND);
+        }
 
         // Update only provided fields
         $photographer->update($request->validated());
@@ -71,7 +84,13 @@ class ProfileController extends Controller
      */
     public function destroy()
     {
-        $photographer = Photographer::where('user_id', auth()->id())->firstOrFail();
+        $photographer = Photographer::where('user_id', auth()->id())->first();
+
+        if (! $photographer) {
+            return response()->json([
+                'message' => 'Photographer profile not found.',
+            ], Response::HTTP_NOT_FOUND);
+        }
 
         $photographer->delete();
 

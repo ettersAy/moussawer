@@ -1,8 +1,7 @@
 import { ref } from 'vue'
-import { useAuthStore } from '@/stores/auth'
+import api from '@/services/api'
 
 export function useProfile() {
-    const authStore = useAuthStore()
     const profile = ref({
         bio: '',
         portfolio_url: '',
@@ -15,23 +14,56 @@ export function useProfile() {
     })
     const loading = ref(true)
     const updating = ref(false)
+    const noProfile = ref(false)
 
     const fetchProfile = async () => {
         try {
             loading.value = true
-            const response = await fetch('/api/photographer/profile', {
-                headers: {
-                    'Authorization': `Bearer ${authStore.token}`,
+            noProfile.value = false
+            const response = await api.get('/photographer/profile')
+            if (response.data.data === null) {
+                // No profile exists yet (freshly registered photographer)
+                noProfile.value = true
+                profile.value = {
+                    bio: '',
+                    portfolio_url: '',
+                    hourly_rate: 0,
+                    availability_status: 'available',
+                    user: {
+                        name: '',
+                        email: ''
+                    }
                 }
-            })
-            if (response.ok) {
-                const data = await response.json()
-                profile.value = data.data || data
             } else {
-                throw new Error('Failed to load profile')
+                profile.value = response.data.data
             }
+        } catch (err) {
+            console.error('Failed to load profile:', err)
+            noProfile.value = true
+            throw err
         } finally {
             loading.value = false
+        }
+    }
+
+    const createProfile = async () => {
+        try {
+            updating.value = true
+            const createData = {
+                bio: profile.value.bio,
+                portfolio_url: profile.value.portfolio_url,
+                hourly_rate: profile.value.hourly_rate,
+                availability_status: profile.value.availability_status
+            }
+            const response = await api.post('/photographer/profile', createData)
+            profile.value = response.data.data
+            noProfile.value = false
+            return response.data
+        } catch (err) {
+            console.error('Failed to create profile:', err)
+            throw err
+        } finally {
+            updating.value = false
         }
     }
 
@@ -45,20 +77,11 @@ export function useProfile() {
                 hourly_rate: profile.value.hourly_rate,
                 availability_status: profile.value.availability_status
             }
-            
-            const response = await fetch('/api/photographer/profile', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authStore.token}`,
-                },
-                body: JSON.stringify(updateData)
-            })
-            
-            if (!response.ok) {
-                const data = await response.json()
-                throw new Error(data.message || 'Failed to update profile')
-            }
+            const response = await api.put('/photographer/profile', updateData)
+            profile.value = response.data.data
+        } catch (err) {
+            console.error('Failed to update profile:', err)
+            throw err
         } finally {
             updating.value = false
         }
@@ -68,7 +91,9 @@ export function useProfile() {
         profile,
         loading,
         updating,
+        noProfile,
         fetchProfile,
+        createProfile,
         updateProfile
     }
 }
