@@ -29,6 +29,19 @@
       @save="handleSave"
       @error="handleError"
     />
+
+    <!-- Delete Photo Confirmation Dialog -->
+    <ConfirmationDialog 
+      :show="showDeleteDialog"
+      title="Delete Photo"
+      message="Are you sure you want to permanently delete this photo?"
+      confirm-text="Delete Photo"
+      variant="danger"
+      :loading="deleteLoading"
+      @confirm="handleDeleteItem"
+      @cancel="closeDeleteDialog"
+      @close="closeDeleteDialog"
+    />
   </div>
 </template>
 
@@ -37,6 +50,7 @@ import { ref, onMounted } from 'vue'
 import { usePortfolio } from '@/composables/usePortfolio'
 import PortfolioGrid from '@/components/photographer/PortfolioGrid.vue'
 import PortfolioUploadModal from '@/components/photographer/PortfolioUploadModal.vue'
+import ConfirmationDialog from '@/components/shared/ConfirmationDialog.vue'
 
 const { items, loading, fetchItems, deleteItem, saveItem } = usePortfolio()
 
@@ -45,6 +59,9 @@ const errorMsg = ref('')
 
 const showUploadModal = ref(false)
 const editingItem = ref(null)
+const showDeleteDialog = ref(false)
+const deleteLoading = ref(false)
+const itemToDelete = ref(null)
 
 onMounted(() => {
   fetchItems().catch(err => {
@@ -91,14 +108,29 @@ const handleSave = async ({ formData, editingId }) => {
   }
 }
 
-const handleDelete = async (id) => {
-  if (!confirm('Are you sure you want to permanently delete this photo?')) return
+const handleDelete = (id) => {
+  itemToDelete.value = id
+  showDeleteDialog.value = true
+}
+
+const handleDeleteItem = async () => {
+  deleteLoading.value = true
   try {
-    const msg = await deleteItem(id)
+    const msg = await deleteItem(itemToDelete.value)
     flashMessage('success', msg || 'Photo deleted successfully.')
+    showDeleteDialog.value = false
+    fetchItems()
   } catch (err) {
     flashMessage('error', 'Failed to delete photo.')
+  } finally {
+    deleteLoading.value = false
+    itemToDelete.value = null
   }
+}
+
+const closeDeleteDialog = () => {
+  showDeleteDialog.value = false
+  itemToDelete.value = null
 }
 
 const handleError = (msg) => {

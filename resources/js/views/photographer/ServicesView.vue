@@ -44,6 +44,19 @@
       @saved="handleServiceSaved"
       @error="handleServiceError"
     />
+
+    <!-- Delete Service Confirmation Dialog -->
+    <ConfirmationDialog 
+      :show="showDeleteDialog"
+      title="Delete Service"
+      message="Are you sure you want to delete this service?"
+      confirm-text="Delete Service"
+      variant="danger"
+      :loading="deleteLoading"
+      @confirm="handleDeleteService"
+      @cancel="closeDeleteDialog"
+      @close="closeDeleteDialog"
+    />
   </div>
 </template>
 
@@ -57,6 +70,7 @@ import ServiceFilters from '@/components/photographer/ServiceFilters.vue'
 import ServiceTable from '@/components/photographer/ServiceTable.vue'
 import AppPagination from '@/components/ui/AppPagination.vue'
 import ServiceModal from '@/components/photographer/ServiceModal.vue'
+import ConfirmationDialog from '@/components/shared/ConfirmationDialog.vue'
 
 const {
   services, loading, currentPage, totalPages, totalItems,
@@ -68,6 +82,9 @@ const { toasts, showToast } = useToast()
 
 const showModal = ref(false)
 const editingService = ref(null)
+const showDeleteDialog = ref(false)
+const deleteLoading = ref(false)
+const serviceToDelete = ref(null)
 
 onMounted(() => {
   fetchServices()
@@ -101,14 +118,29 @@ const handleServiceError = (message) => {
   showToast(message, 'error')
 }
 
-const confirmDeleteService = async (id) => {
-  if (!confirm('Are you sure you want to delete this service?')) return
+const confirmDeleteService = (id) => {
+  serviceToDelete.value = id
+  showDeleteDialog.value = true
+}
+
+const handleDeleteService = async () => {
+  deleteLoading.value = true
   try {
-    await deleteService(id)
+    await deleteService(serviceToDelete.value)
     showToast('Service deleted successfully.')
+    showDeleteDialog.value = false
+    fetchServices(currentPage.value)
   } catch (err) {
     showToast('Failed to delete service.', 'error')
+  } finally {
+    deleteLoading.value = false
+    serviceToDelete.value = null
   }
+}
+
+const closeDeleteDialog = () => {
+  showDeleteDialog.value = false
+  serviceToDelete.value = null
 }
 
 const handleToggleServiceStatus = async (service) => {
