@@ -56,3 +56,7 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## Development Automation
+
+This project uses a **GitHub MCP server** for automated Git operations. The MCP server enables AI agents to create issues, pull requests, and manage repository operations programmatically via structured tool calls — no manual `gh` CLI authentication required.

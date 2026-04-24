@@ -62,7 +62,11 @@ For ALL tasks, follow this exact sequence. Deviations will be rejected:
 7. **Self-verify with MCP tools**: Use Playwright MCP to open the app in a browser, verify the UI renders correctly, check the Network tab for API calls, and confirm no console errors
 8. **Provide manual testing guide**: Include clear step-by-step instructions for the user to verify the implementation
 9. **Commit & push**: Use proper commit format with Mission-ID
-10. **Create PR**: Use GitHub MCP server or `gh` CLI
+10. **Create PR**: Use `gh` CLI with GITHUB_TOKEN (see `.clinerules` for the token):
+
+    ```bash
+    GITHUB_TOKEN=<token-from-clinerules> gh pr create --title "[id] type: description" --body "## Description\n\n..." --base main --head feature/ai/branch-name
+    ```
 
 **Exception**: If the task is purely documentation (no code changes), steps 3-7 may be skipped.
 
