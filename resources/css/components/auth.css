@@ -163,6 +163,31 @@ select.form-input {
     padding-right: 3rem;
 }
 
+/* Form label with inline link row */
+.form-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.375rem;
+}
+
+.form-label-row .form-label {
+    margin-bottom: 0;
+}
+
+.forgot-password-link {
+    font-size: 0.8125rem;
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.forgot-password-link:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+
 /* Field error text */
 .field-error {
     color: #dc2626;
