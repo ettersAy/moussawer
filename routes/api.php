@@ -2,10 +2,12 @@
 
 use App\Http\Controllers\Api\Admin\PortfolioController;
 use App\Http\Controllers\Api\Admin\UserController;
+use App\Http\Controllers\Api\Auth\ForgotPasswordController;
 use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Auth\LogoutController;
 use App\Http\Controllers\Api\Auth\MeController;
 use App\Http\Controllers\Api\Auth\RegisterController;
+use App\Http\Controllers\Api\Auth\ResetPasswordController;
 use App\Http\Controllers\Api\Booking\BookingController;
 use App\Http\Controllers\Api\Client\BookingRequestController;
 use App\Http\Controllers\Api\Client\ProfileController as ClientProfileController;
@@ -40,6 +42,12 @@ Route::post('/login', LoginController::class)
 
 Route::post('/register', RegisterController::class)
     ->middleware('throttle:register');
+
+Route::post('/forgot-password', ForgotPasswordController::class)
+    ->middleware('throttle:auth');
+
+Route::post('/reset-password', ResetPasswordController::class)
+    ->middleware('throttle:auth');
 
 // --- Protected Routes (auth:sanctum) ---
 Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
