@@ -1,6 +1,8 @@
 import { test as base } from '@playwright/test';
 import { ContactPage } from '../pages/ContactPage.js';
 import { LoginPage } from '../pages/LoginPage.js';
+import { ForgotPasswordPage } from '../pages/ForgotPasswordPage.js';
+import { ResetPasswordPage } from '../pages/ResetPasswordPage.js';
 
 /**
  * Custom Fixtures

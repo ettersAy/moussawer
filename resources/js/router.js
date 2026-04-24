@@ -27,6 +27,18 @@ const routes = [
         component: () => import('./views/auth/RegisterView.vue'),
         meta: { layout: 'public', requiresGuest: true },
     },
+    {
+        path: '/forgot-password',
+        name: 'forgot-password',
+        component: () => import('./views/auth/ForgotPasswordView.vue'),
+        meta: { layout: 'public', requiresGuest: true },
+    },
+    {
+        path: '/reset-password',
+        name: 'reset-password',
+        component: () => import('./views/auth/ResetPasswordView.vue'),
+        meta: { layout: 'public', requiresGuest: true },
+    },
     // --- Admin Routes ---
     {
         path: '/admin/dashboard',

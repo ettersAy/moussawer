@@ -23,7 +23,10 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">Password</label>
+          <div class="form-label-row">
+            <label class="form-label">Password</label>
+            <router-link to="/forgot-password" class="forgot-password-link">Forgot Password?</router-link>
+          </div>
           <input
             v-model="form.password"
             type="password"
