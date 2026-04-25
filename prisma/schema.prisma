@@ -1,0 +1,334 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  CLIENT
+  PHOTOGRAPHER
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  DISABLED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+enum IncidentStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED
+  CLOSED
+}
+
+enum DisputeStatus {
+  OPEN
+  AWAITING_RESPONSE
+  UNDER_REVIEW
+  RESOLVED
+  REJECTED
+  CLOSED
+}
+
+model User {
+  id                    String                @id @default(cuid())
+  email                 String                @unique
+  passwordHash          String
+  name                  String
+  role                  Role
+  status                AccountStatus         @default(ACTIVE)
+  avatarUrl             String?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  clientProfile         ClientProfile?
+  photographerProfile   PhotographerProfile?
+  bookingsAsClient      Booking[]             @relation("ClientBookings")
+  reportedIncidents     Incident[]            @relation("IncidentReporter")
+  targetIncidents       Incident[]            @relation("IncidentTarget")
+  reportedDisputes      Dispute[]             @relation("DisputeReporter")
+  targetDisputes        Dispute[]             @relation("DisputeTarget")
+  sentMessages          Message[]
+  conversationMembers   ConversationParticipant[]
+  notifications         Notification[]
+  favorites             Favorite[]
+  reviewsWritten        Review[]              @relation("ReviewsWritten")
+  auditLogs             ActivityLog[]
+}
+
+model ClientProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  location  String?
+  bio       String?
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PhotographerProfile {
+  id                String                   @id @default(cuid())
+  userId            String                   @unique
+  user              User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slug              String                   @unique
+  bio               String
+  city              String
+  country           String                   @default("Canada")
+  profileImageUrl   String?
+  startingPrice     Int
+  rating            Float                    @default(0)
+  reviewCount       Int                      @default(0)
+  popularity        Int                      @default(0)
+  timezone          String                   @default("America/Toronto")
+  isPublished       Boolean                  @default(true)
+  verified          Boolean                  @default(false)
+  services          PhotographerService[]
+  categories        PhotographerCategory[]
+  portfolioItems    PortfolioItem[]
+  availabilityRules AvailabilityRule[]
+  calendarBlocks    CalendarBlock[]
+  bookings          Booking[]
+  reviews           Review[]
+  favorites         Favorite[]
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+}
+
+model Category {
+  id            String                 @id @default(cuid())
+  name          String                 @unique
+  slug          String                 @unique
+  photographers PhotographerCategory[]
+  services      PhotographerService[]
+  portfolio     PortfolioItem[]
+}
+
+model PhotographerCategory {
+  photographerId String
+  categoryId     String
+  photographer   PhotographerProfile @relation(fields: [photographerId], references: [id], onDelete: Cascade)
+  category       Category            @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([photographerId, categoryId])
+}
+
+model PhotographerService {
+  id             String              @id @default(cuid())
+  photographerId String
+  categoryId     String?
+  photographer   PhotographerProfile @relation(fields: [photographerId], references: [id], onDelete: Cascade)
+  category       Category?           @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  title          String
+  description    String
+  durationMinutes Int
+  price          Int
+  isActive       Boolean             @default(true)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  bookings       Booking[]
+}
+
+model AvailabilityRule {
+  id             String              @id @default(cuid())
+  photographerId String
+  photographer   PhotographerProfile @relation(fields: [photographerId], references: [id], onDelete: Cascade)
+  dayOfWeek      Int
+  startTime      String
+  endTime        String
+  timezone       String              @default("America/Toronto")
+  createdAt      DateTime            @default(now())
+}
+
+model CalendarBlock {
+  id             String              @id @default(cuid())
+  photographerId String
+  photographer   PhotographerProfile @relation(fields: [photographerId], references: [id], onDelete: Cascade)
+  startAt        DateTime
+  endAt          DateTime
+  reason         String?
+  createdAt      DateTime            @default(now())
+}
+
+model PortfolioItem {
+  id             String              @id @default(cuid())
+  photographerId String
+  photographer   PhotographerProfile @relation(fields: [photographerId], references: [id], onDelete: Cascade)
+  categoryId     String?
+  category       Category?           @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  title          String
+  description    String?
+  imageUrl       String
+  tags           String              @default("")
+  isFeatured     Boolean             @default(false)
+  sortOrder      Int                 @default(0)
+  isModerated    Boolean             @default(false)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+}
+
+model Booking {
+  id                 String              @id @default(cuid())
+  clientId           String
+  photographerId     String
+  serviceId          String
+  client             User                @relation("ClientBookings", fields: [clientId], references: [id], onDelete: Cascade)
+  photographer       PhotographerProfile @relation(fields: [photographerId], references: [id], onDelete: Cascade)
+  service            PhotographerService @relation(fields: [serviceId], references: [id])
+  startAt            DateTime
+  endAt              DateTime
+  location           String
+  notes              String?
+  status             BookingStatus       @default(PENDING)
+  priceEstimate      Int
+  cancellationReason String?
+  confirmedAt        DateTime?
+  cancelledAt        DateTime?
+  completedAt        DateTime?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  conversations      Conversation[]
+  incidents          Incident[]
+  disputes           Dispute[]
+  review             Review?
+}
+
+model Conversation {
+  id            String                    @id @default(cuid())
+  bookingId     String?
+  disputeId     String?
+  incidentId    String?
+  subject       String
+  booking       Booking?                  @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  participants  ConversationParticipant[]
+  messages      Message[]
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+}
+
+model ConversationParticipant {
+  conversationId String
+  userId         String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastReadAt     DateTime?
+
+  @@id([conversationId, userId])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  senderId       String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  body           String
+  attachmentUrl  String?
+  createdAt      DateTime     @default(now())
+  readAt         DateTime?
+}
+
+model Incident {
+  id             String          @id @default(cuid())
+  reporterId     String
+  targetUserId   String?
+  bookingId      String?
+  reporter       User            @relation("IncidentReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  targetUser     User?           @relation("IncidentTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
+  booking        Booking?        @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  category       String
+  description    String
+  evidenceUrl    String?
+  status         IncidentStatus  @default(OPEN)
+  adminNotes     String?
+  resolution     String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model Dispute {
+  id             String           @id @default(cuid())
+  reporterId     String
+  targetUserId   String?
+  bookingId      String?
+  reporter       User             @relation("DisputeReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  targetUser     User?            @relation("DisputeTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
+  booking        Booking?         @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  type           String
+  description    String
+  evidenceUrl    String?
+  status         DisputeStatus    @default(OPEN)
+  adminNotes     String?
+  resolution     String?
+  comments       DisputeComment[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+model DisputeComment {
+  id          String   @id @default(cuid())
+  disputeId   String
+  authorId    String
+  dispute     Dispute  @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  body        String
+  evidenceUrl String?
+  createdAt   DateTime @default(now())
+}
+
+model Review {
+  id             String              @id @default(cuid())
+  bookingId      String              @unique
+  clientId       String
+  photographerId String
+  booking        Booking             @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  client         User                @relation("ReviewsWritten", fields: [clientId], references: [id], onDelete: Cascade)
+  photographer   PhotographerProfile @relation(fields: [photographerId], references: [id], onDelete: Cascade)
+  rating         Int
+  comment        String?
+  isModerated    Boolean             @default(false)
+  createdAt      DateTime            @default(now())
+}
+
+model Favorite {
+  userId         String
+  photographerId String
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  photographer   PhotographerProfile @relation(fields: [photographerId], references: [id], onDelete: Cascade)
+  createdAt      DateTime            @default(now())
+
+  @@id([userId, photographerId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  body      String
+  readAt    DateTime?
+  metadata  String   @default("{}")
+  createdAt DateTime @default(now())
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  actor     User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  action    String
+  entity    String
+  entityId  String
+  metadata  String   @default("{}")
+  createdAt DateTime @default(now())
+}
