@@ -7,6 +7,7 @@ use App\Http\Requests\Client\StoreBookingRequest;
 use App\Http\Resources\BookingResource;
 use App\Services\BookingService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Validation\ValidationException;
 
 class BookingRequestController extends Controller
 {
@@ -17,13 +18,17 @@ class BookingRequestController extends Controller
     /**
      * Store a newly created booking request.
      */
-    public function store(StoreBookingRequest $request): BookingResource|JsonResponse
+    public function store(StoreBookingRequest $request): JsonResponse
     {
         $data = $request->validated();
         $data['client_id'] = $request->user()->id;
 
-        $booking = $this->bookingService->createBooking($data);
+        try {
+            $booking = $this->bookingService->createBooking($data);
 
-        return new BookingResource($booking);
+            return (new BookingResource($booking))->response()->setStatusCode(201);
+        } catch (ValidationException $e) {
+            return $e->getResponse();
+        }
     }
 }

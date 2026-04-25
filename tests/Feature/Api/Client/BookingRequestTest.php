@@ -7,6 +7,7 @@ use App\Models\AvailabilitySlot;
 use App\Models\Photographer;
 use App\Models\PhotographerService;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -16,7 +17,7 @@ class BookingRequestTest extends TestCase
 
     private function createSlot(Photographer $photographer, string $dateTime, int $duration = 120): void
     {
-        $start = \Carbon\Carbon::parse($dateTime);
+        $start = Carbon::parse($dateTime);
         $end = $start->copy()->addMinutes($duration);
         AvailabilitySlot::factory()->available()->create([
             'photographer_id' => $photographer->id,
