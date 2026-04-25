@@ -17,6 +17,7 @@ class Booking extends Model
         'photographer_service_id',
         'scheduled_date',
         'location',
+        'duration_minutes',
         'status',
         'notes',
     ];
@@ -26,6 +27,7 @@ class Booking extends Model
         return [
             'scheduled_date' => 'datetime',
             'status' => 'string',
+            'duration_minutes' => 'integer',
         ];
     }
 

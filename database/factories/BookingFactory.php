@@ -24,6 +24,7 @@ class BookingFactory extends Factory
             'client_id' => User::factory()->create(['role' => UserRole::Client])->id,
             'photographer_id' => Photographer::factory(),
             'scheduled_date' => $this->faker->dateTimeBetween('+1 week', '+3 months'),
+            'duration_minutes' => $this->faker->numberBetween(60, 480),
             'status' => $this->faker->randomElement(['pending', 'confirmed', 'completed', 'cancelled']),
             'notes' => $this->faker->paragraph(),
         ];

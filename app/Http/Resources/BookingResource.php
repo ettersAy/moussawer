@@ -21,6 +21,7 @@ class BookingResource extends JsonResource
             'photographer_service_id' => $this->photographer_service_id,
             'scheduled_date' => $this->scheduled_date,
             'location' => $this->location,
+            'duration_minutes' => $this->duration_minutes,
             'status' => $this->status,
             'notes' => $this->notes,
             'created_at' => $this->created_at,
