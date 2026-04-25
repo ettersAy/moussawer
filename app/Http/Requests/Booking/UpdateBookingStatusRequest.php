@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests\Booking;
 
+use App\Enums\BookingStatus;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Enum;
 
 class UpdateBookingStatusRequest extends FormRequest
 {
@@ -23,7 +25,7 @@ class UpdateBookingStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => 'required|string|in:pending,confirmed,completed,cancelled',
+            'status' => ['required', 'string', new Enum(BookingStatus::class)],
         ];
     }
 }

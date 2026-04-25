@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\BookingStatus;
 use App\Enums\UserRole;
 use App\Models\Booking;
 use App\Models\User;
@@ -63,7 +64,7 @@ class BookingPolicy
     public function delete(User $user, Booking $booking): bool
     {
         // Client can delete their own pending bookings
-        if ($user->role === UserRole::Client && $booking->client_id === $user->id && $booking->status === 'pending') {
+        if ($user->role === UserRole::Client && $booking->client_id === $user->id && $booking->status === BookingStatus::Pending) {
             return true;
         }
 

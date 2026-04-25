@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Booking;
 
+use App\Enums\BookingStatus;
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Booking\StoreBookingRequest;
@@ -129,17 +130,19 @@ class BookingController extends Controller
     {
         $this->authorize('updateStatus', $booking);
 
-        // Validate status transitions
-        $validTransitions = [
-            'pending' => ['confirmed', 'cancelled'],
-            'confirmed' => ['completed', 'cancelled'],
-            'completed' => [],
-            'cancelled' => [],
-        ];
+        // Validate status transitions using BookingStatus enum
+        $currentStatus = $booking->status instanceof BookingStatus
+            ? $booking->status
+            : BookingStatus::from($booking->status);
+        $newStatus = $request->status instanceof BookingStatus
+            ? $request->status
+            : BookingStatus::from($request->status);
 
-        if (! in_array($request->status, $validTransitions[$booking->status] ?? [])) {
+        if (! in_array($newStatus, $currentStatus->canTransitionTo())) {
+            $currentLabel = $currentStatus instanceof BookingStatus ? $currentStatus->value : $currentStatus;
+            $newLabel = $newStatus instanceof BookingStatus ? $newStatus->value : $newStatus;
             return response()->json([
-                'message' => "Cannot transition from {$booking->status} to {$request->status}.",
+                'message' => "Cannot transition from {$currentLabel} to {$newLabel}.",
             ])->setStatusCode(422);
         }
 

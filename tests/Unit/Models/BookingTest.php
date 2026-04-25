@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Models;
 
+use App\Enums\BookingStatus;
 use App\Enums\UserRole;
 use App\Models\Booking;
 use App\Models\Payment;
@@ -72,7 +73,8 @@ class BookingTest extends TestCase
 
         $booking = Booking::create($data);
 
-        $this->assertEquals($data['status'], $booking->status);
+        $this->assertEquals(BookingStatus::Pending, $booking->status);
+        $this->assertEquals('pending', $booking->status->value);
         $this->assertEquals($data['notes'], $booking->notes);
     }
 
@@ -81,7 +83,8 @@ class BookingTest extends TestCase
     {
         $booking = Booking::factory()->create(['status' => 'completed']);
 
-        $this->assertEquals('completed', $booking->status);
-        $this->assertIsString($booking->status);
+        $this->assertInstanceOf(BookingStatus::class, $booking->status);
+        $this->assertEquals(BookingStatus::Completed, $booking->status);
+        $this->assertEquals('completed', $booking->status->value);
     }
 }
