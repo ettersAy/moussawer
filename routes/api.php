@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\Photographer\AvailabilitySlotController;
 use App\Http\Controllers\Api\Photographer\PortfolioItemController;
 use App\Http\Controllers\Api\Photographer\ProfileController as PhotographerProfileController;
 use App\Http\Controllers\Api\Photographer\ServiceController;
+use App\Http\Controllers\Api\Public\AvailabilityCheckController;
 use App\Http\Controllers\Api\Public\ContactSubmissionController;
 use App\Http\Controllers\Api\Public\PhotographerSearchController;
 use Illuminate\Support\Facades\Route;
@@ -33,6 +34,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/photographers', PhotographerSearchController::class);
 Route::get('/photographers/{photographer}', App\Http\Controllers\Api\Public\PhotographerProfileController::class);
 Route::get('/photographers/{photographer}/availability', [AvailabilitySlotController::class, 'publicAvailability']);
+Route::get('/photographers/{photographer}/availability/check', [AvailabilityCheckController::class, 'check']);
+Route::get('/photographers/{photographer}/availability/slots', [AvailabilityCheckController::class, 'slots']);
 
 Route::post('/contact', [ContactSubmissionController::class, 'store'])
     ->middleware('throttle:contact');
