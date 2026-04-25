@@ -32,10 +32,10 @@
                 type="button"
                 class="btn btn--primary btn--full"
                 :disabled="loading || !selectedService"
-                @click="$emit('submit')"
+                @click="$emit('review')"
             >
                 <span v-if="loading">Sending Request...</span>
-                <span v-else>Request Booking</span>
+                <span v-else>Review & Confirm</span>
             </button>
 
             <p class="booking-summary__disclaimer">
