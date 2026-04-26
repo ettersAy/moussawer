@@ -2,7 +2,7 @@
 
 This file is auto-loaded by Cline for this project.
 It complements the global `/home/AyoubEtters/.clinerules` with project-specific details.
-See also `CLINE.md` at the project root for the extended human-readable reference.
+This is the single source of truth for Moussawer-specific config.
 
 ## Tech Stack
 - **Backend**: Laravel 13.2.0 (PHP 8.4.20)
