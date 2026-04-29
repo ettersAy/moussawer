@@ -153,6 +153,11 @@ Functions:
 - fork_repository
 - create_repository
 
+### git-automate-mcp
+Purpose: Single-intent git automation — create branch, push files, and create PR atomically via GitHub API.
+Tool:
+- git_automate(branch, message, files, base?, prTitle?, prBody?) — full flow in one call
+
 ### moudakkir
 Purpose: Centralized AI mission notes and improvements tracking.
 Functions:
@@ -173,16 +178,37 @@ Functions:
 
 ## Git Automation
 
-### Single command (recommended — use this for all PRs):
+### Primary method — use `git_automate` MCP tool for all new PRs:
+```
+git_automate({
+  branch: "feat/my-feature",
+  message: "feat: add new feature",
+  files: ["src/Component.tsx", "src/lib/utils.ts"],
+  base: "main",
+  prTitle: "feat: add new feature",
+  prBody: "## Summary\n\n..."
+})
+```
+The MCP tool handles everything atomically via GitHub API:
+1. Creates the branch from base (if it doesn't exist)
+2. Reads files from local filesystem and pushes them as a single commit
+3. Creates a PR (or updates an existing one for the same branch)
+
+**Benefits over the shell script:**
+- No dependency on local git state (dirty tree, detached HEAD, uncommitted changes)
+- Single MCP tool call instead of orchestrating 5+ shell commands
+- Works regardless of local clone state
+
+### Fallback — shell script (when MCP server is unavailable):
 ```
 ./scripts/git-automate.sh <branch-name> "<commit-message>" [files...]
 ```
-The script handles everything: branch creation, staging, commit, push, and PR creation via `gh` CLI.
+The script uses `gh` CLI for branch creation, staging, commit, push, and PR creation.
 - If no files are listed, stages all changes (`git add -A`).
-- If a branch with that name already exists, it switches to it instead of creating a new one.
-- If nothing is staged, it exits cleanly without creating an empty PR.
+- If a branch with that name already exists, it switches to it.
+- If nothing is staged, it exits cleanly.
 
-### Fallback (only if the script fails):
+### Last resort (only if both methods fail):
 ```
 git checkout -b <branch>
 git add <files>
@@ -192,8 +218,9 @@ git push -u origin <branch>
 ```
 
 ### Rules:
-- Do NOT use the GitHub MCP `push_files` / `create_or_update_file` for repository code changes — they bypass local state and cause conflicts. Always commit locally and push via the script.
-- Lazy-load: only read `scripts/git-automate.sh` when you need to troubleshoot script behavior.
+- **Prefer `git_automate` MCP tool over shell scripts.** It's more reliable because it bypasses local git state entirely.
+- Do NOT use the GitHub MCP `push_files` / `create_or_update_file` for repository code changes — they bypass local state and cause conflicts. Use `git_automate` or the shell script instead.
+- Lazy-load: only read `scripts/git-automate.sh` when troubleshooting script behavior or when the MCP server is unavailable.
 
 ---
 
@@ -286,3 +313,30 @@ Before troubleshooting, run `./scripts/kill-playwright-mcp.sh` to kill any stale
 - ~2 minutes × many restarts per session → zero time
 - No more identifying PIDs manually
 - No more forgotten zombies causing MCP conflicts
+
+### 2026-04-29 — Git Automator MCP Server (`git_automate`)
+
+**What was implemented:**
+- `/home/AyoubEtters/.local/bin/git-automate-mcp.js` — MCP server exposing `git_automate` tool
+- Single-intent git automation: create branch, push files (single commit via Git Data API), create PR
+- Registered in `cline_mcp_settings.json` with auto-approve
+- Documentation: `doc/git-automation-mcp-server.md`
+- `.clinerules` updated: new primary git automation method, git-automate-mcp listed in MCP servers
+- Backlog item marked as done
+
+**Before:**
+- AI agents orchestrate 5+ shell commands (`git checkout -b`, `git add`, `git commit`, `git push`, `gh pr create`)
+- Shell commands fail due to dirty tree, detached HEAD, uncommitted changes
+- `scripts/git-automate.sh` was the primary method, still dependent on local git state
+
+**After:**
+- Single `git_automate` MCP tool call handles the entire flow atomically
+- Reads files from filesystem directly — no local git staging needed
+- Creates branch via GitHub API, pushes files via Git Data API, creates PR via `gh` CLI
+- Fails gracefully (branch + commit succeed even if PR creation fails)
+- Existing PRs on the same head branch are updated (not duplicated)
+
+**Eliminated pain point:**
+- No more shell command failures due to local git state
+- AI agent complexity reduced from 5+ commands to 1 tool call
+- Works regardless of local clone state or worktree setup
