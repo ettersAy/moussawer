@@ -160,6 +160,35 @@ Functions:
 
 ---
 
+## Git Automation
+
+A helper script exists at `scripts/git-automate.sh` to automate the full branch/commit/push/PR flow.
+
+### Preferred approach (recommended for AI agents):
+1. Use `run_commands` to call the script directly:
+   ```
+   ./scripts/git-automate.sh <branch-name> <commit-message> [files...]
+   ```
+2. If no files are listed, the script stages all changes (`git add -A`).
+3. The script uses `gh` CLI to create the PR automatically.
+
+### Alternative approach (GitHub MCP tools):
+Use the GitHub MCP tools for remote-only changes:
+1. `create_branch` — create the branch on GitHub
+2. `push_files` — push files directly (requires reading file contents first)
+3. `create_pull_request` — create the PR
+
+### Fallback (manual shell commands):
+```
+git checkout -b <branch>
+git add <files>
+git commit -m "<message>"
+git push origin <branch>
+# Then use GitHub MCP create_pull_request
+```
+
+---
+
 ## Playwright MCP — Lazy-load Rules
 
 **Do NOT read the following files at the start of a mission** to avoid wasting context:
