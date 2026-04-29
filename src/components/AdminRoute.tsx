@@ -1,11 +1,11 @@
-import { Navigate, Outlet } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import { RequireRole } from "./RequireRole";
 
+/**
+ * Route guard that requires the user to be authenticated with role ADMIN.
+ *
+ * This is a thin convenience wrapper around `<RequireRole>`. If you need
+ * role-specific gating (e.g. ADMIN + MODERATOR), use `<RequireRole>` directly.
+ */
 export function AdminRoute() {
-  const { user, loading } = useAuth();
-
-  if (loading) return <div className="page narrow"><div className="panel">Loading admin workspace...</div></div>;
-  if (!user) return <Navigate to="/login" replace />;
-  if (user.role !== "ADMIN") return <Navigate to="/dashboard" replace />;
-  return <Outlet />;
+  return <RequireRole allowedRoles={["ADMIN"]} loadingMessage="Loading admin workspace..." />;
 }
