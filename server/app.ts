@@ -21,6 +21,12 @@ export function createApp() {
   app.use("/api/v1", apiRouter);
   app.use(express.static("dist"));
 
+  // SPA fallback — serve index.html for all non-API, non-static routes
+  // so react-router can handle client-side routing (login, dashboard, etc.)
+  app.get("*", (_req, res) => {
+    res.sendFile("index.html", { root: "dist" });
+  });
+
   app.use(errorHandler);
   return app;
 }
