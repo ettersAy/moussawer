@@ -18,7 +18,8 @@
 3. Execute the task.
 4. Validate changes (tests, lint, build, static analysis).
 5. **Simulate real user experience** — use Playwright (browser automation) to navigate the app and verify UI behaviour (routes render, redirects work, loading states show, role-gating works, etc.). Do not rely solely on static checks.
-   - If a dev server / build server is needed but not running, **ask the user to start it** (e.g. `npx vite --port 5173` in a separate terminal) instead of trying to run it in background yourself. Background processes often time out or fail silently.
+   - If a dev server / build server is needed but not running, **ask the user to run** `docker-compose up --build -d` (recommended) which starts both the API (port 4000) and serves the built frontend as static files. The single container runs the Express server which serves both the API routes and the Vite-built frontend.
+     - If Docker is not available, ask the user to run `npm run dev` (starts both Vite frontend on port 5173 and Express API on port 4000 via `concurrently`).
    - Once the user confirms the server is up, proceed with Playwright validation.
 6. After all code changes and validation are complete, **do NOT push or declare done**. Follow the testing documentation at `doc/playwright-mcp-testing.md` to run a structured browser-based validation. Only mark mission complete when all checklist items pass.
 7. Reflect and document improvements.
