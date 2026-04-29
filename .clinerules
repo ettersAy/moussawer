@@ -44,6 +44,15 @@ After completing the mission, always provide:
 - Use Python/scripts for repetitive parsing or data operations.
 - Store reusable scripts in a clear dedicated folder.
 
+## Available Utility Scripts
+
+### `scripts/kill-playwright-mcp.sh`
+Kills all stale Playwright MCP processes that persist after a Cline restart.
+Run immediately after restarting Cline to get a clean slate:
+```
+./scripts/kill-playwright-mcp.sh
+```
+Before this script: manual `ps aux | grep playwright` + kill each PID (~2 min).
 ---
 
 ## Code Standards
@@ -194,6 +203,8 @@ git push -u origin <branch>
 - `doc/playwright-mcp-setup.md` — only read this when the Playwright MCP server is not working / throwing errors.
 - `doc/playwright-mcp-testing.md` — only read this when you need to perform validation after code changes (step 6 of Workflow).
 
+### Stale process cleanup
+Before troubleshooting, run `./scripts/kill-playwright-mcp.sh` to kill any stale zombie processes from the previous session.
 ### If the Playwright MCP server fails to initialize:
 1. Read `doc/playwright-mcp-setup.md` to understand how it was installed and configured.
 2. Fix the issue (symlink broken? config reverted? browser missing?).
@@ -247,7 +258,7 @@ git push -u origin <branch>
 - Wrong MCP server ID — used `github.com/microsoft/playwright-mcp` instead of `github.com/executeautomation/mcp-playwright`
 - `--executable-path` flag does NOT work reliably; must use symlink at `/opt/google/chrome/chrome`
 - `--browser chromium` + `--headless` flags are required in args
-- Old MCP processes persist after restart; must kill `ps aux | grep playwright` processes manually
+- Old MCP processes persist after restart — run `./scripts/kill-playwright-mcp.sh` to clean them up
 - Background process launches from command tools time out — must ask user to start servers manually
 
 **Documentation created:**
@@ -255,3 +266,23 @@ git push -u origin <branch>
 - `doc/playwright-mcp-testing.md` — structured testing procedures
 - `.clinerules` — lazy-load rules to avoid wasting context upfront
 
+### 2026-04-28 — MCP Process Health (kill-playwright-mcp.sh)
+
+**What was implemented:**
+- `scripts/kill-playwright-mcp.sh` — kills all stale Playwright MCP processes in one command
+- `pgrep`-based process discovery with `ps` fallback
+- Graceful SIGTERM first, then SIGKILL for survivors
+- Color-coded output showing which PIDs were killed and their commands
+
+**Before:**
+- Manual `ps aux | grep playwright` + identify PIDs + `kill` each one (~2 min)
+- Had to do this every single restart cycle
+
+**After:**
+- `./scripts/kill-playwright-mcp.sh` → clean slate in ~2 seconds
+- Integrated into `.clinerules` as step 0 before Playwright MCP troubleshooting
+
+**Eliminated pain point:**
+- ~2 minutes × many restarts per session → zero time
+- No more identifying PIDs manually
+- No more forgotten zombies causing MCP conflicts
