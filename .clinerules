@@ -1,91 +1,98 @@
-# Moussawer — Project-Specific Instructions
+# Moussawer — Agent Rules & Context
 
-This file is auto-loaded by Cline for this project.
-It complements the global `/home/AyoubEtters/.clinerules` with project-specific details.
-This is the single source of truth for Moussawer-specific config.
+## Stack
 
-## Tech Stack
-- **Backend**: Laravel 13.2.0 (PHP 8.4.20)
-- **Frontend**: Vue 3 + Vite 8 + Pinia + Vue Router
-- **Database**: MySQL 8.4 (via Laravel Sail)
-- **Styling**: Tailwind CSS 4
-- **Cache**: Redis (via Laravel Sail)
-- **Testing**: PHPUnit 12 (unit/feature) + Playwright (E2E)
+- **Runtime:** Node.js (v22+), TypeScript
+- **Backend:** Express + Prisma Client + Zod + JWT
+- **Frontend:** React 19 + Vite + React Router v7 + plain CSS
+- **Database:** SQLite (via Prisma ORM)
+- **Testing:** Vitest + Supertest
+- **API docs:** OpenAPI (swagger-ui-express)
 
-## Key Dependencies
-| Package | Version |
-|---------|---------|
-| laravel/framework | ^13.0 |
-| laravel/sail | ^1.55 |
-| phpunit/phpunit | ^12.5.12 |
-| vue | ^3.5.31 |
-| vite | ^8.0.0 |
-| pinia | ^3.0.4 |
-| vue-router | ^4.6.4 |
-| @playwright/test | ^1.58.2 |
+## Project Structure
 
-## Available Scripts
-
-### Backend (via Laravel Sail)
-```bash
-./vendor/bin/sail up -d                    # Start all Docker services
-./vendor/bin/sail artisan migrate:fresh --seed  # Reset + seed DB
-./vendor/bin/sail artisan test             # Run all tests
-./vendor/bin/sail artisan queue:work       # Process job queue
-./vendor/bin/sail artisan make:model X -m  # Create model + migration
-./vendor/bin/sail artisan make:controller X --resource
+```
+moussawer/
+├── server/            # Express API
+│   ├── index.ts       # Entry point
+│   ├── app.ts         # Express app setup
+│   ├── config.ts      # Env config
+│   ├── db.ts          # Prisma client
+│   ├── openapi.ts     # OpenAPI spec
+│   ├── middleware/     # Auth, error handling
+│   ├── routes/        # API route handlers
+│   ├── services/      # Business logic (availability, notifications, resources)
+│   └── utils/         # HTTP helpers
+├── src/               # React frontend
+│   ├── App.tsx
+│   ├── components/    # UI components
+│   ├── contexts/      # Auth context
+│   ├── lib/           # API client
+│   └── pages/         # Route pages
+├── prisma/
+│   ├── schema.prisma  # Database schema (single source of truth)
+│   ├── seed.ts        # Seed data
+│   └── dev.db         # SQLite database file
+├── tests/
+│   └── api.test.ts    # API integration tests
+└── docs/              # Project documentation
 ```
 
-### Frontend
+## Key Commands
+
 ```bash
-npm run dev              # Vite dev server (port 5174)
-npm run build            # Production build
-npm run test:e2e         # Playwright E2E tests
-npm run test:e2e:ui      # Playwright UI mode
+npm run dev        # API + web dev servers
+npm run dev:api    # API only
+npm run dev:web    # Vite only
+npm run db:reset   # Rebuild SQLite schema and seed data
+npm test           # Reset DB and run API integration tests
+npm run lint       # ESLint
+npm run build      # TypeScript check + production frontend build
 ```
 
-## Database (MySQL via Docker)
-- **Database**: `moussawer`
-- **Host**: `mysql` (Docker container)
-- **Port**: 3306
-- **Username**: `sail`
-- **Password**: `password`
-- **Connect**: Run queries through the sail mysql container or MCP mysql server
+## Database
 
-## Docker Services
-| Service | Container | Port |
-|---------|-----------|------|
-| App | laravel.test | 80 (HTTP) |
-| MySQL | mysql | 3306 |
-| Redis | redis | 6379 |
-| Adminer | adminer | 8080 |
+- SQLite via Prisma ORM (provider: `sqlite`)
+- Schema source of truth: `prisma/schema.prisma`
+- DB file: `prisma/dev.db`
+- `npm run db:push` uses SQL generation workaround: `prisma migrate diff --from-empty --to-schema-datamodel ... | sqlite3`
+- Models: User, ClientProfile, PhotographerProfile, Category, PhotographerCategory, PhotographerService, AvailabilityRule, CalendarBlock, PortfolioItem, Booking, Conversation, ConversationParticipant, Message, Incident, Dispute, DisputeComment, Review, Favorite, Notification, ActivityLog
 
-## Environment
-- **APP_URL**: http://192.168.2.16
-- **VITE_DEV_SERVER_URL**: http://192.168.2.16:5174
-- **APP_ENV**: local (debug mode on)
+## Conventions
 
-## Git Worktree Notes
-- Worktree root: `/home/AyoubEtters/.cline/worktrees/<hash>/moussawer/`
-- Parent repo: `/srv/dev/moussawer/`
-- To create a branch: `git fetch origin main && git checkout -b <name> origin/main`
-- Cannot checkout `main` from worktree; use `git fetch origin main` to sync
-- Node modules are parent-symlinked for performance
+- **API:** All endpoints under `/api/v1`
+- **Auth:** JWT bearer tokens (`Authorization: Bearer <token>`)
+- **Response shape:** `{ data }` or `{ data, meta }` for success, `{ error: { code, message, details } }` for errors
+- **Error codes:** `VALIDATION_ERROR` (422), `SLOT_UNAVAILABLE` (409), `BOOKING_CONFLICT` (409), `INVALID_STATUS_TRANSITION` (422)
+- **Roles:** `ADMIN`, `CLIENT`, `PHOTOGRAPHER`
+- **Status enums:** `AccountStatus` (ACTIVE/SUSPENDED/DISABLED), `BookingStatus` (PENDING/CONFIRMED/COMPLETED/CANCELLED), `IncidentStatus` (OPEN/UNDER_REVIEW/RESOLVED/CLOSED), `DisputeStatus` (OPEN/AWAITING_RESPONSE/UNDER_REVIEW/RESOLVED/REJECTED/CLOSED)
+- **Naming:** camelCase in TypeScript, snake_case in DB
+- **Validation:** Zod schemas in services/routes
+- **Testing:** Vitest + Supertest, DB reset before each test run
 
-## Common Dev Workflow
-```bash
-# Start everything
-./vendor/bin/sail up -d
-npm run dev
+## Test Accounts
 
-# After pulling changes
-composer install
-./vendor/bin/sail artisan migrate
-
-# Reset and seed
-./vendor/bin/sail artisan migrate:fresh --seed
-
-# Run tests
-./vendor/bin/sail artisan test --parallel
-npm run test:e2e
 ```
+admin@example.com / password
+photographer-one@example.com / password
+photographer-two@example.com / password
+photographer-three@example.com / password
+client@example.com / password
+```
+
+## Development Workflow
+
+1. Always read existing files before changing them
+2. Run `npm run db:reset` before testing to ensure clean state
+3. Run `npm test` before committing
+4. Run `npm run lint` to check code style
+5. Keep OpenAPI spec (`server/openapi.ts`) in sync with routes
+
+## Known Limitations
+
+- Prisma `db push` engine fails in this environment; SQL workaround used
+- Timezone handling needs hardening before production
+- Image uploads are URL-based placeholders
+- Payments/refunds are placeholders
+- Real-time messaging not implemented (polling-based)
+- Admin moderation UI is intentionally minimal
