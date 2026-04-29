@@ -176,6 +176,46 @@ Functions:
 
 ---
 
+## MCP Server Wrapper Scripts Convention
+
+All custom/local MCP servers use **wrapper scripts** in `~/.local/bin/` instead of raw `npx` commands. This convention ensures environment variables are injected, working directories are set correctly, and JSON-RPC output is properly filtered.
+
+**Do NOT attempt to reverse-engineer how an MCP server starts.** If you need to understand startup details, read the relevant wrapper script first.
+
+### Why wrapper scripts?
+- **Environment variable injection** — tokens, paths, and config must be set before the server starts (e.g., github needs `GITHUB_PERSONAL_ACCESS_TOKEN`, git-automate needs `GITHUB_TOKEN` + `GITHUB_OWNER` + `GITHUB_REPO`)
+- **Working directory setup** — some servers (moudakkir) need to run from a specific directory
+- **Output filtering** — non-JSON-RPC noise from npx is filtered out to prevent MCP protocol errors
+- **Stability** — explicit Node.js spawn avoids shell interpolation issues
+
+### Wrapper script types
+
+| Type | Files |
+|---|---|
+| **Bash** (`*.sh`) | `mcp-filesystem.sh`, `mysql-mcp-wrapper-fixed.sh` |
+| **Node.js** (`*.js`) | `github-mcp-wrapper.js`, `moudakkir-mcp-wrapper.js`, `docker-mcp-wrapper.js`, `git-automate-mcp-wrapper.js` |
+
+### Full list: `~/.local/bin/` MCP wrappers
+
+| Wrapper | MCP Server | Type | Purpose |
+|---|---|---|---|
+| `mcp-filesystem.sh` | `@modelcontextprotocol/server-filesystem` | Bash | Runs npx with allowed directories as args |
+| `github-mcp-wrapper.js` | `@iflow-mcp/server-github` | Node.js | Injects `GITHUB_PERSONAL_ACCESS_TOKEN`, filters JSON-RPC output |
+| `moudakkir-mcp-wrapper.js` | `moudakkir` (local) | Node.js | Finds server dir (worktree or fallback), spawns dist/index.js |
+| `docker-mcp-wrapper.js` | `mcp-docker-server` | Node.js | Spawns via npx, filters JSON-RPC output |
+| `git-automate-mcp-wrapper.js` | `git-automate-mcp.js` (local) | Node.js | Injects `GITHUB_TOKEN`, `GITHUB_OWNER`, `GITHUB_REPO`, `PROJECT_ROOT` |
+| `mysql-mcp-wrapper-fixed.sh` | `mcp-server-mysql` | Bash | Wraps MySQL MCP server with DB credentials |
+
+### How the MCP config references wrappers
+
+In `cline_mcp_settings.json`, the `command` field points to either:
+- The wrapper script directly: `"command": "/home/AyoubEtters/.local/bin/mcp-filesystem.sh"`
+- Or `node` + the wrapper: `"command": "node", "args": ["/home/AyoubEtters/.local/bin/github-mcp-wrapper.js"]`
+
+Only the Playwright MCP server (`@playwright/mcp`) uses a direct `npx` call — it does not need a wrapper because it has no env vars and its args (`--browser chromium --headless`) are stable.
+
+---
+
 ## Git Automation
 
 ### Primary method — use `git_automate` MCP tool for all new PRs:
