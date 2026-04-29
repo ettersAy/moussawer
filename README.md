@@ -69,6 +69,7 @@ npm run build      # TypeScript check and production frontend build
 - Reviews: completed-booking rule and one review per booking enforced by schema.
 - Notifications: stored in DB with API access.
 - Dashboards: client/photographer/admin summaries powered by API data.
+- Admin panel (`/admin`): dedicated UI with tabs for Overview (stats), Users (suspend/activate), Incidents (review/resolve/close), Disputes (review/resolve/reject), Categories (create), and Activity (audit log). Role-guarded via `AdminRoute` component; only ADMIN role can access.
 - Seed data: users, photographers, categories, services, availability, portfolio, bookings, messages, cases, favorites, notifications.
 
 ## Mobile/API Readiness
@@ -88,7 +89,7 @@ npm run build      # TypeScript check and production frontend build
 - Image upload storage is URL-based only; S3/object storage should be added next.
 - Timezone handling is consistent for seeded local availability, but should move to a dedicated timezone library before launch.
 - Real-time messaging is not implemented; the MVP uses refresh/polling-style APIs.
-- Admin moderation UI is intentionally simple.
+- Admin moderation UI has basic workflows (suspend/activate users, review/resolve/close incidents, review/resolve/reject disputes, create categories, view audit logs). Full moderation queues (portfolio approval, review moderation) are not yet built into the UI.
 - `npm run db:push` uses a SQLite SQL-generation workaround because Prisma's db push schema engine failed in this container.
 
 ## Recommended Next Missions

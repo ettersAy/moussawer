@@ -40,10 +40,15 @@ npm run dev
 ## Admin Flow
 
 1. Log in as `admin@example.com / password`.
-2. Open Dashboard and verify platform metrics.
-3. Open Cases and review seeded incidents/disputes.
-4. Use Swagger UI to call `GET /admin/users`, `PATCH /admin/users/:id`, `PATCH /admin/incidents/:id`, and `PATCH /admin/disputes/:id`.
-5. Confirm non-admin accounts receive `403` on admin endpoints.
+2. Open the **Admin** nav link (Shield icon) visible at the top — this routes to `/admin`.
+3. **Overview tab**: Verify platform metrics (users, photographers, bookings, open cases).
+4. **Users tab**: View all users, toggle a user between Active/Suspended.
+5. **Incidents tab**: Review incidents, advance them through OPEN → UNDER_REVIEW → RESOLVED/CLOSED.
+6. **Disputes tab**: Review disputes, advance through OPEN → UNDER_REVIEW → RESOLVED/REJECTED.
+7. **Categories tab**: Create a new category (e.g. "Real Estate").
+8. **Activity tab**: View audit log timeline with actor, action, entity, and metadata.
+9. Confirm non-admin accounts (e.g. `client@example.com`) are redirected to `/dashboard` when visiting `/admin`.
+10. Confirm the Admin nav link is invisible for non-admin users.
 
 ## Full Booking Lifecycle
 

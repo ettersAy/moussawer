@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
-import { Bell, Camera, LayoutDashboard, LogOut, MessageCircle, Search, ShieldCheck } from "lucide-react";
+import { Bell, Camera, LayoutDashboard, LogOut, MessageCircle, Search, ShieldCheck, Shield } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 
 export function Layout() {
@@ -36,6 +36,12 @@ export function Layout() {
                 <ShieldCheck size={16} />
                 Cases
               </NavLink>
+              {user.role === "ADMIN" && (
+                <NavLink to="/admin">
+                  <Shield size={16} />
+                  Admin
+                </NavLink>
+              )}
             </>
           )}
         </nav>

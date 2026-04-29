@@ -1,6 +1,8 @@
 import { Route, Routes } from "react-router-dom";
+import { AdminRoute } from "./components/AdminRoute";
 import { Layout } from "./components/Layout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { AdminPage } from "./pages/AdminPage";
 import { CasesPage } from "./pages/CasesPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { DiscoveryPage } from "./pages/DiscoveryPage";
@@ -25,6 +27,9 @@ export function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/messages" element={<MessagesPage />} />
           <Route path="/cases" element={<CasesPage />} />
+        </Route>
+        <Route element={<AdminRoute />}>
+          <Route path="/admin" element={<AdminPage />} />
         </Route>
       </Route>
     </Routes>
