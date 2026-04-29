@@ -1,98 +1,188 @@
-# Moussawer — Agent Rules & Context
+# .clinerules
 
-## Stack
+## Core Mission Rules
+- Focus on execution, not theory.
+- Do not explain basic programming concepts.
+- Prioritize minimal, maintainable, production-ready solutions.
+- Before coding, quickly scan existing architecture and patterns.
+- Reuse existing services, helpers, and conventions before creating new abstractions.
+- Keep files small and modular. Avoid fat components/classes.
+- Do not generate dead code, placeholders, or unused abstractions.
+- When blocked, identify the exact missing information instead of guessing.
 
-- **Runtime:** Node.js (v22+), TypeScript
-- **Backend:** Express + Prisma Client + Zod + JWT
-- **Frontend:** React 19 + Vite + React Router v7 + plain CSS
-- **Database:** SQLite (via Prisma ORM)
-- **Testing:** Vitest + Supertest
-- **API docs:** OpenAPI (swagger-ui-express)
+---
 
-## Project Structure
+## Workflow
+1. Understand the mission.
+2. Scan only the relevant files/folders.
+3. Execute the task.
+4. Validate changes (tests, lint, build, manual verification if needed).
+5. Reflect and document improvements.
 
-```
-moussawer/
-├── server/            # Express API
-│   ├── index.ts       # Entry point
-│   ├── app.ts         # Express app setup
-│   ├── config.ts      # Env config
-│   ├── db.ts          # Prisma client
-│   ├── openapi.ts     # OpenAPI spec
-│   ├── middleware/     # Auth, error handling
-│   ├── routes/        # API route handlers
-│   ├── services/      # Business logic (availability, notifications, resources)
-│   └── utils/         # HTTP helpers
-├── src/               # React frontend
-│   ├── App.tsx
-│   ├── components/    # UI components
-│   ├── contexts/      # Auth context
-│   ├── lib/           # API client
-│   └── pages/         # Route pages
-├── prisma/
-│   ├── schema.prisma  # Database schema (single source of truth)
-│   ├── seed.ts        # Seed data
-│   └── dev.db         # SQLite database file
-├── tests/
-│   └── api.test.ts    # API integration tests
-└── docs/              # Project documentation
-```
+---
 
-## Key Commands
+## Reflection (MANDATORY AFTER EACH MISSION)
+After completing the mission, always provide:
+- What slowed discovery/debugging.
+- Missing documentation that should be added.
+- Repetitive actions that should become scripts.
+- Useful automation ideas.
+- Reusable patterns discovered in the codebase.
+- Suggested MCP servers/tools that could improve future missions.
 
-```bash
-npm run dev        # API + web dev servers
-npm run dev:api    # API only
-npm run dev:web    # Vite only
-npm run db:reset   # Rebuild SQLite schema and seed data
-npm test           # Reset DB and run API integration tests
-npm run lint       # ESLint
-npm run build      # TypeScript check + production frontend build
-```
+---
 
-## Database
+## Automation Rules
+- Prefer generating reusable scripts instead of long lists of manual commands.
+- Use shell scripts for environment/debug/setup tasks.
+- Use Python/scripts for repetitive parsing or data operations.
+- Store reusable scripts in a clear dedicated folder.
 
-- SQLite via Prisma ORM (provider: `sqlite`)
-- Schema source of truth: `prisma/schema.prisma`
-- DB file: `prisma/dev.db`
-- `npm run db:push` uses SQL generation workaround: `prisma migrate diff --from-empty --to-schema-datamodel ... | sqlite3`
-- Models: User, ClientProfile, PhotographerProfile, Category, PhotographerCategory, PhotographerService, AvailabilityRule, CalendarBlock, PortfolioItem, Booking, Conversation, ConversationParticipant, Message, Incident, Dispute, DisputeComment, Review, Favorite, Notification, ActivityLog
+---
 
-## Conventions
+## Code Standards
+- Prefer explicit and readable code over clever code.
+- Keep functions focused on one responsibility.
+- Avoid large files.
+- Follow existing naming conventions.
+- Add logs only when useful for debugging or monitoring.
+- Do not silently ignore errors.
 
-- **API:** All endpoints under `/api/v1`
-- **Auth:** JWT bearer tokens (`Authorization: Bearer <token>`)
-- **Response shape:** `{ data }` or `{ data, meta }` for success, `{ error: { code, message, details } }` for errors
-- **Error codes:** `VALIDATION_ERROR` (422), `SLOT_UNAVAILABLE` (409), `BOOKING_CONFLICT` (409), `INVALID_STATUS_TRANSITION` (422)
-- **Roles:** `ADMIN`, `CLIENT`, `PHOTOGRAPHER`
-- **Status enums:** `AccountStatus` (ACTIVE/SUSPENDED/DISABLED), `BookingStatus` (PENDING/CONFIRMED/COMPLETED/CANCELLED), `IncidentStatus` (OPEN/UNDER_REVIEW/RESOLVED/CLOSED), `DisputeStatus` (OPEN/AWAITING_RESPONSE/UNDER_REVIEW/RESOLVED/REJECTED/CLOSED)
-- **Naming:** camelCase in TypeScript, snake_case in DB
-- **Validation:** Zod schemas in services/routes
-- **Testing:** Vitest + Supertest, DB reset before each test run
+---
 
-## Test Accounts
+## Available MCP Servers
 
-```
-admin@example.com / password
-photographer-one@example.com / password
-photographer-two@example.com / password
-photographer-three@example.com / password
-client@example.com / password
-```
+### filesystem
+Purpose: File and directory operations.
+Functions:
+- read_file
+- read_text_file
+- read_multiple_files
+- write_file
+- edit_file
+- list_directory
+- directory_tree
+- search_files
+- get_file_info
+- create_directory
+- move_file
+- list_allowed_directories
 
-## Development Workflow
+### playwright
+Purpose: Browser automation and UI testing.
+Functions:
+- browser_navigate
+- browser_snapshot
+- browser_take_screenshot
+- browser_click
+- browser_type
+- browser_fill_form
+- browser_select_option
+- browser_hover
+- browser_press_key
+- browser_drag
+- browser_drop
+- browser_file_upload
+- browser_handle_dialog
+- browser_wait_for
+- browser_tabs
+- browser_resize
+- browser_navigate_back
+- browser_console_messages
+- browser_network_requests
+- browser_evaluate
+- browser_run_code
+- browser_close
 
-1. Always read existing files before changing them
-2. Run `npm run db:reset` before testing to ensure clean state
-3. Run `npm test` before committing
-4. Run `npm run lint` to check code style
-5. Keep OpenAPI spec (`server/openapi.ts`) in sync with routes
+### mysql
+Purpose: Database inspection and queries.
+Functions:
+- mysql_query
+- mysql_list_databases
 
-## Known Limitations
+### docker
+Purpose: Container management and debugging.
+Functions:
+- list_containers
+- container_logs
+- start_container
+- stop_container
+- restart_container
+- remove_container
+- exec_command
+- container_stats
+- list_images
 
-- Prisma `db push` engine fails in this environment; SQL workaround used
-- Timezone handling needs hardening before production
-- Image uploads are URL-based placeholders
-- Payments/refunds are placeholders
-- Real-time messaging not implemented (polling-based)
-- Admin moderation UI is intentionally minimal
+### github
+Purpose: Repository and PR management.
+Functions:
+- search_repositories
+- search_code
+- get_file_contents
+- create_or_update_file
+- push_files
+- create_branch
+- list_commits
+- create_issue
+- update_issue
+- add_issue_comment
+- list_issues
+- search_issues
+- get_issue
+- create_pull_request
+- list_pull_requests
+- get_pull_request
+- get_pull_request_files
+- get_pull_request_status
+- merge_pull_request
+- fork_repository
+- create_repository
+
+### moudakkir
+Purpose: Centralized AI mission notes and improvements tracking.
+Functions:
+- add_note
+- list_notes
+- get_note
+- update_note_status
+- delete_note
+
+---
+
+## Important
+- If an MCP server can perform a task more reliably than manual work, use it.
+- If a required MCP server is missing, suggest installing it.
+- Minimize discovery time by updating documentation when patterns are identified.
+
+---
+
+## Mission Log
+
+### 2026-04-28 — Admin interface (`/admin`)
+
+**What was missing:**
+- No `/admin` route in React Router (`App.tsx`)
+- No `AdminPage.tsx` component in `src/pages/`
+- No admin nav link in `Layout.tsx` for admin users
+- No frontend role-guard component for admin-only routes
+
+**What was implemented:**
+- `src/components/AdminRoute.tsx` — role-based route guard (redirects non-ADMIN to `/dashboard`)
+- `src/pages/AdminPage.tsx` — full admin panel with 6 tabs: Overview, Users, Incidents, Disputes, Categories, Activity
+- `/admin` route registered in `App.tsx` under `AdminRoute`
+- Admin nav link (Shield icon) added to `Layout.tsx`, visible only to admin users
+- CSS styles for admin tabs, sections, animations
+- All admin API endpoints were already present in the server
+
+**What slowed discovery:**
+- The server had full admin endpoints (`/admin/stats`, `/admin/users`, etc.) but no frontend wired to them — had to scan both server and client side separately
+
+**Patterns reused:**
+- `ProtectedRoute` pattern → `AdminRoute` (same guard logic, role check added)
+- `DashboardPage.tsx` data-fetching pattern (useEffect + useState + api calls)
+- Existing `StatusBadge`, `Metric`, `table-list`, `table-row`, `soft-row`, `panel` CSS classes
+
+**Missing documentation that should be added:**
+- `docs/MANUAL_TESTING.md` admin flow now has a proper UI instead of "use Swagger UI"
+- `README.md` admin panel feature should be listed under "Implemented MVP"
+
