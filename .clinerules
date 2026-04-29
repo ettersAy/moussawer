@@ -16,8 +16,12 @@
 1. Understand the mission.
 2. Scan only the relevant files/folders.
 3. Execute the task.
-4. Validate changes (tests, lint, build, manual verification if needed).
-5. Reflect and document improvements.
+4. Validate changes (tests, lint, build, static analysis).
+5. **Simulate real user experience** — use Playwright (browser automation) to navigate the app and verify UI behaviour (routes render, redirects work, loading states show, role-gating works, etc.). Do not rely solely on static checks.
+   - If a dev server / build server is needed but not running, **ask the user to start it** (e.g. `npx vite --port 5173` in a separate terminal) instead of trying to run it in background yourself. Background processes often time out or fail silently.
+   - Once the user confirms the server is up, proceed with Playwright validation.
+6. After all code changes and validation are complete, **do NOT push or declare done**. Follow the testing documentation at `doc/playwright-mcp-testing.md` to run a structured browser-based validation. Only mark mission complete when all checklist items pass.
+7. Reflect and document improvements.
 
 ---
 
@@ -156,6 +160,52 @@ Functions:
 
 ---
 
+## Git Automation
+
+A helper script exists at `scripts/git-automate.sh` to automate the full branch/commit/push/PR flow.
+
+### Preferred approach (recommended for AI agents):
+1. Use `run_commands` to call the script directly:
+   ```
+   ./scripts/git-automate.sh <branch-name> <commit-message> [files...]
+   ```
+2. If no files are listed, the script stages all changes (`git add -A`).
+3. The script uses `gh` CLI to create the PR automatically.
+
+### Alternative approach (GitHub MCP tools):
+Use the GitHub MCP tools for remote-only changes:
+1. `create_branch` — create the branch on GitHub
+2. `push_files` — push files directly (requires reading file contents first)
+3. `create_pull_request` — create the PR
+
+### Fallback (manual shell commands):
+```
+git checkout -b <branch>
+git add <files>
+git commit -m "<message>"
+git push origin <branch>
+# Then use GitHub MCP create_pull_request
+```
+
+---
+
+## Playwright MCP — Lazy-load Rules
+
+**Do NOT read the following files at the start of a mission** to avoid wasting context:
+- `doc/playwright-mcp-setup.md` — only read this when the Playwright MCP server is not working / throwing errors.
+- `doc/playwright-mcp-testing.md` — only read this when you need to perform validation after code changes (step 6 of Workflow).
+
+### If the Playwright MCP server fails to initialize:
+1. Read `doc/playwright-mcp-setup.md` to understand how it was installed and configured.
+2. Fix the issue (symlink broken? config reverted? browser missing?).
+3. Ask the user to restart Cline if config was changed.
+
+### After code changes are complete:
+1. Read `doc/playwright-mcp-testing.md` to run the structured validation checklist.
+2. Do NOT mark the mission done until all checklist items pass.
+
+---
+
 ## Mission Log
 
 ### 2026-04-28 — Admin interface (`/admin`)
@@ -185,4 +235,24 @@ Functions:
 **Missing documentation that should be added:**
 - `docs/MANUAL_TESTING.md` admin flow now has a proper UI instead of "use Swagger UI"
 - `README.md` admin panel feature should be listed under "Implemented MVP"
+
+### 2026-04-28 — Admin route dedup (`RequireRole`) + Playwright MCP setup
+
+**What was done:**
+- Created `src/components/RequireRole.tsx` — generalized route guard with `allowedRoles` prop
+- Refactored `ProtectedRoute` and `AdminRoute` as thin wrappers around `RequireRole`
+- Validated all route guards with Playwright (6 tests passed)
+
+**Playwright MCP installation mistakes (documented for future):**
+- Edited wrong config file (`/srv/dev/cline_mcp_settings.json` instead of the real one under `~/.config/Code/...`)
+- Wrong MCP server ID — used `github.com/microsoft/playwright-mcp` instead of `github.com/executeautomation/mcp-playwright`
+- `--executable-path` flag does NOT work reliably; must use symlink at `/opt/google/chrome/chrome`
+- `--browser chromium` + `--headless` flags are required in args
+- Old MCP processes persist after restart; must kill `ps aux | grep playwright` processes manually
+- Background process launches from command tools time out — must ask user to start servers manually
+
+**Documentation created:**
+- `doc/playwright-mcp-setup.md` — step-by-step installation guide with all mistakes documented
+- `doc/playwright-mcp-testing.md` — structured testing procedures
+- `.clinerules` — lazy-load rules to avoid wasting context upfront
 
