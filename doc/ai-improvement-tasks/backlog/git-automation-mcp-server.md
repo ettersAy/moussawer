@@ -1,4 +1,9 @@
-# Problem
+# ~~Problem~~ - DONE
+
+> Implemented: 2026-04-29
+> See `doc/git-automation-mcp-server.md` for full documentation.
+
+## Original Problem
 AI agents currently use raw shell commands (`git checkout -b`, `git add`, `git commit`, `git push`) for git operations, then the GitHub MCP server (`create_pull_request`) for PR creation. This split between shell and MCP tools is fragile — shell commands can fail due to local repo state (dirty tree, detached HEAD, auth issues), and the agent must manually manage the sequence.
 
 For this specific project, `gh` CLI is installed, which makes the full flow possible from a single script (`scripts/git-automate.sh`). But the AI agent still has to remember to:
