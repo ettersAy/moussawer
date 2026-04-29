@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  moussawer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: moussawer
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - DATABASE_URL=file:./dev.db
+      - JWT_SECRET=dev-docker-secret-change-in-production
+      - NODE_ENV=production
+    volumes:
+      - ./prisma:/app/prisma
+    restart: unless-stopped
