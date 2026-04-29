@@ -9,6 +9,7 @@
 - Keep files small and modular. Avoid fat components/classes.
 - Do not generate dead code, placeholders, or unused abstractions.
 - When blocked, identify the exact missing information instead of guessing.
+- **Always create or update user-facing documentation** for every new feature, tool, config change, or workflow change you introduce. Documentation goes in `doc/` and must explain: what changed, how to use it, and why (with before/after comparison if applicable).
 
 ---
 
@@ -163,30 +164,27 @@ Functions:
 
 ## Git Automation
 
-A helper script exists at `scripts/git-automate.sh` to automate the full branch/commit/push/PR flow.
+### Single command (recommended — use this for all PRs):
+```
+./scripts/git-automate.sh <branch-name> "<commit-message>" [files...]
+```
+The script handles everything: branch creation, staging, commit, push, and PR creation via `gh` CLI.
+- If no files are listed, stages all changes (`git add -A`).
+- If a branch with that name already exists, it switches to it instead of creating a new one.
+- If nothing is staged, it exits cleanly without creating an empty PR.
 
-### Preferred approach (recommended for AI agents):
-1. Use `run_commands` to call the script directly:
-   ```
-   ./scripts/git-automate.sh <branch-name> <commit-message> [files...]
-   ```
-2. If no files are listed, the script stages all changes (`git add -A`).
-3. The script uses `gh` CLI to create the PR automatically.
-
-### Alternative approach (GitHub MCP tools):
-Use the GitHub MCP tools for remote-only changes:
-1. `create_branch` — create the branch on GitHub
-2. `push_files` — push files directly (requires reading file contents first)
-3. `create_pull_request` — create the PR
-
-### Fallback (manual shell commands):
+### Fallback (only if the script fails):
 ```
 git checkout -b <branch>
 git add <files>
 git commit -m "<message>"
-git push origin <branch>
-# Then use GitHub MCP create_pull_request
+git push -u origin <branch>
+# Then create PR manually: gh pr create --base main --head <branch> --title "<title>" --body "<body>"
 ```
+
+### Rules:
+- Do NOT use the GitHub MCP `push_files` / `create_or_update_file` for repository code changes — they bypass local state and cause conflicts. Always commit locally and push via the script.
+- Lazy-load: only read `scripts/git-automate.sh` when you need to troubleshoot script behavior.
 
 ---
 
