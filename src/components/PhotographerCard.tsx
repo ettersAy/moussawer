@@ -1,8 +1,26 @@
 import { CalendarDays, Heart, MapPin, Star } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { money, type Photographer } from "../lib/api";
+import { useAuth } from "../contexts/AuthContext";
+import { api, money, type Photographer } from "../lib/api";
 
 export function PhotographerCard({ photographer }: { photographer: Photographer }) {
+  const { user } = useAuth();
+  const [saved, setSaved] = useState(false);
+
+  async function toggleFavorite() {
+    if (!user || user.role !== "CLIENT") return;
+    try {
+      if (saved) {
+        await api(`/favorites/${photographer.id}`, { method: "DELETE" });
+        setSaved(false);
+      } else {
+        await api(`/favorites/${photographer.id}`, { method: "POST" });
+        setSaved(true);
+      }
+    } catch { /* silently ignored */ }
+  }
+
   return (
     <article className="photographer-card">
       <div className="card-image">
@@ -32,9 +50,12 @@ export function PhotographerCard({ photographer }: { photographer: Photographer 
         <div className="card-footer">
           <span className="price">From {money(photographer.startingPrice)}</span>
           <div className="inline-actions">
-            <button className="icon-button" type="button" title="Save photographer">
-              <Heart size={16} />
-            </button>
+            {user?.role === "CLIENT" && (
+              <button className="icon-button" type="button" title={saved ? "Remove from favorites" : "Save photographer"}
+                onClick={toggleFavorite}>
+                <Heart size={16} fill={saved ? "#bd3a3a" : "none"} color={saved ? "#bd3a3a" : "currentColor"} />
+              </button>
+            )}
             <Link className="solid-button compact" to={`/photographers/${photographer.slug}`}>
               <CalendarDays size={15} />
               View

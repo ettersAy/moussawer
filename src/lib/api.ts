@@ -69,6 +69,7 @@ export type PortfolioItem = {
   tags: string[];
   isFeatured: boolean;
   isModerated: boolean;
+  sortOrder?: number;
   category?: Category | null;
 };
 
@@ -84,6 +85,9 @@ export type Booking = {
   status: "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
   priceEstimate: number;
   cancellationReason?: string | null;
+  confirmedAt?: string | null;
+  cancelledAt?: string | null;
+  completedAt?: string | null;
   createdAt: string;
 };
 

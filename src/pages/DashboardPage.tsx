@@ -1,185 +1,188 @@
-import { CalendarClock, Camera, CheckCircle2, FileWarning, MessageCircle, Plus, Shield, Users } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import {
+  BarChart3, CalendarClock, ClipboardList, Heart, Star,
+  StarOff, UserCheck, X
+} from "lucide-react";
+import { useEffect, useState } from "react";
 import { StatusBadge } from "../components/StatusBadge";
+import { useToast } from "../components/shared/Toast";
 import { useAuth } from "../contexts/AuthContext";
-import { api, money, shortDate, type Booking, type CaseItem, type Conversation, type Notification, type Photographer, type Service } from "../lib/api";
-
-type AdminStats = {
-  totalUsers: number;
-  totalPhotographers: number;
-  totalClients: number;
-  totalBookings: number;
-  pendingBookings: number;
-  openIncidents: number;
-  openDisputes: number;
-  recentMessages: number;
-  moderationQueue: number;
-};
+import { api, money, shortDate, type Booking, type Photographer } from "../lib/api";
 
 export function DashboardPage() {
   const { user } = useAuth();
+  const toast = useToast();
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [incidents, setIncidents] = useState<CaseItem[]>([]);
-  const [disputes, setDisputes] = useState<CaseItem[]>([]);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [stats, setStats] = useState<AdminStats | null>(null);
-  const [profile, setProfile] = useState<Photographer | null>(null);
-  const [serviceForm, setServiceForm] = useState({ title: "", description: "", durationMinutes: 90, price: 300 });
+  const [favorites, setFavorites] = useState<Photographer[]>([]);
+  const [stats, setStats] = useState({ totalBookings: 0, pending: 0, confirmed: 0, completed: 0 });
+  const [reviewForm, setReviewForm] = useState<{ bookingId: string; rating: number; comment: string } | null>(null);
 
   useEffect(() => {
-    api<Booking[]>("/bookings").then((response) => setBookings(response.data));
-    api<Conversation[]>("/conversations").then((response) => setConversations(response.data));
-    api<CaseItem[]>("/incidents").then((response) => setIncidents(response.data));
-    api<CaseItem[]>("/disputes").then((response) => setDisputes(response.data));
-    api<Notification[]>("/notifications").then((response) => setNotifications(response.data));
-    if (user?.role === "ADMIN") api<AdminStats>("/admin/stats").then((response) => setStats(response.data));
-    if (user?.role === "PHOTOGRAPHER") api<Photographer>("/me/photographer").then((response) => setProfile(response.data));
-  }, [user?.role]);
+    if (!user) return;
+    loadBookings();
+    if (user.role === "CLIENT") loadFavorites();
+  }, [user]);
 
-  const upcoming = useMemo(() => bookings.filter((booking) => new Date(booking.startAt) >= new Date() && booking.status !== "CANCELLED"), [bookings]);
-  const unread = notifications.filter((notification) => !notification.readAt).length;
-
-  async function updateBooking(booking: Booking, status: Booking["status"]) {
-    const response = await api<Booking>(`/bookings/${booking.id}/status`, { method: "PATCH", body: { status } });
-    setBookings((current) => current.map((item) => (item.id === booking.id ? response.data : item)));
+  async function loadBookings() {
+    try {
+      const res = await api<Booking[]>("/bookings");
+      const b = res.data;
+      setBookings(b);
+      setStats({
+        totalBookings: b.length,
+        pending: b.filter((x) => x.status === "PENDING").length,
+        confirmed: b.filter((x) => x.status === "CONFIRMED").length,
+        completed: b.filter((x) => x.status === "COMPLETED").length,
+      });
+    } catch { /* auth-guarded */ }
   }
 
-  async function addService(event: React.FormEvent) {
-    event.preventDefault();
-    const response = await api<Service>("/me/services", { method: "POST", body: serviceForm });
-    setProfile((current) => current ? { ...current, services: [...current.services, response.data] } : current);
-    setServiceForm({ title: "", description: "", durationMinutes: 90, price: 300 });
+  async function loadFavorites() {
+    try {
+      const res = await api<Photographer[]>("/favorites");
+      setFavorites(res.data);
+    } catch { /* auth-guarded */ }
   }
+
+  async function cancelBooking(booking: Booking) {
+    const reason = prompt("Cancellation reason (optional):") || "";
+    try {
+      await api(`/bookings/${booking.id}/status`, { method: "PATCH", body: { status: "CANCELLED", cancellationReason: reason } });
+      toast.success("Booking cancelled.");
+      loadBookings();
+    } catch (err: any) { toast.error(err.message); }
+  }
+
+  async function submitReview() {
+    if (!reviewForm) return;
+    try {
+      await api("/reviews", { method: "POST", body: reviewForm });
+      toast.success("Review submitted! Thank you.");
+      setReviewForm(null);
+      loadBookings();
+    } catch (err: any) { toast.error(err.message); }
+  }
+
+  async function removeFavorite(id: string) {
+    await api(`/favorites/${id}`, { method: "DELETE" });
+    toast.success("Removed from favorites.");
+    loadFavorites();
+  }
+
+  if (!user) return null;
 
   return (
     <section className="page dashboard">
-      <div className="split-heading">
+      <div className="split-heading compact-heading">
         <div>
-          <span className="eyebrow">{user?.role?.toLowerCase()} dashboard</span>
-          <h1>Good to see you, {user?.name}.</h1>
+          <span className="eyebrow">{user.role.toLowerCase()} dashboard</span>
+          <h1>Welcome back, {user.name}</h1>
         </div>
       </div>
 
       <div className="metrics-grid">
-        {user?.role === "ADMIN" && stats ? (
-          <>
-            <Metric icon={<Users />} label="Users" value={stats.totalUsers} />
-            <Metric icon={<Camera />} label="Photographers" value={stats.totalPhotographers} />
-            <Metric icon={<CalendarClock />} label="Bookings" value={stats.totalBookings} />
-            <Metric icon={<FileWarning />} label="Open cases" value={stats.openIncidents + stats.openDisputes} />
-          </>
-        ) : (
-          <>
-            <Metric icon={<CalendarClock />} label="Upcoming" value={upcoming.length} />
-            <Metric icon={<MessageCircle />} label="Conversations" value={conversations.length} />
-            <Metric icon={<FileWarning />} label="Open cases" value={incidents.length + disputes.length} />
-            <Metric icon={<Shield />} label="Unread alerts" value={unread} />
-          </>
-        )}
+        <Metric icon={<CalendarClock />} label="Total bookings" value={stats.totalBookings} />
+        <Metric icon={<ClipboardList />} label="Pending" value={stats.pending} />
+        <Metric icon={<UserCheck />} label="Confirmed" value={stats.confirmed} />
+        <Metric icon={<BarChart3 />} label="Completed" value={stats.completed} />
       </div>
 
       <div className="dashboard-grid">
-        <section className="panel">
-          <h2>Bookings</h2>
-          <div className="table-list">
-            {bookings.slice(0, 8).map((booking) => (
-              <div className="table-row" key={booking.id}>
-                <div>
-                  <strong>{booking.service.title}</strong>
-                  <p>{shortDate(booking.startAt)} with {user?.role === "CLIENT" ? booking.photographer.name : booking.client.name}</p>
-                </div>
-                <StatusBadge value={booking.status} />
-                <div className="inline-actions">
-                  {user?.role === "PHOTOGRAPHER" && booking.status === "PENDING" && (
-                    <button className="ghost-button compact" type="button" onClick={() => updateBooking(booking, "CONFIRMED")}>
-                      <CheckCircle2 size={15} /> Confirm
-                    </button>
-                  )}
-                  {user?.role === "PHOTOGRAPHER" && booking.status === "CONFIRMED" && (
-                    <button className="ghost-button compact" type="button" onClick={() => updateBooking(booking, "COMPLETED")}>
-                      Complete
-                    </button>
-                  )}
-                  {booking.status === "PENDING" && user?.role !== "ADMIN" && (
-                    <button className="ghost-button compact" type="button" onClick={() => updateBooking(booking, "CANCELLED")}>
-                      Cancel
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-            {!bookings.length && <p className="muted">No bookings yet.</p>}
-          </div>
-        </section>
+        <section className="panel wide-panel">
+          <h2>Your Bookings</h2>
+          {bookings.length === 0 ? (
+            <p className="muted">No bookings yet. Browse photographers to get started.</p>
+          ) : (
+            <div className="list-stack">
+              {bookings.map((b) => (
+                <article className="soft-row" key={b.id}>
+                  <div className="card-title-row">
+                    <div>
+                      <strong>{b.service.title}</strong>
+                      <StatusBadge value={b.status} />
+                    </div>
+                    <span className="muted">{money(b.priceEstimate)}</span>
+                  </div>
+                  <p>
+                    {user.role === "CLIENT" ? `Photographer: ${b.photographer.name}` : `Client: ${b.client.name}`}
+                    {" · "}{shortDate(b.startAt)} · {b.location}
+                  </p>
+                  {b.notes && <p className="muted">{b.notes}</p>}
+                  {b.cancellationReason && <p className="tone-warning" style={{ padding: "4px 8px", borderRadius: "4px" }}>Cancelled: {b.cancellationReason}</p>}
 
-        <section className="panel">
-          <h2>Recent messages</h2>
-          <div className="list-stack">
-            {conversations.slice(0, 5).map((conversation) => (
-              <article className="soft-row" key={conversation.id}>
-                <strong>{conversation.subject}</strong>
-                <p>{conversation.lastMessage?.body ?? "No messages yet."}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="panel">
-          <h2>Cases</h2>
-          <div className="list-stack">
-            {[...incidents, ...disputes].slice(0, 5).map((item) => (
-              <article className="soft-row" key={item.id}>
-                <div className="card-title-row">
-                  <strong>{item.category ?? item.type}</strong>
-                  <StatusBadge value={item.status} />
-                </div>
-                <p>{item.description}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="panel">
-          <h2>Notifications</h2>
-          <div className="list-stack">
-            {notifications.slice(0, 6).map((notification) => (
-              <article className="soft-row" key={notification.id}>
-                <strong>{notification.title}</strong>
-                <p>{notification.body}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        {user?.role === "PHOTOGRAPHER" && profile && (
-          <section className="panel wide-panel">
-            <div className="split-heading compact-heading">
-              <div>
-                <h2>Photographer workspace</h2>
-                <p className="muted">Profile completion, packages, portfolio, and calendar are API-managed for web and mobile clients.</p>
-              </div>
-              <strong>{money(profile.startingPrice)} starting price</strong>
+                  <div className="inline-actions" style={{ marginTop: "8px" }}>
+                    {user.role === "CLIENT" && b.status === "PENDING" && (
+                      <button className="ghost-button compact" style={{ color: "var(--red)" }} onClick={() => cancelBooking(b)}>
+                        <X size={14} /> Cancel
+                      </button>
+                    )}
+                    {user.role === "CLIENT" && b.status === "COMPLETED" && (
+                      <button className="ghost-button compact" onClick={() => setReviewForm({ bookingId: b.id, rating: 5, comment: "" })}>
+                        <Star size={14} /> Write Review
+                      </button>
+                    )}
+                    {user.role === "PHOTOGRAPHER" && b.status === "PENDING" && (
+                      <span className="muted" style={{ fontSize: "0.85rem" }}>Manage in <a href="/photographer" style={{ color: "var(--blue)" }}>Workspace</a></span>
+                    )}
+                  </div>
+                </article>
+              ))}
             </div>
-            <div className="service-manager">
+          )}
+        </section>
+
+        {user.role === "CLIENT" && (
+          <section className="panel">
+            <h2><Heart size={18} style={{ verticalAlign: "middle", marginRight: "6px" }} />Favorites ({favorites.length})</h2>
+            {favorites.length === 0 ? (
+              <p className="muted">Save photographers to quickly book later.</p>
+            ) : (
               <div className="list-stack">
-                {profile.services.map((service) => (
-                  <article className="soft-row" key={service.id}>
-                    <strong>{service.title}</strong>
-                    <p>{service.durationMinutes} minutes · {money(service.price)}</p>
+                {favorites.map((p) => (
+                  <article className="soft-row" key={p.id}>
+                    <div className="card-title-row">
+                      <div>
+                        <strong>{p.name}</strong>
+                        <p className="muted" style={{ margin: 0 }}>{p.city} · ⭐ {p.rating}</p>
+                      </div>
+                      <div className="inline-actions">
+                        <a href={`/photographers/${p.slug}`} className="ghost-button compact">View</a>
+                        <button className="ghost-button compact" onClick={() => removeFavorite(p.id)}>
+                          <StarOff size={14} />
+                        </button>
+                      </div>
+                    </div>
                   </article>
                 ))}
               </div>
-              <form onSubmit={addService} className="inline-form">
-                <input value={serviceForm.title} onChange={(event) => setServiceForm({ ...serviceForm, title: event.target.value })} placeholder="Package title" />
-                <input value={serviceForm.description} onChange={(event) => setServiceForm({ ...serviceForm, description: event.target.value })} placeholder="Description" />
-                <input type="number" value={serviceForm.price} onChange={(event) => setServiceForm({ ...serviceForm, price: Number(event.target.value) })} />
-                <button className="solid-button compact" type="submit"><Plus size={15} /> Add</button>
-              </form>
-            </div>
+            )}
           </section>
         )}
       </div>
+
+      {reviewForm && (
+        <div className="modal-overlay" onClick={() => setReviewForm(null)} role="dialog" aria-modal="true">
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <h2>Write a Review</h2>
+            <div className="inline-actions" style={{ justifyContent: "center" }}>
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button key={n} type="button" className="ghost-button compact"
+                  style={reviewForm.rating >= n ? { color: "#946200", borderColor: "#946200" } : {}}
+                  onClick={() => setReviewForm({ ...reviewForm, rating: n })}>
+                  <Star size={20} fill={reviewForm.rating >= n ? "currentColor" : "none"} />
+                </button>
+              ))}
+            </div>
+            <label>
+              Comment (optional)
+              <textarea value={reviewForm.comment} onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })} />
+            </label>
+            <div className="modal-actions">
+              <button className="ghost-button" onClick={() => setReviewForm(null)}>Cancel</button>
+              <button className="solid-button" onClick={submitReview}>Submit Review</button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
@@ -188,10 +191,7 @@ function Metric({ icon, label, value }: { icon: React.ReactNode; label: string; 
   return (
     <article className="metric">
       <span>{icon}</span>
-      <div>
-        <strong>{value}</strong>
-        <p>{label}</p>
-      </div>
+      <div><strong>{value}</strong><p>{label}</p></div>
     </article>
   );
 }
