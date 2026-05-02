@@ -1,0 +1,147 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - link "Moussawer home" [ref=e5] [cursor=pointer]:
+      - /url: /
+      - img [ref=e7]
+      - generic [ref=e10]: Moussawer
+    - navigation "Primary navigation" [ref=e11]:
+      - link "Discover" [ref=e12] [cursor=pointer]:
+        - /url: /photographers
+        - img [ref=e13]
+        - text: Discover
+      - link "Support" [ref=e16] [cursor=pointer]:
+        - /url: /support
+    - generic [ref=e17]:
+      - link "Log in" [ref=e18] [cursor=pointer]:
+        - /url: /login
+      - link "Join" [ref=e19] [cursor=pointer]:
+        - /url: /register
+  - main [ref=e20]:
+    - generic [ref=e21]:
+      - img "Professional camera on a photography set" [ref=e22]
+      - generic [ref=e23]:
+        - text: Photography booking, made accountable
+        - heading "Find a photographer. Compare portfolios. Book real availability." [level=1] [ref=e24]
+        - paragraph [ref=e25]: Moussawer connects clients with trusted photographers through verified profiles, calendar-aware booking, safe messaging, and platform support when something needs care.
+        - generic [ref=e26]:
+          - generic [ref=e27]:
+            - text: Location
+            - textbox "Location" [ref=e28]:
+              - /placeholder: Toronto, Montreal, Ottawa
+          - button "Search" [ref=e29] [cursor=pointer]:
+            - img [ref=e30]
+            - text: Search
+    - generic [ref=e33]:
+      - generic [ref=e34]:
+        - text: Core flow
+        - heading "Discovery, booking, chat, and support in one place." [level=2] [ref=e35]
+      - generic [ref=e36]:
+        - article [ref=e37]:
+          - img [ref=e39]
+          - heading "Find specialists" [level=3] [ref=e42]
+          - paragraph [ref=e43]: Filter by city, category, price, rating, and available dates.
+        - article [ref=e44]:
+          - img [ref=e46]
+          - heading "Compare portfolios" [level=3] [ref=e48]
+          - paragraph [ref=e49]: Review public work, services, packages, ratings, and pricing before booking.
+        - article [ref=e50]:
+          - img [ref=e52]
+          - heading "Book availability" [level=3] [ref=e55]
+          - paragraph [ref=e56]: Calendar rules, blocked dates, and conflicts are enforced by the API.
+        - article [ref=e57]:
+          - img [ref=e59]
+          - heading "Chat safely" [level=3] [ref=e61]
+          - paragraph [ref=e62]: Conversations can link to bookings, incidents, and disputes.
+        - article [ref=e63]:
+          - img [ref=e65]
+          - heading "Resolve issues" [level=3] [ref=e68]
+          - paragraph [ref=e69]: Incidents and disputes create a clear status trail for users and admins.
+    - generic [ref=e70]:
+      - generic [ref=e71]:
+        - generic [ref=e72]:
+          - text: Featured photographers
+          - heading "Premium profiles ready for real bookings." [level=2] [ref=e73]
+        - link "Browse all" [ref=e74] [cursor=pointer]:
+          - /url: /photographers
+          - text: Browse all
+          - img [ref=e75]
+      - generic [ref=e77]:
+        - article [ref=e78]:
+          - generic [ref=e79]:
+            - img "Amir Haddad" [ref=e80]
+            - generic [ref=e81]: Verified
+          - generic [ref=e82]:
+            - generic [ref=e83]:
+              - generic [ref=e84]:
+                - heading "Amir Haddad" [level=3] [ref=e85]
+                - paragraph [ref=e86]:
+                  - img [ref=e87]
+                  - text: Toronto, Canada
+              - generic [ref=e90]:
+                - img [ref=e91]
+                - text: "4.9"
+            - paragraph [ref=e93]: Editorial wedding and portrait photographer with a calm, cinematic style.
+            - generic [ref=e94]:
+              - generic [ref=e95]: Wedding
+              - generic [ref=e96]: Portrait
+            - generic [ref=e97]:
+              - generic [ref=e98]: From $320
+              - generic [ref=e99]:
+                - button "Save photographer" [ref=e100] [cursor=pointer]:
+                  - img [ref=e101]
+                - link "View" [ref=e103] [cursor=pointer]:
+                  - /url: /photographers/amir-haddad
+                  - img [ref=e104]
+                  - text: View
+        - article [ref=e106]:
+          - generic [ref=e107]:
+            - img "Leila Morgan" [ref=e108]
+            - generic [ref=e109]: Verified
+          - generic [ref=e110]:
+            - generic [ref=e111]:
+              - generic [ref=e112]:
+                - heading "Leila Morgan" [level=3] [ref=e113]
+                - paragraph [ref=e114]:
+                  - img [ref=e115]
+                  - text: Montreal, Canada
+              - generic [ref=e118]:
+                - img [ref=e119]
+                - text: "4.8"
+            - paragraph [ref=e121]: Fashion, commercial, and product imagery with polished studio lighting.
+            - generic [ref=e122]:
+              - generic [ref=e123]: Fashion
+              - generic [ref=e124]: Commercial
+            - generic [ref=e125]:
+              - generic [ref=e126]: From $450
+              - generic [ref=e127]:
+                - button "Save photographer" [ref=e128] [cursor=pointer]:
+                  - img [ref=e129]
+                - link "View" [ref=e131] [cursor=pointer]:
+                  - /url: /photographers/leila-morgan
+                  - img [ref=e132]
+                  - text: View
+        - article [ref=e134]:
+          - img "Jonas Reed" [ref=e136]
+          - generic [ref=e137]:
+            - generic [ref=e138]:
+              - generic [ref=e139]:
+                - heading "Jonas Reed" [level=3] [ref=e140]
+                - paragraph [ref=e141]:
+                  - img [ref=e142]
+                  - text: Ottawa, Canada
+              - generic [ref=e145]:
+                - img [ref=e146]
+                - text: "4.7"
+            - paragraph [ref=e148]: Warm documentary coverage for families, conferences, and community events.
+            - generic [ref=e149]:
+              - generic [ref=e150]: Event
+              - generic [ref=e151]: Family
+            - generic [ref=e152]:
+              - generic [ref=e153]: From $240
+              - generic [ref=e154]:
+                - button "Save photographer" [ref=e155] [cursor=pointer]:
+                  - img [ref=e156]
+                - link "View" [ref=e158] [cursor=pointer]:
+                  - /url: /photographers/jonas-reed
+                  - img [ref=e159]
+                  - text: View
