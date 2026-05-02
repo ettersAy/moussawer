@@ -1,0 +1,31 @@
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.tag,
+.status {
+  border-radius: 8px;
+  padding: 6px 9px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.tag {
+  background: var(--wash);
+  color: var(--muted);
+}
+
+.verified {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  border-radius: 8px;
+  padding: 6px 9px;
+  background: rgba(17, 24, 32, 0.82);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+}

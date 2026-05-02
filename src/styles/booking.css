@@ -1,0 +1,88 @@
+.booking-panel {
+  position: sticky;
+  top: 86px;
+  display: grid;
+  gap: 13px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  padding: 18px;
+  box-shadow: var(--shadow);
+}
+
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.slot {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  min-height: 38px;
+  cursor: pointer;
+}
+
+.slot.selected {
+  color: #fff;
+  border-color: var(--charcoal);
+  background: var(--charcoal);
+}
+
+.slot:disabled {
+  color: #9ca5ad;
+  background: #edf1f4;
+  cursor: not-allowed;
+}
+
+.mini-note {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.auth-page,
+.support-layout {
+  min-height: calc(100vh - 64px);
+  display: grid;
+  place-items: center;
+}
+
+.auth-card {
+  width: min(430px, calc(100% - 32px));
+  display: grid;
+  gap: 14px;
+}
+
+.auth-card.wide {
+  width: min(540px, calc(100% - 32px));
+}
+
+.case-form {
+  display: grid;
+  gap: 13px;
+}
+
+.case-form h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 22px;
+}
+
+.service-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.day-rule-row {
+  display: grid;
+  grid-template-columns: 90px 1fr 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.day-rule-row select {
+  min-height: 38px;
+}
