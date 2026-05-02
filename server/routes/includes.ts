@@ -2,7 +2,12 @@ import type { Prisma } from "@prisma/client";
 
 export const userInclude = {
   clientProfile: true,
-  photographerProfile: { select: { id: true, slug: true } }
+  photographerProfile: {
+    select: {
+      id: true, slug: true, verified: true, isPublished: true,
+      city: true, country: true, startingPrice: true, rating: true
+    }
+  }
 } satisfies Prisma.UserInclude;
 
 export const bookingInclude = {
