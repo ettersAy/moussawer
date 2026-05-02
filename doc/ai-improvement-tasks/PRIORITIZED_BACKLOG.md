@@ -167,7 +167,7 @@
 |---|---------------|--------|-------------|
 | 1 | **MCP settings file location** | `backlog/mcp-settings-location-documentation.md` | Document that real MCP config is at `~/.config/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json` — not project-root copies |
 | 2 | **Playwright-React compatibility patterns** | `backlog/playwright-react-compatibility.md` | When `fill()`/`click()` fail on React controlled components → use `page.evaluate()` with native events. Prefer `waitUntil: "load"` over `"networkidle"` for SPAs |
-| 3 | **Wrapper scripts convention** | `backlog/wrapper-scripts-documentation.md` | List all wrapper script locations in `~/.local/bin/` used by MCP servers |
+| 3 | **Wrapper scripts convention** ~~`backlog/wrapper-scripts-documentation.md`~~ ✅ **DONE** (PR #70) | `done/wrapper-scripts-documentation.md` | List all wrapper script locations in `~/.local/bin/` used by MCP servers |
 | 4 | **ESLint v10 & workflow lessons** | Note `f5582116` | ESLint v10 requires flat config; `editor` tool corrupts indentation → run `prettier --write` after; prefer `git stash → pull --rebase → stash pop`; Prettier removes `eslint-disable` comments |
 
 **Why grouped:** All are "add to `.clinerules`" documentation tasks. An agent can batch-edit `.clinerules` once with all these lessons, rather than making 4 separate passes.
