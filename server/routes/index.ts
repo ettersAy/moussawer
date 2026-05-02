@@ -525,6 +525,20 @@ apiRouter.patch(
   })
 );
 
+apiRouter.delete(
+  "/me/services/:id",
+  requireAuth,
+  requireRole(Role.PHOTOGRAPHER),
+  asyncHandler(async (req, res) => {
+    const photographer = await requirePhotographerProfile(req.user!.id);
+    const service = await prisma.photographerService.findFirst({ where: { id: req.params.id, photographerId: photographer.id } });
+    if (!service) throw new AppError(404, "NOT_FOUND", "Service not found");
+    await prisma.photographerService.delete({ where: { id: service.id } });
+    await audit(req.user!.id, "service.delete", "PhotographerService", service.id);
+    noContent(res);
+  })
+);
+
 apiRouter.get(
   "/me/availability",
   requireAuth,
@@ -1424,6 +1438,62 @@ apiRouter.post(
       }
     });
     created(res, category);
+  })
+);
+
+apiRouter.get(
+  "/admin/bookings",
+  requireAuth,
+  requireRole(Role.ADMIN),
+  asyncHandler(async (req, res) => {
+    const status = typeof req.query.status === "string" ? req.query.status : undefined;
+    const where: Prisma.BookingWhereInput = status ? { status: status as BookingStatus } : {};
+    const bookings = await prisma.booking.findMany({
+      where,
+      include: bookingInclude,
+      orderBy: { createdAt: "desc" },
+      take: 100
+    });
+    ok(res, bookings.map(bookingResource));
+  })
+);
+
+apiRouter.get(
+  "/admin/categories",
+  requireAuth,
+  requireRole(Role.ADMIN),
+  asyncHandler(async (_req, res) => {
+    const categories = await prisma.category.findMany({
+      orderBy: { name: "asc" },
+      include: { _count: { select: { photographers: true, services: true, portfolio: true } } }
+    });
+    ok(res, categories.map((c) => ({ id: c.id, name: c.name, slug: c.slug, _count: c._count })));
+  })
+);
+
+apiRouter.patch(
+  "/admin/categories/:id",
+  requireAuth,
+  requireRole(Role.ADMIN),
+  asyncHandler(async (req, res) => {
+    const body = validate(z.object({ name: z.string().min(2) }), req.body);
+    const category = await prisma.category.update({
+      where: { id: req.params.id },
+      data: { name: body.name, slug: slugify(body.name) }
+    });
+    ok(res, category);
+  })
+);
+
+apiRouter.delete(
+  "/admin/categories/:id",
+  requireAuth,
+  requireRole(Role.ADMIN),
+  asyncHandler(async (req, res) => {
+    const refs = await prisma.photographerCategory.count({ where: { categoryId: req.params.id } });
+    if (refs > 0) throw new AppError(409, "HAS_REFERENCES", "Cannot delete a category assigned to photographers");
+    await prisma.category.delete({ where: { id: req.params.id } });
+    noContent(res);
   })
 );
 

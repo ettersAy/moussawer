@@ -36,6 +36,12 @@ export function Layout() {
                 <ShieldCheck size={16} />
                 Cases
               </NavLink>
+              {user.role === "PHOTOGRAPHER" && (
+                <NavLink to="/photographer">
+                  <Camera size={16} />
+                  Workspace
+                </NavLink>
+              )}
               {user.role === "ADMIN" && (
                 <NavLink to="/admin">
                   <Shield size={16} />

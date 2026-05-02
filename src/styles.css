@@ -1063,3 +1063,232 @@ h3 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* ─── Toast notifications ────────────────── */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 100;
+  display: grid;
+  gap: 8px;
+  max-width: 400px;
+}
+
+.toast {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  box-shadow: 0 8px 32px rgba(18, 31, 45, 0.14);
+  animation: toastIn 0.25s ease;
+  font-size: 0.92rem;
+}
+
+.toast-success { border-color: var(--green); color: var(--green); background: var(--green-soft); }
+.toast-error   { border-color: var(--red); color: var(--red); background: var(--red-soft); }
+.toast-warning { border-color: var(--amber); color: var(--amber); background: var(--amber-soft); }
+.toast-info    { border-color: var(--blue); color: var(--blue); background: var(--blue-soft); }
+
+.toast-icon {
+  display: grid;
+  place-items: center;
+}
+
+.toast-message {
+  line-height: 1.4;
+}
+
+.toast-close {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.55;
+}
+
+.toast-close:hover { opacity: 1; }
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Modal / Confirm Dialog ─────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  background: rgba(10, 14, 20, 0.52);
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.15s ease;
+}
+
+.modal-card {
+  width: min(440px, calc(100% - 32px));
+  padding: 28px;
+  border-radius: 12px;
+  background: var(--paper);
+  box-shadow: 0 24px 64px rgba(10, 14, 20, 0.24);
+  display: grid;
+  gap: 16px;
+}
+
+.modal-card h2 { font-size: 1.25rem; margin: 0; }
+.modal-card p  { color: var(--muted); margin: 0; line-height: 1.5; }
+
+.modal-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--amber-soft);
+  color: var(--amber);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+/* ─── Inline form row pattern ───────────── */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* ─── Section tabs (for role dashboards) ── */
+.section-tabs {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 5px;
+  box-shadow: var(--shadow);
+}
+
+.section-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.section-tab:hover { background: var(--wash); color: var(--ink); }
+.section-tab.active { background: var(--charcoal); color: #fff; }
+
+/* ─── Danger button variant ─────────────── */
+.solid-button.danger {
+  background: var(--red);
+  border-color: var(--red);
+}
+
+/* ─── Availability day row ──────────────── */
+.day-rule-row {
+  display: grid;
+  grid-template-columns: 90px 1fr 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.day-rule-row select {
+  min-height: 38px;
+}
+
+/* ─── Portfolio manager grid ────────────── */
+.portfolio-manager-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.portfolio-manager-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  overflow: hidden;
+}
+
+.portfolio-manager-card img {
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  background: #d7dee4;
+}
+
+.portfolio-manager-card .card-body {
+  padding: 12px;
+}
+
+.portfolio-manager-card h3 {
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+/* ─── Booking timeline ──────────────────── */
+.booking-timeline {
+  display: grid;
+  gap: 4px;
+  margin: 12px 0;
+}
+
+.booking-timeline-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.booking-timeline-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--line);
+}
+
+.booking-timeline-dot.active {
+  background: var(--green);
+}
+
+/* ─── Responsive additions ──────────────── */
+@media (max-width: 680px) {
+  .toast-container {
+    left: 16px;
+    right: 16px;
+    max-width: none;
+  }
+
+  .portfolio-manager-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-card {
+    padding: 20px;
+  }
+}
