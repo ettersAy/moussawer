@@ -59,9 +59,44 @@ router.get(
   "/admin/users",
   requireAuth,
   requireRole(Role.ADMIN),
-  asyncHandler(async (_req, res) => {
-    const users = await prisma.user.findMany({ include: userInclude, orderBy: { createdAt: "desc" } });
-    ok(res, users.map(userResource));
+  asyncHandler(async (req, res) => {
+    const search = typeof req.query.search === "string" ? req.query.search : undefined;
+    const role = typeof req.query.role === "string" && Object.values(Role).includes(req.query.role as Role) ? req.query.role as Role : undefined;
+    const status = typeof req.query.status === "string" && Object.values(AccountStatus).includes(req.query.status as AccountStatus) ? req.query.status as AccountStatus : undefined;
+
+    const page = Math.max(Number(req.query.page ?? 1), 1);
+    const limit = Math.min(Math.max(Number(req.query.limit ?? 25), 1), 100);
+    const skip = (page - 1) * limit;
+
+    const sortBy = typeof req.query.sortBy === "string" ? req.query.sortBy : "createdAt";
+    const sortOrder = typeof req.query.sortOrder === "string" && req.query.sortOrder.toLowerCase() === "asc" ? "asc" as const : "desc" as const;
+
+    const allowedSortFields = ["name", "email", "role", "status", "createdAt", "updatedAt"];
+    const orderField = allowedSortFields.includes(sortBy) ? sortBy : "createdAt";
+
+    const where: Prisma.UserWhereInput = {};
+    if (search) {
+      where.OR = [
+        { name: { contains: search } },
+        { email: { contains: search } }
+      ];
+    }
+    if (role) where.role = role;
+    if (status) where.status = status;
+
+    const [total, users] = await Promise.all([
+      prisma.user.count({ where }),
+      prisma.user.findMany({
+        where,
+        include: userInclude,
+        orderBy: { [orderField]: sortOrder },
+        skip,
+        take: limit
+      })
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+    ok(res, users.map(userResource), { page, limit, total, totalPages });
   })
 );
 
@@ -73,13 +108,45 @@ router.patch(
     const body = validate(
       z.object({
         status: z.nativeEnum(AccountStatus).optional(),
-        role: z.nativeEnum(Role).optional()
+        role: z.nativeEnum(Role).optional(),
+        verified: z.boolean().optional()
       }),
       req.body
     );
-    const user = await prisma.user.update({ where: { id: req.params.id }, data: body, include: userInclude });
-    await audit(req.user!.id, "admin.user_update", "User", user.id, body);
+
+    const { verified, ...userData } = body;
+
+    if (verified !== undefined) {
+      const pp = await prisma.photographerProfile.findUnique({ where: { userId: req.params.id } });
+      if (pp) {
+        await prisma.photographerProfile.update({
+          where: { userId: req.params.id },
+          data: { verified }
+        });
+      }
+    }
+
+    const user = await prisma.user.update({ where: { id: req.params.id }, data: userData, include: userInclude });
+    await audit(req.user!.id, "admin.user_update", "User", user.id, { ...body });
     ok(res, userResource(user));
+  })
+);
+
+router.delete(
+  "/admin/users/:id",
+  requireAuth,
+  requireRole(Role.ADMIN),
+  asyncHandler(async (req, res) => {
+    const targetUser = await prisma.user.findUnique({ where: { id: req.params.id } });
+    if (!targetUser) throw new AppError(404, "NOT_FOUND", "User not found");
+    if (targetUser.role === Role.ADMIN) {
+      const adminCount = await prisma.user.count({ where: { role: Role.ADMIN } });
+      if (adminCount <= 1) throw new AppError(409, "LAST_ADMIN", "Cannot delete the last admin account");
+    }
+
+    await prisma.user.delete({ where: { id: req.params.id } });
+    await audit(req.user!.id, "admin.user_delete", "User", targetUser.id, { name: targetUser.name, email: targetUser.email });
+    noContent(res);
   })
 );
 

@@ -4,7 +4,7 @@ import {
 import { useEffect, useState } from "react";
 import { useToast } from "../components/shared/Toast";
 import { useAuth } from "../contexts/AuthContext";
-import { api, type Booking, type CaseItem, type PortfolioItem, type User } from "../lib/api";
+import { api, type Booking, type CaseItem, type PortfolioItem } from "../lib/api";
 import { ActivityTab } from "./admin/ActivityTab";
 import { BookingsTab } from "./admin/BookingsTab";
 import { CategoriesTab } from "./admin/CategoriesTab";
@@ -29,7 +29,6 @@ export function AdminPage() {
   const toast = useToast();
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [stats, setStats] = useState<AdminStats | null>(null);
-  const [users, setUsers] = useState<User[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [allIncidents, setAllIncidents] = useState<CaseItem[]>([]);
   const [allDisputes, setAllDisputes] = useState<CaseItem[]>([]);
@@ -43,13 +42,10 @@ export function AdminPage() {
     action: string; entity: string; entityId: string; metadata: Record<string, unknown>; createdAt: string;
   };
 
-  useEffect(() => { loadStats(); loadUsers(); loadIncidents(); loadDisputes(); loadActivity(); }, []);
+  useEffect(() => { loadStats(); loadIncidents(); loadDisputes(); loadActivity(); }, []);
 
   async function loadStats() {
     try { const r = await api<AdminStats>("/admin/stats"); setStats(r.data); } catch { /* admin only */ }
-  }
-  async function loadUsers() {
-    try { const r = await api<User[]>("/admin/users"); setUsers(r.data); } catch { /* admin only */ }
   }
   async function loadBookings() {
     const qs = bookingFilter ? `?status=${bookingFilter}` : "";
@@ -69,12 +65,6 @@ export function AdminPage() {
   }
   async function loadActivity() {
     try { const r = await api<ActivityLog[]>("/admin/activity"); setLogs(r.data); } catch { /* admin only */ }
-  }
-
-  async function updateUserStatus(targetUser: User, status: string) {
-    await api(`/admin/users/${targetUser.id}`, { method: "PATCH", body: { status } });
-    toast.success(`User ${status.toLowerCase()}.`);
-    loadUsers();
   }
 
   async function updateIncident(incident: CaseItem, status: string) {
@@ -164,7 +154,7 @@ export function AdminPage() {
       </nav>
 
       {activeTab === "overview" && <OverviewTab stats={stats} />}
-      {activeTab === "users" && <UsersTab users={users} onUpdateStatus={updateUserStatus} />}
+      {activeTab === "users" && <UsersTab />}
       {activeTab === "bookings" && (
         <BookingsTab
           bookings={bookings}
