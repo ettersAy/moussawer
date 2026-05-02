@@ -1,12 +1,13 @@
 import {
   ArrowDown, ArrowUp, ArrowUpDown, BadgeCheck, ChevronLeft, ChevronRight,
-  Search, Trash2, UserCheck, UserX, X
+  Pencil, Plus, Search, Trash2, UserCheck, UserX, X
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { StatusBadge } from "../../components/StatusBadge";
 import { ConfirmDialog } from "../../components/shared/ConfirmDialog";
 import { useToast } from "../../components/shared/Toast";
 import { api, shortDate, type User } from "../../lib/api";
+import { UserFormModal } from "./UserFormModal";
 
 type SortField = "name" | "email" | "role" | "status" | "createdAt";
 type SortDir = "asc" | "desc";
@@ -54,6 +55,9 @@ export function UsersTab() {
 
   // Expandable rows
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  // User form modal (undefined = closed, null = create mode, User = edit mode)
+  const [formUser, setFormUser] = useState<User | undefined | null>(undefined);
 
   // Confirm dialogs
   const [confirmDelete, setConfirmDelete] = useState<User | null>(null);
@@ -266,6 +270,9 @@ export function UsersTab() {
           <select value={String(meta.limit)} onChange={(e) => setMeta((m) => ({ ...m, limit: Number(e.target.value), page: 1 }))} className="filter-select page-size-select">
             {PAGE_SIZES.map((s) => <option key={s} value={s}>{s} per page</option>)}
           </select>
+          <button className="solid-button compact" onClick={() => setFormUser(null)}>
+            <Plus size={14} /> Create User
+          </button>
         </div>
 
         {/* Bulk action bar */}
@@ -329,6 +336,7 @@ export function UsersTab() {
                     onRoleChange={(role) => setConfirmRole({ user, role })}
                     onToggleVerified={toggleVerified}
                     onDelete={() => setConfirmDelete(user)}
+                    onEdit={() => setFormUser(user)}
                   />
                 ))}
               </tbody>
@@ -412,13 +420,21 @@ export function UsersTab() {
         onConfirm={() => confirmBulk && executeBulk(confirmBulk.action, confirmBulk.ids)}
         onCancel={() => setConfirmBulk(null)}
       />
+
+      {/* Create / Edit user modal */}
+      <UserFormModal
+        open={formUser !== undefined}
+        user={formUser ?? null}
+        onClose={() => setFormUser(undefined)}
+        onSaved={() => { loadUsers(); toast.success(formUser === null ? "User created." : "User updated."); }}
+      />
     </div>
   );
 }
 
 function UserRow({
   user, isSelected, isExpanded, onToggleSelect, onToggleExpand,
-  actionButtons, onRoleChange, onToggleVerified, onDelete
+  actionButtons, onRoleChange, onToggleVerified, onDelete, onEdit
 }: {
   user: User;
   isSelected: boolean;
@@ -429,6 +445,7 @@ function UserRow({
   onRoleChange: (role: string) => void;
   onToggleVerified: (user: User) => void;
   onDelete: () => void;
+  onEdit: () => void;
 }) {
   const isPhotographer = user.role === "PHOTOGRAPHER";
   const pp = user.photographerProfile;
@@ -473,6 +490,9 @@ function UserRow({
                 <BadgeCheck size={14} className={pp?.verified ? "verified-icon" : "unverified-icon"} />
               </button>
             )}
+            <button className="ghost-button compact" onClick={onEdit} title="Edit user">
+              <Pencil size={14} />
+            </button>
             {actionButtons.map((btn, i) => (
               <button
                 key={i}

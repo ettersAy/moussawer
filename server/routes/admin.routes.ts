@@ -1,4 +1,5 @@
 import { Router } from "express";
+import bcrypt from "bcryptjs";
 import {
   AccountStatus, BookingStatus, DisputeStatus, IncidentStatus, Role
 } from "@prisma/client";
@@ -9,7 +10,7 @@ import { requireAuth, requireRole } from "../middleware/auth";
 import { audit } from "../services/notifications";
 import { bookingResource, userResource } from "../services/resources";
 import { AppError, asyncHandler, created, noContent, ok, validate } from "../utils/http";
-import { slugify } from "./helpers";
+import { slugify, uniqueSlug } from "./helpers";
 import { bookingInclude, userInclude } from "./includes";
 
 export const router = Router();
@@ -100,6 +101,74 @@ router.get(
   })
 );
 
+router.post(
+  "/admin/users",
+  requireAuth,
+  requireRole(Role.ADMIN),
+  asyncHandler(async (req, res) => {
+    const body = validate(
+      z.object({
+        name: z.string().min(2),
+        email: z.string().email(),
+        password: z.string().min(6),
+        role: z.nativeEnum(Role),
+        avatarUrl: z.string().url().optional().nullable(),
+        // Client profile fields
+        location: z.string().optional().nullable(),
+        bio: z.string().optional().nullable(),
+        phone: z.string().optional().nullable(),
+        // Photographer profile fields
+        city: z.string().optional(),
+        startingPrice: z.number().int().positive().optional()
+      }),
+      req.body
+    );
+
+    const email = body.email.toLowerCase();
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing) throw new AppError(409, "EMAIL_EXISTS", "An account with this email already exists");
+
+    const passwordHash = await bcrypt.hash(body.password, 12);
+
+    const user = await prisma.user.create({
+      data: {
+        email,
+        passwordHash,
+        name: body.name,
+        role: body.role,
+        avatarUrl: body.avatarUrl ?? undefined,
+        clientProfile:
+          body.role === Role.CLIENT
+            ? {
+                create: {
+                  location: body.location ?? undefined,
+                  bio: body.bio ?? undefined,
+                  phone: body.phone ?? undefined
+                }
+              }
+            : undefined,
+        photographerProfile:
+          body.role === Role.PHOTOGRAPHER
+            ? {
+                create: {
+                  slug: await uniqueSlug(body.name),
+                  bio: body.bio ?? "Available for curated photography sessions.",
+                  city: body.city ?? "Toronto",
+                  startingPrice: body.startingPrice ?? 250
+                }
+              }
+            : undefined
+      },
+      include: userInclude
+    });
+
+    await audit(req.user!.id, "admin.user_create", "User", user.id, {
+      name: body.name, email: body.email, role: body.role
+    });
+    created(res, userResource(user));
+  })
+);
+
 router.patch(
   "/admin/users/:id",
   requireAuth,
@@ -107,26 +176,88 @@ router.patch(
   asyncHandler(async (req, res) => {
     const body = validate(
       z.object({
+        name: z.string().min(2).optional(),
+        email: z.string().email().optional(),
+        avatarUrl: z.string().url().optional().nullable(),
         status: z.nativeEnum(AccountStatus).optional(),
         role: z.nativeEnum(Role).optional(),
-        verified: z.boolean().optional()
+        verified: z.boolean().optional(),
+        // Client profile fields
+        location: z.string().optional().nullable(),
+        bio: z.string().optional().nullable(),
+        phone: z.string().optional().nullable(),
+        // Photographer profile fields
+        city: z.string().optional(),
+        country: z.string().optional(),
+        startingPrice: z.number().int().positive().optional(),
+        isPublished: z.boolean().optional(),
+        slug: z.string().optional()
       }),
       req.body
     );
 
-    const { verified, ...userData } = body;
+    const {
+      verified, location, bio, phone,
+      city, country, startingPrice, isPublished, slug,
+      ...userData
+    } = body;
 
-    if (verified !== undefined) {
+    // Handle photographer profile updates
+    const ppFields: Record<string, unknown> = {};
+    if (verified !== undefined) ppFields.verified = verified;
+    if (city !== undefined) ppFields.city = city;
+    if (country !== undefined) ppFields.country = country;
+    if (startingPrice !== undefined) ppFields.startingPrice = startingPrice;
+    if (isPublished !== undefined) ppFields.isPublished = isPublished;
+    if (slug !== undefined) ppFields.slug = slug;
+    if (bio !== undefined) ppFields.bio = bio;
+
+    if (Object.keys(ppFields).length > 0) {
       const pp = await prisma.photographerProfile.findUnique({ where: { userId: req.params.id } });
       if (pp) {
         await prisma.photographerProfile.update({
           where: { userId: req.params.id },
-          data: { verified }
+          data: ppFields
         });
       }
     }
 
-    const user = await prisma.user.update({ where: { id: req.params.id }, data: userData, include: userInclude });
+    // Handle client profile updates
+    const cpFields: Record<string, unknown> = {};
+    if (location !== undefined) cpFields.location = location;
+    if (bio !== undefined) cpFields.bio = bio;
+    if (phone !== undefined) cpFields.phone = phone;
+
+    if (Object.keys(cpFields).length > 0) {
+      const cp = await prisma.clientProfile.findUnique({ where: { userId: req.params.id } });
+      if (cp) {
+        await prisma.clientProfile.update({
+          where: { userId: req.params.id },
+          data: cpFields
+        });
+      } else if (body.role === Role.CLIENT || !body.role) {
+        // Create client profile if it doesn't exist and user is/is becoming a client
+        await prisma.clientProfile.create({
+          data: { userId: req.params.id, ...cpFields } as any
+        });
+      }
+    }
+
+    // Handle email uniqueness check
+    if (userData.email) {
+      userData.email = userData.email.toLowerCase();
+      const existing = await prisma.user.findFirst({
+        where: { email: userData.email, id: { not: req.params.id } }
+      });
+      if (existing) throw new AppError(409, "EMAIL_EXISTS", "Email already in use by another user");
+    }
+
+    const updateData = Object.keys(userData).length > 0 ? userData : {};
+    const user = await prisma.user.update({
+      where: { id: req.params.id },
+      data: updateData,
+      include: userInclude
+    });
     await audit(req.user!.id, "admin.user_update", "User", user.id, { ...body });
     ok(res, userResource(user));
   })
