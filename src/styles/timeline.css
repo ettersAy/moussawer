@@ -1,0 +1,24 @@
+.booking-timeline {
+  display: grid;
+  gap: 4px;
+  margin: 12px 0;
+}
+
+.booking-timeline-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.booking-timeline-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--line);
+}
+
+.booking-timeline-dot.active {
+  background: var(--green);
+}

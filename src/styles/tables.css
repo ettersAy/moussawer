@@ -1,0 +1,70 @@
+.table-list,
+.service-manager {
+  display: grid;
+  gap: 10px;
+}
+
+.table-row,
+.soft-row {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  background: #fbfcfd;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+}
+
+.soft-row p,
+.table-row p {
+  margin-bottom: 0;
+}
+
+.content-stack,
+.list-stack {
+  display: grid;
+  gap: 16px;
+}
+
+.dashboard .split-heading {
+  margin-bottom: 20px;
+}
+
+.support-layout {
+  grid-template-columns: minmax(260px, 0.9fr) minmax(320px, 520px);
+  gap: 42px;
+  place-items: center;
+}
+
+.support-form {
+  width: 100%;
+  display: grid;
+  gap: 13px;
+}
+
+.tone-warning {
+  color: var(--amber);
+  background: var(--amber-soft);
+}
+
+.tone-good {
+  color: var(--green);
+  background: var(--green-soft);
+}
+
+.tone-danger {
+  color: var(--red);
+  background: var(--red-soft);
+}
+
+.tone-info {
+  color: var(--blue);
+  background: var(--blue-soft);
+}
+
+.tone-neutral {
+  color: var(--muted);
+  background: var(--wash);
+}

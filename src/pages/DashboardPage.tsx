@@ -7,6 +7,7 @@ import { StatusBadge } from "../components/StatusBadge";
 import { useToast } from "../components/shared/Toast";
 import { useAuth } from "../contexts/AuthContext";
 import { api, money, shortDate, type Booking, type Photographer } from "../lib/api";
+import { Metric } from "./admin/Metric";
 
 export function DashboardPage() {
   const { user } = useAuth();
@@ -187,11 +188,4 @@ export function DashboardPage() {
   );
 }
 
-function Metric({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
-  return (
-    <article className="metric">
-      <span>{icon}</span>
-      <div><strong>{value}</strong><p>{label}</p></div>
-    </article>
-  );
-}
+

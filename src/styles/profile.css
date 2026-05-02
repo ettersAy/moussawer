@@ -1,0 +1,53 @@
+.profile-hero {
+  position: relative;
+  min-height: 520px;
+  display: grid;
+  align-items: end;
+  color: #fff;
+  background: var(--charcoal);
+  overflow: hidden;
+}
+
+.profile-hero img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.7;
+}
+
+.profile-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(17, 24, 32, 0.18), rgba(17, 24, 32, 0.9));
+}
+
+.profile-hero-content {
+  position: relative;
+  z-index: 1;
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding-bottom: 54px;
+}
+
+.profile-hero-content p {
+  max-width: 720px;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 18px;
+}
+
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.hero-meta span {
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.12);
+}

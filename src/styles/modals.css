@@ -1,0 +1,45 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  background: rgba(10, 14, 20, 0.52);
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.15s ease;
+}
+
+.modal-card {
+  width: min(440px, calc(100% - 32px));
+  padding: 28px;
+  border-radius: 12px;
+  background: var(--paper);
+  box-shadow: 0 24px 64px rgba(10, 14, 20, 0.24);
+  display: grid;
+  gap: 16px;
+}
+
+.modal-card h2 { font-size: 1.25rem; margin: 0; }
+.modal-card p  { color: var(--muted); margin: 0; line-height: 1.5; }
+
+.modal-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--amber-soft);
+  color: var(--amber);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

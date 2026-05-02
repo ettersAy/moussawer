@@ -1,0 +1,105 @@
+@media (max-width: 980px) {
+  .site-header {
+    grid-template-columns: 1fr auto;
+  }
+
+  .site-nav {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+
+  .section-grid,
+  .two-column,
+  .support-layout,
+  .messages-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .section-heading,
+  .booking-panel {
+    position: static;
+  }
+
+  .card-grid,
+  .metrics-grid,
+  .dashboard-grid,
+  .case-grid,
+  .portfolio-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .filter-bar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .site-header {
+    padding: 12px 14px;
+  }
+
+  .brand span:last-child {
+    display: none;
+  }
+
+  .header-actions .ghost-button {
+    padding: 0 10px;
+  }
+
+  .hero {
+    min-height: 760px;
+  }
+
+  .hero-content {
+    padding-bottom: 38px;
+  }
+
+  .search-band,
+  .filter-bar,
+  .card-grid,
+  .feature-grid,
+  .metrics-grid,
+  .dashboard-grid,
+  .case-grid,
+  .portfolio-grid,
+  .inline-form,
+  .table-row,
+  .message-form {
+    grid-template-columns: 1fr;
+  }
+
+  .split-heading,
+  .service-row,
+  .card-title-row,
+  .card-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .profile-hero {
+    min-height: 620px;
+  }
+
+  .slot-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .bubble {
+    max-width: 94%;
+  }
+
+  .toast-container {
+    left: 16px;
+    right: 16px;
+    max-width: none;
+  }
+
+  .portfolio-manager-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-card {
+    padding: 20px;
+  }
+}
