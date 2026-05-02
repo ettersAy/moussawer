@@ -46,6 +46,22 @@ After completing the mission, always provide:
 
 ## Available Utility Scripts
 
+**IMPORTANT: Read `doc/dev-scripts.md` for full documentation on all scripts.**
+
+### `scripts/dev-server.sh`
+Starts the API server reliably. Use this instead of manual background process commands.
+```bash
+./scripts/dev-server.sh
+```
+**Why:** The `run_commands` tool times out on background processes. This script handles it correctly.
+
+### `scripts/check-quality.sh`
+Runs lint + type check + build in one command. Use before committing.
+```bash
+./scripts/check-quality.sh
+```
+**Why:** Catches lint errors and type errors early instead of at commit time.
+
 ### `scripts/kill-playwright-mcp.sh`
 Kills all stale Playwright MCP processes that persist after a Cline restart.
 Run immediately after restarting Cline to get a clean slate:
@@ -380,3 +396,14 @@ Before troubleshooting, run `./scripts/kill-playwright-mcp.sh` to kill any stale
 - No more shell command failures due to local git state
 - AI agent complexity reduced from 5+ commands to 1 tool call
 - Works regardless of local clone state or worktree setup
+
+### 2026-05-02 — Core Features Implementation + Self-Audit
+
+**Delivered:** PhotographerDashboard (5 tabs), admin bookings/moderation tabs, enhanced categories CRUD, client dashboard with reviews/favorites, toast system, ConfirmDialog. New API endpoints: DELETE /me/services/:id, GET /admin/bookings, GET/PATCH/DELETE /admin/categories.
+
+**Critical failures and new mandatory rules:**
+1. Dev server: NEVER chain `&` with `&&`/`;`. Use `scripts/dev-server.sh` instead.
+2. Lint: Run `npx eslint file.tsx` after EVERY file edit. Run `npm run build` before declaring done.
+3. Context: Read `Mission.md` FIRST. Don't re-read files that haven't changed.
+4. Editor: Use `filesystem__write_file` for rewrites >30% of a file.
+5. git-automate: `files` param is REQUIRED and must be a non-empty array.
