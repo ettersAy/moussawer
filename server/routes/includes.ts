@@ -1,3 +1,21 @@
+/**
+ * Prisma `include` objects used by route handlers to fetch related data.
+ *
+ * DEPENDENCY CHAIN: Route → Include (this file) → Resource Serializer (server/services/resources.ts)
+ *
+ * When adding a field to a resource serializer (e.g. in `resources.ts`), you MUST:
+ * 1. Add the relation/field to the corresponding include object here
+ * 2. Expand the resource function's return object in `resources.ts`
+ * 3. If the input type changes, update all callers (run `./scripts/audit-resource-callers.sh`)
+ *
+ * Each include is paired with a resource function exported from `server/services/resources.ts`.
+ *
+ * | Include | Resource function | Used by routes |
+ * |---------|-------------------|----------------|
+ * | userInclude | userResource | admin, helpers |
+ * | bookingInclude | bookingResource | admin, bookings, helpers, reviews |
+ * | photographerInclude | photographerResource | discovery, favorites, photographer, helpers |
+ */
 import type { Prisma } from "@prisma/client";
 
 export const userInclude = {

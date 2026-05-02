@@ -1,3 +1,36 @@
+/**
+ * RESOURCE SERIALIZERS — Layer 2 of the Route → Include → Resource chain.
+ *
+ * DEPENDENCY CHAIN:
+ *   Route Handler (server/routes/*.ts)
+ *     └─ queries via Prisma include from server/routes/includes.ts
+ *          └─ serializes result using a resource function from this file
+ *
+ * Each resource function:
+ * - Takes a Prisma model instance (with relations matching the corresponding include)
+ * - Returns a plain JSON-safe object (no Date, Decimal, or circular refs)
+ * - Uses ?? fallbacks for optional fields
+ *
+ * CRITICAL: If you expand a resource function's return object, you MUST also:
+ * 1. Update the corresponding include in server/routes/includes.ts to fetch the new field/relation
+ * 2. Update the input type annotation in this function
+ * 3. Update all callers — run `./scripts/audit-resource-callers.sh` to find them
+ *
+ * | Resource function | Corresponding include | Used by routes |
+ * |-------------------|----------------------|----------------|
+ * | userResource | userInclude | admin, auth |
+ * | serviceResource | (none, inline includes) | photographer |
+ * | portfolioResource | (none, inline includes) | portfolio |
+ * | photographerResource | photographerInclude | discovery, favorites, photographer |
+ * | bookingResource | bookingInclude | admin, bookings |
+ * | messageResource | (none, inline includes) | messaging |
+ * | conversationResource | (none, inline includes) | messaging |
+ * | incidentResource | (none, inline includes) | cases |
+ * | disputeResource | (none, inline includes) | cases |
+ * | reviewResource | (none, inline includes) | discovery, reviews |
+ * | notificationResource | (none) | notifications |
+ * | blockResource | (none) | photographer |
+ */
 import type {
   Booking,
   CalendarBlock,
