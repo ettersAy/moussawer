@@ -69,7 +69,104 @@ Run immediately after restarting Cline to get a clean slate:
 ./scripts/kill-playwright-mcp.sh
 ```
 Before this script: manual `ps aux | grep playwright` + kill each PID (~2 min).
+
+### `scripts/audit-resource-callers.sh`
+Grep-based audit of all callers of `server/services/resources.ts` functions. Run before modifying any resource serializer's parameter type:
+```bash
+./scripts/audit-resource-callers.sh
+```
+**Why:** Changing a resource function's type signature silently breaks callers. This script surfaces all affected files immediately so you can update includes/routes in the same edit session.
+
 ---
+
+## Server HTTP Utilities (`server/utils/http.ts`)
+
+**Always reuse these utilities instead of writing raw `res.json(...)` or inline validation.** Every route handler in `server/routes/` imports from this module.
+
+### Response Helpers
+
+| Function | Signature | Purpose |
+|---|---|---|
+| `ok` | `(res, data, meta?, status=200)` | Send success with optional `meta` envelope |
+| `created` | `(res, data, meta?)` | 201 response (calls `ok` with status 201) |
+| `noContent` | `(res)` | 204 response, no body |
+
+### API Response Envelope Convention
+
+**Success (single item):** `{ "data": { ... } }`
+**Success (paginated):** `{ "data": [...], "meta": { "page", "limit", "total", "totalPages" } }`
+**Error:** `{ "error": { "code", "message", "details?": {} } }`
+
+Do NOT return arrays directly without `{ data: [...] }` wrapping.
+
+### Validation
+
+`validate<T>(schema: ZodSchema<T>, input: unknown): T` — Parses input against Zod schema. Throws `AppError(422, "VALIDATION_ERROR", ...)` with flattened errors on failure.
+
+### Pagination
+
+`pagination(query: Request["query"])` — Extracts `?page` and `?limit`. Defaults: page=1, limit=12, max limit=50. Returns `{ page, limit, skip }`.
+
+### Error Handling
+
+- `AppError(status, code, message, details?)` — throw anywhere in `asyncHandler`-wrapped routes
+- `errorHandler` — Express error middleware, serializes AppError to error envelope
+- `asyncHandler(fn)` — wraps async route handlers to forward errors to errorHandler
+
+**All routes MUST wrap handlers with `asyncHandler`**
+
+---
+
+## Resource/Include Architecture
+
+**Three-layer dependency chain:**
+```
+Route Handler (server/routes/*.ts)
+  └─ queries via Prisma using include from server/routes/includes.ts
+       └─ serializes result using resource function from server/services/resources.ts
+```
+
+### Layer 1: Includes (`server/routes/includes.ts`)
+
+Prisma `include` objects that control which relations are fetched.
+
+| Export | Used by |
+|---|---|
+| `userInclude` | `admin.routes`, `helpers.ts` (currentUser) |
+| `bookingInclude` | `admin.routes`, `bookings.routes`, `helpers.ts`, `reviews.routes` |
+| `photographerInclude` | `discovery.routes`, `favorites.routes`, `photographer.routes`, `helpers.ts` |
+
+### Layer 2: Resource Serializers (`server/services/resources.ts`)
+
+Each function follows the `{model}Resource` naming convention. See the full list of exports and their callers in the file header.
+
+### Layer 3: Route Handlers
+
+Routes import include + resource together:
+```ts
+import { bookingResource } from "../services/resources";
+import { bookingInclude } from "./includes";
+const booking = await prisma.booking.findUnique({ where: { id }, include: bookingInclude });
+ok(res, bookingResource(booking));
+```
+
+### Critical Rule: Coordinated Edits
+
+**Expanding a resource serializer field requires ALL three layers to change:**
+1. `includes.ts` — add the relation/field
+2. `resources.ts` — add the field to return object (and update input type)
+3. **Callers** — routes automatically pick up new field, but if include was NOT updated, field is `undefined`
+
+Run `./scripts/audit-resource-callers.sh` before modifying any resource type signature.
+
+---
+
+## CSS Convention
+
+Read `doc/css-convention-index.md` before adding new CSS styles. It documents the purpose and boundaries of all 17 CSS files in `src/styles/`.
+
+**Rule: Where to place new admin panel component styles**
+→ `src/styles/admin.css` — always extend `admin.css` for new admin panel components. Do NOT put admin-only styles in `tables.css`, `buttons.css`, or `cards.css`.
 
 ## Code Standards
 - Prefer explicit and readable code over clever code.
