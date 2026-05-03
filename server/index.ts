@@ -9,18 +9,19 @@ async function main() {
     process.exit(1);
   }
 
+  // Attempt database connection but don't crash if it fails
+  // Prisma will lazily connect on first query anyway
   try {
-    // Add a timeout to prevent hanging indefinitely (e.g., with PgBouncer)
     await Promise.race([
       prisma.$connect(),
       new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Database connection timed out after 15 seconds")), 15_000)
+        setTimeout(() => reject(new Error("Database connection timed out after 10 seconds")), 10_000)
       )
     ]);
     console.log("✅ Database connected successfully");
   } catch (err) {
-    console.error("❌ Failed to connect to database:", err);
-    process.exit(1);
+    console.warn("⚠️ Database connection failed at startup, will retry on first query:", err);
+    console.warn("   The server will start but API endpoints may return 500 until the database is reachable.");
   }
 
   const app = createApp();
