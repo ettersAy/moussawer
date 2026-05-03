@@ -97,7 +97,7 @@ services:
   - type: web
     name: moussawer
     env: node
-    buildCommand: npm install && npm run build && npx prisma generate
+    buildCommand: npm install && npm run build && npx prisma db push && npx prisma generate
     startCommand: npm run start
     envVars:
       - key: NODE_ENV
