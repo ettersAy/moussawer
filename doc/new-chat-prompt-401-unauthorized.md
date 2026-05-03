@@ -10,7 +10,7 @@ After deploying to Render.com and migrating the database from SQLite to Supabase
 - Status: 401 Unauthorized
 - Remote Address: `216.24.57.251:443`
 
-## Root Causes (2 issues found)
+## Root Causes (3 issues found)
 
 ### Root Cause 1: `render.yaml` uses `generateValue: true` for `JWT_SECRET`
 
@@ -61,6 +61,24 @@ $2b$12$k6RW/w7urkNqf3N3pi6IneMR10RQdds/v1/yadmNVaJDxf5LTmPUu
 
 Verified: `bcrypt.compare("password", hash)` returns **true**.
 
+### Root Cause 3: Build command doesn't push database schema
+
+**File:** `render.yaml`
+
+```yaml
+buildCommand: npm install && npm run build && npx prisma generate
+```
+
+The build command runs `npx prisma generate` (generates the Prisma client) but **never runs `npx prisma db push`** (creates the database tables). When the app starts and tries to query the `User` table, Prisma throws an error because the table doesn't exist → 500 Internal Server Error.
+
+**Fix:** Add `npx prisma db push` to the build command:
+
+```yaml
+buildCommand: npm install && npm run build && npx prisma db push && npx prisma generate
+```
+
+This ensures the database schema is created before the app starts.
+
 ## How to Fix on Render.com (if already deployed)
 
 ### Step 1: Fix JWT_SECRET on Render.com
@@ -70,7 +88,16 @@ Verified: `bcrypt.compare("password", hash)` returns **true**.
 3. **Replace it** with `d6fb73ec361ec5bd4bc60f8375e5f310` (matching local `.env`)
 4. Click **Save Changes** → **Manual Deploy** → **Deploy with latest commit**
 
-### Step 2: Re-seed the database with valid password hashes
+### Step 2: Push the database schema
+
+If you haven't already, the schema needs to be pushed to the database. Either:
+- **Redeploy** with the updated `render.yaml` (build command now includes `npx prisma db push`)
+- Or run manually:
+  ```bash
+  npx prisma db push
+  ```
+
+### Step 3: Re-seed the database with valid password hashes
 
 Run the Prisma seed script against your Supabase database:
 
@@ -81,7 +108,7 @@ npm run db:seed
 
 Or if you prefer SQL, run the updated `seed.sql` in Supabase SQL Editor.
 
-### Step 3: Clear localStorage on client
+### Step 4: Clear localStorage on client
 
 Users who have old tokens stored in localStorage need to clear them. Either:
 - Open DevTools → Application → Local Storage → Delete `moussawer_token`
@@ -121,8 +148,9 @@ Users who have old tokens stored in localStorage need to clear them. Either:
 
 1. ~~**JWT_SECRET mismatch** between development and Render.com environment — users need to log in again~~ ✅ **Fixed** — `render.yaml` now uses hardcoded value matching `.env`
 2. ~~**Seed users don't exist** in Supabase (seed.sql may not have been run, or ran with errors)~~ ✅ **Fixed** — `seed.sql` now has valid bcrypt hashes
-3. **Token expired** — seed users may have old tokens from development that are now invalid
-4. **Auth middleware is checking for a token that isn't being sent** — check frontend API client
+3. ~~**Database schema not pushed** — build command didn't include `prisma db push`, so tables don't exist~~ ✅ **Fixed** — build command now includes `npx prisma db push`
+4. **Token expired** — seed users may have old tokens from development that are now invalid
+5. **Auth middleware is checking for a token that isn't being sent** — check frontend API client
 
 ### Quick Diagnosis Steps
 
