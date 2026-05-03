@@ -153,6 +153,8 @@ postgresql://postgres.zdvyuqjedffkqfczplgv:hvhpzPkTmejXNKqF@aws-0-us-east-1.pool
 
 **Note:** The pooler runs in **transaction mode**, which means some operations that require session-level features (e.g., `LISTEN/NOTIFY`, prepared statements with session state) may not work. For standard CRUD operations via Prisma, it works perfectly.
 
+**Prisma PgBouncer configuration:** When using the pooler with Prisma, append `?pgbouncer=true&connection_limit=1` to the connection string. This tells Prisma to avoid session-level features that PgBouncer doesn't support. Without these flags, Prisma may hang indefinitely on `$connect()`.
+
 ## Future Considerations
 
 - If IPv6 becomes available on the local machine (e.g., via ISP upgrade or VPN with IPv6), direct `prisma db push` will work
