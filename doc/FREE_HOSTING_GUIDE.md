@@ -67,22 +67,29 @@ That's it. The schema is already compatible — `@default(now())`, `@default(cui
 
 ---
 
-## Step 3: Update the `db:push` Script
+## Step 3: Update Build & Start Scripts
 
-The current `db:push` script uses a SQLite-specific workaround. Replace it with the standard Prisma command.
+The project now compiles the server TypeScript to JavaScript for production (instead of relying on `tsx` at runtime).
 
 **Edit `package.json`:**
 
-Find the `db:push` line in the `"scripts"` section and replace it with:
+Find the `"build"` and `"start"` lines and ensure they are:
 
 ```json
-"db:push": "prisma db push && prisma generate",
+"build": "tsc --noEmit && vite build && tsc -p tsconfig.server.json",
+"start": "node dist-server/server/index.js",
 ```
 
-> ⚠️ **Make sure the resulting JSON is valid.** The line should be exactly as above — a single string value. A common mistake is ending up with `"db:push": "db:push": "prisma db push..."` (duplicated key), which breaks JSON parsing.
+> The build command compiles:
+> 1. TypeScript type-checking (`tsc --noEmit`)
+> 2. Vite frontend build (`vite build`)
+> 3. Server TypeScript compilation to CommonJS (`tsc -p tsconfig.server.json`) which outputs to `dist-server/`
+>
+> The start command uses compiled Node.js instead of `tsx` for reliability and faster startup.
 
-Also add a migration script:
+Also ensure these helper scripts exist:
 ```json
+"db:push": "prisma db push && prisma generate",
 "db:migrate": "prisma migrate dev --name init",
 ```
 

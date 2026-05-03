@@ -43,4 +43,7 @@ async function main() {
   });
 }
 
-main();
+main().catch((err) => {
+  console.error("💥 Fatal error during startup:", err);
+  process.exit(1);
+});
