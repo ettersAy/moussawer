@@ -10,7 +10,13 @@ async function main() {
   }
 
   try {
-    await prisma.$connect();
+    // Add a timeout to prevent hanging indefinitely (e.g., with PgBouncer)
+    await Promise.race([
+      prisma.$connect(),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Database connection timed out after 15 seconds")), 15_000)
+      )
+    ]);
     console.log("✅ Database connected successfully");
   } catch (err) {
     console.error("❌ Failed to connect to database:", err);
