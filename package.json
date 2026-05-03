@@ -13,7 +13,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:generate": "prisma generate",
-    "db:push": "rm -f prisma/dev.db && prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script | sqlite3 prisma/dev.db && prisma generate",
+    "db:push": "prisma db push && prisma generate",
+    "db:migrate": "prisma migrate dev --name init",
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "npm run db:push && npm run db:seed",
     "start": "tsx server/index.ts"
