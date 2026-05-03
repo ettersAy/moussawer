@@ -170,6 +170,8 @@ npm run db:seed
 ```
 
 > **⚠️ IPv6 note:** Supabase free-tier direct DB endpoint (port 5432) is IPv6-only. Use the **connection pooler** (port 6543) instead, which has IPv4 support. The pooler host is `aws-0-us-east-1.pooler.supabase.com` and the username format is `postgres.<project-ref>`.
+>
+> **⚠️ PgBouncer flags:** When using the pooler with Prisma, append `?pgbouncer=true&connection_limit=1` to the connection string. This tells Prisma to avoid session-level features that PgBouncer (transaction mode) doesn't support.
 
 ### Option B: Use Supabase SQL Editor
 
