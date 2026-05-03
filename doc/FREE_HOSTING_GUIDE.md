@@ -84,6 +84,7 @@ Find the `"build"` and `"start"` lines and ensure they are:
 > 1. TypeScript type-checking (`tsc --noEmit`)
 > 2. Vite frontend build (`vite build`)
 > 3. Server TypeScript compilation to CommonJS (`tsc -p tsconfig.server.json`) which outputs to `dist-server/`
+> 4. Writes `{"type":"commonjs"}` to `dist-server/package.json` so Node.js treats compiled `.js` files as CommonJS (because the root `package.json` has `"type": "module"`)
 >
 > The start command uses compiled Node.js instead of `tsx` for reliability and faster startup.
 
