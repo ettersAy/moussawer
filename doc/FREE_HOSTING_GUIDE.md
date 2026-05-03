@@ -160,7 +160,7 @@ After the first deploy succeeds, you need to create the database tables and seed
 Run these commands on your local machine with the Supabase connection string:
 
 ```bash
-export DATABASE_URL="postgresql://postgres:hvhpzPkTmejXNKqF@db.zdvyuqjedffkqfczplgv.supabase.co:5432/postgres"
+export DATABASE_URL="postgresql://postgres.zdvyuqjedffkqfczplgv:hvhpzPkTmejXNKqF@aws-0-us-east-1.pooler.supabase.com:6543/postgres"
 
 # Push the schema
 npx prisma db push
@@ -168,6 +168,8 @@ npx prisma db push
 # Seed the database
 npm run db:seed
 ```
+
+> **⚠️ IPv6 note:** Supabase free-tier direct DB endpoint (port 5432) is IPv6-only. Use the **connection pooler** (port 6543) instead, which has IPv4 support. The pooler host is `aws-0-us-east-1.pooler.supabase.com` and the username format is `postgres.<project-ref>`.
 
 ### Option B: Use Supabase SQL Editor
 
