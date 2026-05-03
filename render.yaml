@@ -12,6 +12,6 @@ services:
       - key: DATABASE_URL
         # ⚠️ Set this manually in Render dashboard to your Supabase PostgreSQL connection string
         # See doc/FREE_HOSTING_GUIDE.md for instructions
-        sync: false
+        value: postgresql://postgres:hvhpzPkTmejXNKqF@db.zdvyuqjedffkqfczplgv.supabase.co:5432/postgres
       - key: JWT_SECRET
         value: d6fb73ec361ec5bd4bc60f8375e5f310
