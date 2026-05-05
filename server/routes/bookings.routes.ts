@@ -8,7 +8,7 @@ import { requireAuth, requireRole } from "../middleware/auth";
 import { assertBookableSlot } from "../services/availability";
 import { audit, notify } from "../services/notifications";
 import { bookingResource } from "../services/resources";
-import { AppError, asyncHandler, created, ok, validate } from "../utils/http";
+import { AppError, asyncHandler, created, ok, pagination, validate } from "../utils/http";
 import { assertBookingAccess } from "./helpers";
 import { bookingInclude } from "./includes";
 
@@ -24,12 +24,18 @@ router.get(
         : req.user!.role === Role.CLIENT
           ? { clientId: req.user!.id }
           : { photographer: { userId: req.user!.id } };
-    const bookings = await prisma.booking.findMany({
-      where,
-      include: bookingInclude,
-      orderBy: { startAt: "desc" }
-    });
-    ok(res, bookings.map(bookingResource));
+    const { page, limit, skip } = pagination(req.query);
+    const [bookings, total] = await Promise.all([
+      prisma.booking.findMany({
+        where,
+        include: bookingInclude,
+        orderBy: { startAt: "desc" },
+        skip,
+        take: limit
+      }),
+      prisma.booking.count({ where })
+    ]);
+    ok(res, bookings.map(bookingResource), { page, limit, total });
   })
 );
 

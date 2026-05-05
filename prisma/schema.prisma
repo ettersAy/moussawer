@@ -43,28 +43,29 @@ enum DisputeStatus {
 }
 
 model User {
-  id                    String                @id @default(cuid())
-  email                 String                @unique
-  passwordHash          String
-  name                  String
-  role                  Role
-  status                AccountStatus         @default(ACTIVE)
-  avatarUrl             String?
-  createdAt             DateTime              @default(now())
-  updatedAt             DateTime              @updatedAt
-  clientProfile         ClientProfile?
-  photographerProfile   PhotographerProfile?
-  bookingsAsClient      Booking[]             @relation("ClientBookings")
-  reportedIncidents     Incident[]            @relation("IncidentReporter")
-  targetIncidents       Incident[]            @relation("IncidentTarget")
-  reportedDisputes      Dispute[]             @relation("DisputeReporter")
-  targetDisputes        Dispute[]             @relation("DisputeTarget")
-  sentMessages          Message[]
-  conversationMembers   ConversationParticipant[]
-  notifications         Notification[]
-  favorites             Favorite[]
-  reviewsWritten        Review[]              @relation("ReviewsWritten")
-  auditLogs             ActivityLog[]
+  id                  String                    @id @default(cuid())
+  email               String                    @unique
+  passwordHash        String
+  name                String
+  role                Role
+  status              AccountStatus             @default(ACTIVE)
+  avatarUrl           String?
+  createdAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
+  clientProfile       ClientProfile?
+  photographerProfile PhotographerProfile?
+  bookingsAsClient    Booking[]                 @relation("ClientBookings")
+  reportedIncidents   Incident[]                @relation("IncidentReporter")
+  targetIncidents     Incident[]                @relation("IncidentTarget")
+  reportedDisputes    Dispute[]                 @relation("DisputeReporter")
+  targetDisputes      Dispute[]                 @relation("DisputeTarget")
+  sentMessages        Message[]
+  disputeComments     DisputeComment[]
+  conversationMembers ConversationParticipant[]
+  notifications       Notification[]
+  favorites           Favorite[]
+  reviewsWritten      Review[]                  @relation("ReviewsWritten")
+  auditLogs           ActivityLog[]
 }
 
 model ClientProfile {
@@ -79,21 +80,21 @@ model ClientProfile {
 }
 
 model PhotographerProfile {
-  id                String                   @id @default(cuid())
-  userId            String                   @unique
-  user              User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  slug              String                   @unique
+  id                String                 @id @default(cuid())
+  userId            String                 @unique
+  user              User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slug              String                 @unique
   bio               String
   city              String
-  country           String                   @default("Canada")
+  country           String                 @default("Canada")
   profileImageUrl   String?
   startingPrice     Int
-  rating            Float                    @default(0)
-  reviewCount       Int                      @default(0)
-  popularity        Int                      @default(0)
-  timezone          String                   @default("America/Toronto")
-  isPublished       Boolean                  @default(true)
-  verified          Boolean                  @default(false)
+  rating            Float                  @default(0)
+  reviewCount       Int                    @default(0)
+  popularity        Int                    @default(0)
+  timezone          String                 @default("America/Toronto")
+  isPublished       Boolean                @default(true)
+  verified          Boolean                @default(false)
   services          PhotographerService[]
   categories        PhotographerCategory[]
   portfolioItems    PortfolioItem[]
@@ -102,8 +103,8 @@ model PhotographerProfile {
   bookings          Booking[]
   reviews           Review[]
   favorites         Favorite[]
-  createdAt         DateTime                 @default(now())
-  updatedAt         DateTime                 @updatedAt
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
 }
 
 model Category {
@@ -125,19 +126,19 @@ model PhotographerCategory {
 }
 
 model PhotographerService {
-  id             String              @id @default(cuid())
-  photographerId String
-  categoryId     String?
-  photographer   PhotographerProfile @relation(fields: [photographerId], references: [id], onDelete: Cascade)
-  category       Category?           @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  title          String
-  description    String
+  id              String              @id @default(cuid())
+  photographerId  String
+  categoryId      String?
+  photographer    PhotographerProfile @relation(fields: [photographerId], references: [id], onDelete: Cascade)
+  category        Category?           @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  title           String
+  description     String
   durationMinutes Int
-  price          Int
-  isActive       Boolean             @default(true)
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
-  bookings       Booking[]
+  price           Int
+  isActive        Boolean             @default(true)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  bookings        Booking[]
 }
 
 model AvailabilityRule {
@@ -176,6 +177,8 @@ model PortfolioItem {
   isModerated    Boolean             @default(false)
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
+
+  @@index([photographerId])
 }
 
 model Booking {
@@ -202,19 +205,24 @@ model Booking {
   incidents          Incident[]
   disputes           Dispute[]
   review             Review?
+
+  @@index([clientId])
+  @@index([photographerId])
+  @@index([status])
+  @@index([startAt])
 }
 
 model Conversation {
-  id            String                    @id @default(cuid())
-  bookingId     String?
-  disputeId     String?
-  incidentId    String?
-  subject       String
-  booking       Booking?                  @relation(fields: [bookingId], references: [id], onDelete: SetNull)
-  participants  ConversationParticipant[]
-  messages      Message[]
-  createdAt     DateTime                  @default(now())
-  updatedAt     DateTime                  @updatedAt
+  id           String                    @id @default(cuid())
+  bookingId    String?
+  disputeId    String?
+  incidentId   String?
+  subject      String
+  booking      Booking?                  @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  participants ConversationParticipant[]
+  messages     Message[]
+  createdAt    DateTime                  @default(now())
+  updatedAt    DateTime                  @updatedAt
 }
 
 model ConversationParticipant {
@@ -237,43 +245,51 @@ model Message {
   attachmentUrl  String?
   createdAt      DateTime     @default(now())
   readAt         DateTime?
+
+  @@index([conversationId])
 }
 
 model Incident {
-  id             String          @id @default(cuid())
-  reporterId     String
-  targetUserId   String?
-  bookingId      String?
-  reporter       User            @relation("IncidentReporter", fields: [reporterId], references: [id], onDelete: Cascade)
-  targetUser     User?           @relation("IncidentTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
-  booking        Booking?        @relation(fields: [bookingId], references: [id], onDelete: SetNull)
-  category       String
-  description    String
-  evidenceUrl    String?
-  status         IncidentStatus  @default(OPEN)
-  adminNotes     String?
-  resolution     String?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  id           String         @id @default(cuid())
+  reporterId   String
+  targetUserId String?
+  bookingId    String?
+  reporter     User           @relation("IncidentReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  targetUser   User?          @relation("IncidentTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
+  booking      Booking?       @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  category     String
+  description  String
+  evidenceUrl  String?
+  status       IncidentStatus @default(OPEN)
+  adminNotes   String?
+  resolution   String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([reporterId])
+  @@index([status])
 }
 
 model Dispute {
-  id             String           @id @default(cuid())
-  reporterId     String
-  targetUserId   String?
-  bookingId      String?
-  reporter       User             @relation("DisputeReporter", fields: [reporterId], references: [id], onDelete: Cascade)
-  targetUser     User?            @relation("DisputeTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
-  booking        Booking?         @relation(fields: [bookingId], references: [id], onDelete: SetNull)
-  type           String
-  description    String
-  evidenceUrl    String?
-  status         DisputeStatus    @default(OPEN)
-  adminNotes     String?
-  resolution     String?
-  comments       DisputeComment[]
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
+  id           String           @id @default(cuid())
+  reporterId   String
+  targetUserId String?
+  bookingId    String?
+  reporter     User             @relation("DisputeReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  targetUser   User?            @relation("DisputeTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
+  booking      Booking?         @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  type         String
+  description  String
+  evidenceUrl  String?
+  status       DisputeStatus    @default(OPEN)
+  adminNotes   String?
+  resolution   String?
+  comments     DisputeComment[]
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([reporterId])
+  @@index([status])
 }
 
 model DisputeComment {
@@ -281,9 +297,12 @@ model DisputeComment {
   disputeId   String
   authorId    String
   dispute     Dispute  @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   body        String
   evidenceUrl String?
   createdAt   DateTime @default(now())
+
+  @@index([disputeId])
 }
 
 model Review {
@@ -298,6 +317,8 @@ model Review {
   comment        String?
   isModerated    Boolean             @default(false)
   createdAt      DateTime            @default(now())
+
+  @@index([photographerId])
 }
 
 model Favorite {
@@ -311,15 +332,17 @@ model Favorite {
 }
 
 model Notification {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   type      String
   title     String
   body      String
   readAt    DateTime?
-  metadata  String   @default("{}")
-  createdAt DateTime @default(now())
+  metadata  String    @default("{}")
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
 }
 
 model ActivityLog {
@@ -331,4 +354,7 @@ model ActivityLog {
   entityId  String
   metadata  String   @default("{}")
   createdAt DateTime @default(now())
+
+  @@index([actorId])
+  @@index([createdAt])
 }

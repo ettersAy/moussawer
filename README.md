@@ -4,7 +4,7 @@ Moussawer is an API-first photography marketplace MVP connecting clients, photog
 
 ## Stack
 
-- **Backend:** Node.js, Express, TypeScript, Prisma Client, SQLite, Zod, JWT, bcrypt.
+- **Backend:** Node.js, Express, TypeScript, Prisma Client, PostgreSQL (Supabase), Zod, JWT, bcrypt.
 - **Frontend:** React, Vite, React Router, lucide-react, plain CSS.
 - **Testing:** Vitest + Supertest API integration tests.
 - **API docs:** OpenAPI document served at `/api/v1/openapi.json` and Swagger UI at `/api-docs`.
@@ -13,10 +13,17 @@ This stack keeps the backend cleanly consumable by the web app and a future Andr
 
 ## Local Setup
 
+See **[doc/ENVIRONMENT_SETUP.md](doc/ENVIRONMENT_SETUP.md)** for the full
+step-by-step guide covering local development and free production hosting.
+
+Quick start:
+
 ```bash
 cp .env.example .env
+# Edit .env with your Supabase DATABASE_URL and a JWT_SECRET
 npm install
-npm run db:reset
+npm run db:push
+npm run db:seed
 npm run dev
 ```
 
@@ -26,7 +33,9 @@ Then open:
 - API: http://localhost:4000/api/v1
 - Swagger UI: http://localhost:4000/api-docs
 
-The Prisma schema engine failed on `prisma db push` in this environment with an empty diagnostic, so `npm run db:push` currently generates SQL from `prisma/schema.prisma` and applies it with `sqlite3`. The Prisma schema remains the source of truth.
+> **Database:** The project uses PostgreSQL (Supabase free tier) for both local
+> development and production. No local SQLite is needed. See the setup guide
+> for details.
 
 ## Test Accounts
 
@@ -49,7 +58,7 @@ photographer-three@example.com / password
 npm run dev        # API + web dev servers
 npm run dev:api    # API only
 npm run dev:web    # Vite only
-npm run db:reset   # rebuild SQLite schema and seed data
+npm run db:reset   # rebuild schema and seed data
 npm test           # reset DB and run API integration tests
 npm run lint       # ESLint
 npm run build      # TypeScript check and production frontend build
@@ -90,7 +99,7 @@ npm run build      # TypeScript check and production frontend build
 - Timezone handling is consistent for seeded local availability, but should move to a dedicated timezone library before launch.
 - Real-time messaging is not implemented; the MVP uses refresh/polling-style APIs.
 - Admin moderation UI has basic workflows (suspend/activate users, review/resolve/close incidents, review/resolve/reject disputes, create categories, view audit logs). Full moderation queues (portfolio approval, review moderation) are not yet built into the UI.
-- `npm run db:push` uses a SQLite SQL-generation workaround because Prisma's db push schema engine failed in this container.
+- `npm run db:push` uses `prisma db push` directly against PostgreSQL (Supabase). The previous SQLite workaround is no longer needed.
 
 ## Recommended Next Missions
 

@@ -18,7 +18,7 @@ router.post(
       z.object({
         name: z.string().min(2),
         email: z.string().email(),
-        password: z.string().min(6),
+        password: z.string().min(8),
         role: z.enum([Role.CLIENT, Role.PHOTOGRAPHER]).optional(),
         location: z.string().optional(),
         bio: z.string().optional(),

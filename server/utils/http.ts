@@ -55,6 +55,14 @@ export function pagination(query: Request["query"]) {
   };
 }
 
+export function safeJson(value: string) {
+  try {
+    return JSON.parse(value);
+  } catch {
+    return {};
+  }
+}
+
 export function errorHandler(error: unknown, _req: Request, res: Response, _next: NextFunction) {
   if (error instanceof AppError) {
     return res.status(error.status).json({

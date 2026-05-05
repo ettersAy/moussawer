@@ -204,6 +204,14 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
 
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
+    if (response.status === 401 && token) {
+      // Only redirect if user had a token (session expired) — ignore 401s from public pages
+      localStorage.removeItem(TOKEN_KEY);
+      const publicPaths = ["/", "/login", "/register", "/photographers", "/support"];
+      if (!publicPaths.includes(window.location.pathname)) {
+        window.location.href = "/login";
+      }
+    }
     throw new ApiError(payload.error?.message ?? "Request failed", payload.error?.code ?? "REQUEST_FAILED", response.status, payload.error?.details);
   }
   return payload;

@@ -9,7 +9,7 @@ import { prisma } from "../db";
 import { requireAuth, requireRole } from "../middleware/auth";
 import { audit } from "../services/notifications";
 import { bookingResource, userResource } from "../services/resources";
-import { AppError, asyncHandler, created, noContent, ok, validate } from "../utils/http";
+import { AppError, asyncHandler, created, noContent, ok, pagination, safeJson, validate } from "../utils/http";
 import { slugify, uniqueSlug } from "./helpers";
 import { bookingInclude, userInclude } from "./includes";
 
@@ -357,12 +357,17 @@ router.get(
   "/admin/activity",
   requireAuth,
   requireRole(Role.ADMIN),
-  asyncHandler(async (_req, res) => {
-    const logs = await prisma.activityLog.findMany({
-      include: { actor: { select: { id: true, name: true, role: true } } },
-      orderBy: { createdAt: "desc" },
-      take: 80
-    });
-    ok(res, logs.map((log) => ({ ...log, metadata: JSON.parse(log.metadata) })));
+  asyncHandler(async (req, res) => {
+    const { page, limit, skip } = pagination(req.query);
+    const [logs, total] = await Promise.all([
+      prisma.activityLog.findMany({
+        include: { actor: { select: { id: true, name: true, role: true } } },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit
+      }),
+      prisma.activityLog.count()
+    ]);
+    ok(res, logs.map((log) => ({ ...log, metadata: safeJson(log.metadata) })), { page, limit, total });
   })
 );

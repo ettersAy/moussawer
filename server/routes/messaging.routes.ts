@@ -5,7 +5,7 @@ import { prisma } from "../db";
 import { requireAuth } from "../middleware/auth";
 import { notify } from "../services/notifications";
 import { conversationResource, messageResource } from "../services/resources";
-import { AppError, asyncHandler, created, ok, validate } from "../utils/http";
+import { AppError, asyncHandler, created, ok, pagination, validate } from "../utils/http";
 import { assertBookingAccess, assertConversationAccess } from "./helpers";
 
 export const router = Router();
@@ -14,19 +14,26 @@ router.get(
   "/conversations",
   requireAuth,
   asyncHandler(async (req, res) => {
-    const conversations = await prisma.conversation.findMany({
-      where: req.user!.role === Role.ADMIN ? {} : { participants: { some: { userId: req.user!.id } } },
-      include: {
-        participants: { include: { user: { select: { id: true, name: true, role: true, avatarUrl: true } } } },
-        messages: {
-          include: { sender: { select: { id: true, name: true, role: true, avatarUrl: true } } },
-          orderBy: { createdAt: "desc" },
-          take: 1
-        }
-      },
-      orderBy: { updatedAt: "desc" }
-    });
-    ok(res, conversations.map(conversationResource));
+    const where = req.user!.role === Role.ADMIN ? {} : { participants: { some: { userId: req.user!.id } } };
+    const { page, limit, skip } = pagination(req.query);
+    const [conversations, total] = await Promise.all([
+      prisma.conversation.findMany({
+        where,
+        include: {
+          participants: { include: { user: { select: { id: true, name: true, role: true, avatarUrl: true } } } },
+          messages: {
+            include: { sender: { select: { id: true, name: true, role: true, avatarUrl: true } } },
+            orderBy: { createdAt: "desc" },
+            take: 1
+          }
+        },
+        orderBy: { updatedAt: "desc" },
+        skip,
+        take: limit
+      }),
+      prisma.conversation.count({ where })
+    ]);
+    ok(res, conversations.map(conversationResource), { page, limit, total });
   })
 );
 

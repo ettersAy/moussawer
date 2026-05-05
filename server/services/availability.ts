@@ -113,7 +113,11 @@ export async function assertBookableSlot(photographerId: string, startAt: Date, 
   });
 
   if (!insideRule) {
-    throw new AppError(409, "SLOT_UNAVAILABLE", "The photographer is not available for that time");
+    throw new AppError(
+      409,
+      "SLOT_UNAVAILABLE",
+      `The photographer is not available at that time. Note: times are in UTC — the photographer's timezone is ${photographer.timezone}. Convert your local time to UTC before booking.`
+    );
   }
 
   const blocked = photographer.calendarBlocks.some((block) => overlaps(startAt, endAt, block.startAt, block.endAt));
