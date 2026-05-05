@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { AccountStatus, Role } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "../db";
-import { requireAuth, signToken } from "../middleware/auth";
+import { optionalAuth, requireAuth, signToken } from "../middleware/auth";
 import { audit } from "../services/notifications";
 import { userResource } from "../services/resources";
 import { AppError, asyncHandler, created, ok, validate } from "../utils/http";
@@ -103,9 +103,10 @@ router.post(
 
 router.get(
   "/me",
-  requireAuth,
+  optionalAuth,
   asyncHandler(async (req, res) => {
-    ok(res, userResource(await currentUser(req.user!.id)));
+    if (!req.user) return ok(res, null);
+    ok(res, userResource(await currentUser(req.user.id)));
   })
 );
 

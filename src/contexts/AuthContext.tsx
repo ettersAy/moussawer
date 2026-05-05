@@ -18,11 +18,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async () => {
     try {
-      const response = await api<User>("/me");
-      setUser(response.data);
+      const response = await api<User | null>("/me");
+      setUser(response.data ?? null);
     } catch {
-      clearToken();
-      setUser(null);
+      // Server/network error — keep existing auth state, don't invalidate token
     } finally {
       setLoading(false);
     }
