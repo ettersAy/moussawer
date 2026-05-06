@@ -8,3 +8,4 @@ dev.db-journal
 coverage/
 .DS_Store
 .playwright-mcp/
+.githash
