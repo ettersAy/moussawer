@@ -12,3 +12,9 @@ coverage/
 .vercel/
 .vercel
 .env*.local
+# Playwright
+test-results/
+playwright-report/
+
+# Vercel environment (may contain OIDC tokens)
+.env.vercel
