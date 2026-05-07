@@ -1,5 +1,5 @@
-import { test, expect, CREDENTIALS } from "../fixtures/auth.fixture";
-import { LoginPage } from "../pages/login.page";
+import { test, expect, CREDENTIALS } from "./fixtures/auth.fixture";
+import { LoginPage } from "./pages/login.page";
 
 /**
  * Admin Login Playwright E2E Tests

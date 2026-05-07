@@ -1,5 +1,5 @@
-import { test, expect, CREDENTIALS } from "../fixtures/auth.fixture";
-import { LoginPage } from "../pages/login.page";
+import { test, expect, CREDENTIALS } from "./fixtures/auth.fixture";
+import { LoginPage } from "./pages/login.page";
 
 /**
  * Smoke test — broad end-to-end coverage of critical paths.
