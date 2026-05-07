@@ -1,4 +1,5 @@
 import request from "supertest";
+import { addDays, getDay, startOfDay } from "date-fns";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createApp } from "../server/app";
 import { prisma } from "../server/db";
@@ -10,11 +11,17 @@ async function login(email: string) {
   return response.body.data.token as string;
 }
 
+/** Return YYYY-MM-DD for the next occurrence of dayOfWeek (0=Sun, 1=Mon, ... 6=Sat) in the server's local timezone. */
 function nextWeekday(dayOfWeek: number) {
-  const date = new Date();
-  const delta = (dayOfWeek + 7 - date.getDay()) % 7 || 7;
-  date.setDate(date.getDate() + delta);
-  return date.toISOString().slice(0, 10);
+  const today = startOfDay(new Date());
+  const currentDay = getDay(today);
+  const delta = (dayOfWeek + 7 - currentDay) % 7 || 7;
+  const target = addDays(today, delta);
+  // Format as YYYY-MM-DD in local time
+  const yyyy = target.getFullYear();
+  const mm = String(target.getMonth() + 1).padStart(2, "0");
+  const dd = String(target.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 describe("Moussawer API", () => {
@@ -159,8 +166,16 @@ describe("Moussawer API", () => {
 
     await request(app).delete(`/api/v1/portfolio/${item.body.data.id}`).set("Authorization", `Bearer ${photographerToken}`).expect(204);
 
+    // Find a non-completed booking (either PENDING or CONFIRMED) to verify review validation
     const bookings = await request(app).get("/api/v1/bookings").set("Authorization", `Bearer ${clientToken}`).expect(200);
-    const pending = bookings.body.data.find((booking: { status: string }) => booking.status === "PENDING");
-    await request(app).post("/api/v1/reviews").set("Authorization", `Bearer ${clientToken}`).send({ bookingId: pending.id, rating: 5 }).expect(422);
+    const nonCompleted = bookings.body.data.find(
+      (b: { status: string }) => b.status === "PENDING" || b.status === "CONFIRMED"
+    );
+    expect(nonCompleted).toBeTruthy();
+    await request(app)
+      .post("/api/v1/reviews")
+      .set("Authorization", `Bearer ${clientToken}`)
+      .send({ bookingId: nonCompleted.id, rating: 5 })
+      .expect(422);
   });
 });

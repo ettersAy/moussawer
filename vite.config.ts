@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import react from "@vitejs/plugin-react";
 import { defineConfig, loadEnv } from "vite";
 
@@ -12,6 +13,11 @@ export default defineConfig(({ mode }) => {
       proxy: {
         "/api": `http://localhost:${apiPort}`
       }
+    },
+    test: {
+      // Only include .test.ts files; .spec.ts files are for Playwright
+      include: ["**/*.test.{ts,js,mjs,cjs,tsx,jsx}"],
+      exclude: ["**/*.spec.{ts,js,mjs,cjs,tsx,jsx}", "node_modules/**"]
     }
   };
 });
