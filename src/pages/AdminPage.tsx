@@ -3,7 +3,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useToast } from "../components/shared/Toast";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 import { api, type Booking, type CaseItem, type PortfolioItem } from "../lib/api";
 import { ActivityTab } from "./admin/ActivityTab";
 import { BookingsTab } from "./admin/BookingsTab";

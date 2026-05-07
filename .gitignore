@@ -9,3 +9,6 @@ coverage/
 .DS_Store
 .playwright-mcp/
 .githash
+.vercel/
+.vercel
+.env*.local

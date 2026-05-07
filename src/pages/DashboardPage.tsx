@@ -5,7 +5,7 @@ import {
 import { useEffect, useState } from "react";
 import { StatusBadge } from "../components/StatusBadge";
 import { useToast } from "../components/shared/Toast";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 import { api, money, shortDate, type Booking, type Photographer } from "../lib/api";
 import { Metric } from "./admin/Metric";
 

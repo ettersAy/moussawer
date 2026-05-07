@@ -135,7 +135,7 @@ export function photographerResource(
     country: photographer.country,
     profileImageUrl: photographer.profileImageUrl,
     startingPrice: photographer.startingPrice,
-    rating: Number(photographer.rating.toFixed(1)),
+    rating: photographer.rating != null ? Number(Number(photographer.rating).toFixed(1)) : 0,
     reviewCount: photographer.reviewCount,
     popularity: photographer.popularity,
     timezone: photographer.timezone,

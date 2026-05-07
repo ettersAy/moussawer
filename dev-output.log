@@ -1,0 +1,23 @@
+
+> moussawer@0.1.0 dev
+> concurrently -n api,web -c cyan,magenta "npm:dev:api" "npm:dev:web"
+
+[api] 
+[api] > moussawer@0.1.0 dev:api
+[api] > tsx watch server/index.ts
+[api] 
+[web] 
+[web] > moussawer@0.1.0 dev:web
+[web] > vite --host 0.0.0.0
+[web] 
+[web] 
+[web]   VITE v6.4.2  ready in 181 ms
+[web] 
+[web]   ➜  Local:   http://localhost:5173/
+[web]   ➜  Network: http://192.168.2.16:5173/
+[web]   ➜  Network: http://172.17.0.1:5173/
+[api] ✅ Database connected successfully
+[api] Moussawer API running on http://localhost:4000
+[api] API docs available at http://localhost:4000/api-docs
+[api] [0mGET /api/v1/health [32m200[0m 10.179 ms - 84[0m
+[api] [0mPOST /api/v1/auth/login [32m200[0m 353.701 ms - 666[0m

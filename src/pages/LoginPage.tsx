@@ -1,7 +1,7 @@
 import { Camera } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 
 export function LoginPage() {
   const { login } = useAuth();

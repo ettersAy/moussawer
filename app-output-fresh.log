@@ -1,0 +1,26 @@
+
+> moussawer@0.1.0 dev
+> concurrently -n api,web -c cyan,magenta "npm:dev:api" "npm:dev:web"
+
+[api] 
+[api] > moussawer@0.1.0 dev:api
+[api] > tsx watch server/index.ts
+[api] 
+[web] 
+[web] > moussawer@0.1.0 dev:web
+[web] > vite --host 0.0.0.0
+[web] 
+[web] Port 5173 is in use, trying another one...
+[web] 
+[web]   VITE v6.4.2  ready in 182 ms
+[web] 
+[web]   ➜  Local:   http://localhost:5174/
+[web]   ➜  Network: http://192.168.2.16:5174/
+[web]   ➜  Network: http://172.17.0.1:5174/
+[api] ✅ Database connected successfully
+[api] 
+[api] ❌ Port 4000 is already in use.
+[api]    Run `lsof -i :4000` to find the process, or change PORT in .env
+[api] 
+[api] Terminated
+[api] npm run dev:api exited with code 143

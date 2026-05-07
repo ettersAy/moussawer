@@ -1,7 +1,7 @@
 import { CalendarDays, Heart, MapPin, Star } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 import { api, money, type Photographer } from "../lib/api";
 
 export function PhotographerCard({ photographer }: { photographer: Photographer }) {

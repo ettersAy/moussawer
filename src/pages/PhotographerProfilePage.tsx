@@ -1,7 +1,7 @@
 import { CalendarDays, Heart, MessageCircle, ShieldAlert, Star } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 import { ApiError, api, money, shortDate, type Availability, type Booking, type Photographer, type Service } from "../lib/api";
 
 export function PhotographerProfilePage() {

@@ -1,6 +1,6 @@
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { Bell, Camera, LayoutDashboard, LogOut, MessageCircle, Search, ShieldCheck, Shield } from "lucide-react";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 
 export function Layout() {
   const { user, logout } = useAuth();

@@ -1,6 +1,6 @@
 import { Send } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 import { api, shortDate, type Conversation, type Message } from "../lib/api";
 
 export function MessagesPage() {

@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { ConfirmDialog } from "../../components/shared/ConfirmDialog";
 import { StatusBadge } from "../../components/StatusBadge";
 import { useToast } from "../../components/shared/Toast";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 import { api, money, shortDate, type Booking, type Photographer, type PortfolioItem, type Service } from "../../lib/api";
 
 type Tab = "bookings" | "services" | "portfolio" | "availability" | "profile";

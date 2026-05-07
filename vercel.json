@@ -1,0 +1,14 @@
+{
+  "buildCommand": "npm run build:vercel",
+  "outputDirectory": "dist",
+  "installCommand": "npm install --include=dev",
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api" },
+    { "source": "/(.*)", "destination": "/" }
+  ],
+  "functions": {
+    "api/index.mjs": {
+      "maxDuration": 30
+    }
+  }
+}
