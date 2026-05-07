@@ -118,6 +118,22 @@ export class CalendarPage {
     await this.blockModal().waitFor({ state: "visible", timeout: 5_000 });
   }
 
+  /** Fill and submit the block creation form. */
+  async createBlock(opts: { startAt: string; endAt: string; reason?: string }) {
+    await this.openBlockModal();
+    await this.blockStartInput().fill(opts.startAt);
+    await this.blockEndInput().fill(opts.endAt);
+    if (opts.reason) await this.blockReasonInput().fill(opts.reason);
+    await this.blockSaveBtn().click();
+    // Wait for the modal to close, or if it stays open (error), return false
+    try {
+      await this.blockModal().waitFor({ state: "hidden", timeout: 10_000 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   /** Assert the calendar page is fully loaded. */
   async expectLoaded() {
     await this.heading().waitFor({ state: "visible" });

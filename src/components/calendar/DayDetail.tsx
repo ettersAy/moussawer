@@ -1,6 +1,6 @@
 import { Clock, Trash2 } from "lucide-react";
 import type { CalendarBlock, DayAvailability } from "./types";
-import { isoDate, dayLabel, dayOfMonth } from "./utils";
+import { isoDate, dayLabel, dayOfMonth, slotTime } from "./utils";
 
 type DayDetailProps = {
   date: Date;
@@ -8,10 +8,6 @@ type DayDetailProps = {
   blocks: CalendarBlock[];
   onRemoveBlock: (id: string) => void;
 };
-
-function slotTime(iso: string) {
-  return new Date(iso).toLocaleTimeString("en-CA", { hour: "numeric", minute: "2-digit", hour12: true });
-}
 
 export function DayDetail({ date, rangeData, blocks, onRemoveBlock }: DayDetailProps) {
   const key = isoDate(date);

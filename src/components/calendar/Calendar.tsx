@@ -2,14 +2,14 @@ import {
   ChevronLeft, ChevronRight, Plus,
   CalendarDays, Columns, List,
 } from "lucide-react";
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { ConfirmDialog } from "../shared/ConfirmDialog";
-import type { CalendarBlock, CalendarView } from "./types";
+import type { CalendarBlock } from "./types";
 import {
-  monthDays, weekDays, monthYearLabel, isOtherMonth,
-  nextMonth, prevMonth, nextWeek, prevWeek,
+  isOtherMonth, monthYearLabel, nextMonth, prevMonth,
 } from "./utils";
 import { useCalendarData } from "./useCalendarData";
+import { useCalendarNavigation } from "./useCalendarNavigation";
 import { MiniCalendar } from "./MiniCalendar";
 import { MonthView } from "./MonthView";
 import { WeekView } from "./WeekView";
@@ -18,13 +18,12 @@ import { RulesList } from "./RulesList";
 import { BlockModal } from "./BlockModal";
 import { DayDetail } from "./DayDetail";
 
-/* ── Calendar (orchestrator) ──────────────── */
-
 export function Calendar() {
-  const today = new Date();
-  const [view, setView] = useState<CalendarView>("month");
-  const [anchor, setAnchor] = useState(today);
-  const [selected, setSelected] = useState(today);
+  const {
+    view, setView, anchor, setAnchor, selected, setSelected,
+    days, navigate, goToday,
+  } = useCalendarNavigation();
+
   const [blockModal, setBlockModal] = useState<{
     open: boolean; block?: CalendarBlock; startDate?: string; endDate?: string;
   }>({ open: false });
@@ -42,27 +41,13 @@ export function Calendar() {
     loadMonth(anchor);
   }, [anchor.getMonth(), anchor.getFullYear(), loadMonth]);
 
-  // ── Navigation ──
-  const navigate = useCallback((dir: -1 | 1) => {
-    if (view === "month") setAnchor(dir === 1 ? nextMonth(anchor) : prevMonth(anchor));
-    else setAnchor(dir === 1 ? nextWeek(anchor) : prevWeek(anchor));
-  }, [view, anchor]);
-
-  const goToday = useCallback(() => {
-    const t = new Date();
-    setAnchor(t);
-    setSelected(t);
-  }, []);
-
   // ── Block actions ──
   const handleSaveBlock = async (data: { startAt: string; endAt: string; reason: string }, blockId?: string) => {
     try {
       await saveBlock(data, blockId);
       setBlockModal({ open: false });
       await refreshRange(anchor);
-    } catch {
-      // Modal stays open on error, toast already shown by useCalendarData
-    }
+    } catch { /* Modal stays open on error */ }
   };
 
   const handleDeleteBlock = async (id: string) => {
@@ -80,10 +65,7 @@ export function Calendar() {
     await addRule(newRule);
   };
 
-  // ── Derived ──
-  const days = useMemo(() => view === "month" ? monthDays(anchor) : weekDays(anchor), [view, anchor]);
-
-  // ── Render ──
+  // ── Loading state ──
   if (loading) {
     return (
       <div className="calendar-shell">

@@ -496,6 +496,34 @@
   font-size: 0.78rem;
 }
 
+.rules-add-form {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.rules-add-form select,
+.rules-add-form input {
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+
+.rules-add-form select {
+  flex: 1;
+}
+
+.rules-add-form input {
+  width: 95px;
+}
+
+.rules-section-heading {
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
 /* ── Selected day detail panel ────────────── */
 .calendar-day-detail {
   border: 1px solid var(--line);

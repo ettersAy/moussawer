@@ -14,12 +14,11 @@ type RulesListProps = {
 export function RulesList({ rules, newRule, onNewRuleChange, onAdd, onToggle, onDelete }: RulesListProps) {
   return (
     <div>
-      <h3 style={{ fontSize: "0.82rem", fontWeight: 600, marginBottom: "8px" }}>Availability Rules</h3>
-      <div style={{ display: "flex", gap: "6px", marginBottom: "8px" }}>
+      <div className="rules-section-heading">Availability Rules</div>
+      <div className="rules-add-form">
         <select
           value={newRule.dayOfWeek}
           onChange={(e) => onNewRuleChange({ ...newRule, dayOfWeek: Number(e.target.value) })}
-          style={{ flex: 1, padding: "6px 8px", border: "1px solid var(--line)", borderRadius: "6px", fontSize: "0.8rem" }}
         >
           {DAYS_SHORT.map((d, i) => <option key={i} value={i}>{d}</option>)}
         </select>
@@ -27,13 +26,11 @@ export function RulesList({ rules, newRule, onNewRuleChange, onAdd, onToggle, on
           type="time"
           value={newRule.startTime}
           onChange={(e) => onNewRuleChange({ ...newRule, startTime: e.target.value })}
-          style={{ width: "95px", padding: "6px 8px", border: "1px solid var(--line)", borderRadius: "6px", fontSize: "0.8rem" }}
         />
         <input
           type="time"
           value={newRule.endTime}
           onChange={(e) => onNewRuleChange({ ...newRule, endTime: e.target.value })}
-          style={{ width: "95px", padding: "6px 8px", border: "1px solid var(--line)", borderRadius: "6px", fontSize: "0.8rem" }}
         />
         <button type="button" className="solid-button compact" onClick={onAdd}><Plus size={14} /></button>
       </div>

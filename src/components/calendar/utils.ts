@@ -76,3 +76,41 @@ export const HOUR_LABELS = [
   "12a", "1a", "2a", "3a", "4a", "5a", "6a", "7a", "8a", "9a", "10a", "11a",
   "12p", "1p", "2p", "3p", "4p", "5p", "6p", "7p", "8p", "9p", "10p", "11p",
 ] as const;
+
+export function slotTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString("en-CA", { hour: "numeric", minute: "2-digit", hour12: true });
+}
+
+export type SlotOverlap = {
+  isBlocked: boolean;
+  isBooked: boolean;
+  isPast: boolean;
+};
+
+export function checkSlotOverlap(
+  slotStart: string,
+  slotEnd: string,
+  dayDate: Date,
+  hour: number,
+  blocks: { startAt: string; endAt: string }[],
+  slots?: { startAt: string; endAt: string; available: boolean }[],
+): SlotOverlap {
+  const bs = new Date(slotStart).getTime();
+  const be = new Date(slotEnd).getTime();
+
+  const isBlocked = blocks.some((b) => {
+    const bbStart = new Date(b.startAt).getTime();
+    const bbEnd = new Date(b.endAt).getTime();
+    return bs < bbEnd && be > bbStart;
+  });
+
+  const slot = slots?.find((s) => {
+    const st = new Date(s.startAt).getTime();
+    return st >= bs && st < bs + 3600000;
+  });
+
+  const isBooked = !!(slot && !slot.available);
+  const isPast = isPastDay(dayDate) || (isTodayDay(dayDate) && hour < new Date().getHours());
+
+  return { isBlocked, isBooked, isPast };
+}

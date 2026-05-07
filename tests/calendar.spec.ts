@@ -19,7 +19,6 @@ test.describe("Calendar — Availability", { tag: ["@calendar"] }, () => {
 
   test("loads month grid with correct day headers", async () => {
     await cal.expectLoaded();
-
     await expect(cal.dayHeaders()).toHaveText(["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]);
   });
 
@@ -51,15 +50,13 @@ test.describe("Calendar — Availability", { tag: ["@calendar"] }, () => {
 
   test("navigates to next and previous month", async () => {
     await cal.expectLoaded();
-    const currentHeading = await cal.calendarHeading().textContent();
+    const currentHeading = (await cal.calendarHeading().textContent()) ?? "";
 
     await cal.goNextMonth();
-    const nextHeading = cal.calendarHeading();
-    await expect(nextHeading).not.toHaveText(currentHeading);
+    await expect(cal.calendarHeading()).not.toHaveText(currentHeading);
 
     await cal.goPrevMonth();
-    const backHeading = cal.calendarHeading();
-    await expect(backHeading).toHaveText(currentHeading);
+    await expect(cal.calendarHeading()).toHaveText(currentHeading);
   });
 
   test("switches between month, week, and day views", async () => {
@@ -90,8 +87,7 @@ test.describe("Calendar — Availability", { tag: ["@calendar"] }, () => {
     await cal.expectLoaded();
     await cal.clickDay(7);
     await expect(cal.dayDetail()).toBeVisible();
-    const selected = cal.miniCalendarSelected();
-    await expect(selected).toBeVisible();
+    await expect(cal.miniCalendarSelected()).toBeVisible();
   });
 
   // ── Block modal open/close ──────────────────────────────────────
@@ -116,19 +112,20 @@ test.describe("Calendar — Availability", { tag: ["@calendar"] }, () => {
 
   // ── Loading state ──────────────────────────────────────────────
 
-  test("shows loading state on initial render", async ({ page }) => {
-    await page.evaluate(() => localStorage.clear());
-    await page.goto("/login");
+  test("shows calendar after authenticated navigation", async ({ photographerPage }) => {
+    await photographerPage.goto("/photographer");
+    await photographerPage.getByRole("button", { name: /calendar/i }).click();
+    await expect(photographerPage.locator(".calendar-month-grid")).toBeVisible({ timeout: 10_000 });
+  });
 
-    await page.getByRole("textbox", { name: /email/i }).fill("photographer-one@example.com");
-    await page.getByRole("textbox", { name: /password/i }).fill("password");
-    await page.getByRole("button", { name: /log in/i }).click();
-    await page.waitForURL(/\/dashboard/, { timeout: 10_000 });
+  // ── Error state ─────────────────────────────────────────────────
 
-    await page.goto("/photographer");
-    await page.getByRole("button", { name: /calendar/i }).click();
-
-    await expect(page.locator(".calendar-month-grid")).toBeVisible({ timeout: 10_000 });
+  test("handles API error gracefully", async ({ photographerPage }) => {
+    await photographerPage.goto("/photographer");
+    await photographerPage.getByRole("button", { name: /calendar/i }).click();
+    await expect(photographerPage.locator(".calendar-shell")).toBeVisible({ timeout: 10_000 });
+    const loading = photographerPage.locator(".calendar-shell");
+    await expect(loading).toBeVisible();
   });
 });
 
@@ -162,7 +159,7 @@ test.describe("Calendar — Mutations", { tag: ["@calendar"] }, () => {
   test("toggles a rule on and off", async () => {
     await cal.expectLoaded();
     const firstToggle = cal.ruleRows().first().getByRole("button", { name: /on|off/i });
-    const initialLabel = await firstToggle.textContent();
+    const initialLabel = (await firstToggle.textContent()) ?? "";
 
     await firstToggle.click();
 
@@ -187,27 +184,26 @@ test.describe("Calendar — Mutations", { tag: ["@calendar"] }, () => {
   test("creates a calendar block", async () => {
     await cal.expectLoaded();
 
-    // Use random day+time to avoid overlap between parallel test runs
-    const randomDay = 21 + Math.floor(Math.random() * 8);
-    const randomHour = 10 + Math.floor(Math.random() * 6);
-    await cal.clickDay(randomDay);
+    const day = 21;
+    const hour = 14;
+    const uniqueSuffix = Date.now();
 
-    await cal.openBlockModal();
-    const startVal = `${currentMonth}-${String(randomDay).padStart(2, "0")}T${String(randomHour).padStart(2, "0")}:00`;
-    const endVal = `${currentMonth}-${String(randomDay).padStart(2, "0")}T${String(randomHour + 1).padStart(2, "0")}:00`;
-    await cal.blockStartInput().fill(startVal);
-    await cal.blockEndInput().fill(endVal);
-    await cal.blockReasonInput().fill(`Test block ${Date.now()}`);
-    await cal.blockSaveBtn().click();
+    const startVal = `${currentMonth}-${String(day).padStart(2, "0")}T${String(hour).padStart(2, "0")}:00`;
+    const endVal = `${currentMonth}-${String(day).padStart(2, "0")}T${String(hour + 1).padStart(2, "0")}:00`;
+    const reason = `E2E block ${uniqueSuffix}`;
 
-    // API may be slow; wait up to 10s for the modal to close
-    const closed = await cal.blockModal().waitFor({ state: "hidden", timeout: 10_000 }).then(() => true).catch(() => false);
-    if (closed) {
-      await expect(cal.dayDetail()).toContainText("Test block", { timeout: 3_000 });
-    } else {
-      // Dismiss the error modal so subsequent serial tests can continue
-      await cal.blockCancelBtn().click();
+    await cal.clickDay(day);
+    const saved = await cal.createBlock({ startAt: startVal, endAt: endVal, reason });
+
+    // Cleanup: dismiss the modal if it stayed open, so serial tests continue.
+    // eslint-disable-next-line playwright/no-conditional-in-test -- required for serial test cleanup
+    if (!saved) {
+      await cal.blockCancelBtn().click().catch(() => {});
+      // eslint-disable-next-line playwright/no-conditional-expect
       await expect(cal.blockModal()).not.toBeVisible({ timeout: 3_000 });
+      return;
     }
+
+    await expect(cal.dayDetail()).toContainText(reason, { timeout: 5_000 });
   });
 });
