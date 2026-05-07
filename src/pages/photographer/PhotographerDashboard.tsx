@@ -3,6 +3,7 @@ import {
   Grid3X3, Image, Package, Plus, Save, Settings, Star, Trash2, X
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Calendar as CalendarComponent } from "../../components/calendar/Calendar";
 import { ConfirmDialog } from "../../components/shared/ConfirmDialog";
 import { StatusBadge } from "../../components/StatusBadge";
 import { useToast } from "../../components/shared/Toast";
@@ -10,11 +11,6 @@ import { useAuth } from "../../hooks/useAuth";
 import { api, money, shortDate, type Booking, type Photographer, type PortfolioItem, type Service } from "../../lib/api";
 
 type Tab = "bookings" | "services" | "portfolio" | "availability" | "profile";
-
-type AvailabilityRule = { id: string; dayOfWeek: number; startTime: string; endTime: string };
-type CalendarBlock = { id: string; startAt: string; endAt: string; reason?: string | null };
-
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export function PhotographerDashboard() {
   const { user } = useAuth();
@@ -349,85 +345,14 @@ function PortfolioManager({ photographer, onRefresh }: { photographer: Photograp
 }
 
 /* ── Availability Manager ────────────────── */
-function AvailabilityManager({ photographer, onRefresh: _onRefresh }: { photographer: Photographer; onRefresh: () => void }) {
-  const toast = useToast();
-  const [rules, setRules] = useState<AvailabilityRule[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [blocks, setBlocks] = useState<CalendarBlock[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await api<{ rules: AvailabilityRule[]; blocks: CalendarBlock[] }>("/me/availability");
-        setRules(res.data.rules);
-        setBlocks(res.data.blocks);
-      } catch { /* handle gracefully */ }
-      setLoading(false);
-    })();
-  }, []);
-
-  const [newRule, setNewRule] = useState({ dayOfWeek: 1, startTime: "09:00", endTime: "17:00" });
-
-  async function addRule() {
-    try {
-      await api("/me/availability", { method: "POST", body: newRule });
-      toast.success("Availability rule added.");
-      const res = await api<{ rules: AvailabilityRule[] }>("/me/availability");
-      setRules(res.data.rules);
-    } catch (err: any) { toast.error(err.message); }
-  }
-
-  async function deleteRule(id: string) {
-    await api(`/me/availability/${id}`, { method: "DELETE" });
-    toast.success("Rule removed.");
-    setRules(rules.filter((r) => r.id !== id));
-  }
-
-  if (loading) return <div className="panel">Loading calendar...</div>;
-
+function AvailabilityManager({ photographer }: { photographer: Photographer; onRefresh: () => void }) {
   return (
     <div className="content-stack">
-      <div className="dashboard-grid">
-        <section className="panel">
-          <h2>Weekly Availability Rules</h2>
-          <p className="muted" style={{ marginBottom: "14px" }}>Set recurring weekly availability. Clients can only book during these windows.</p>
-
-          <div className="day-rule-row" style={{ marginBottom: "12px", padding: "10px", background: "var(--wash)", borderRadius: "8px" }}>
-            <select value={newRule.dayOfWeek} onChange={(e) => setNewRule({ ...newRule, dayOfWeek: Number(e.target.value) })}>
-              {DAYS.map((d, i) => <option key={i} value={i}>{d}</option>)}
-            </select>
-            <input type="time" value={newRule.startTime} onChange={(e) => setNewRule({ ...newRule, startTime: e.target.value })} />
-            <input type="time" value={newRule.endTime} onChange={(e) => setNewRule({ ...newRule, endTime: e.target.value })} />
-            <button className="solid-button compact" onClick={addRule}><Plus size={14} /></button>
-          </div>
-
-          <div className="list-stack">
-            {rules.map((rule) => (
-              <article className="soft-row" key={rule.id}>
-                <div className="card-title-row">
-                  <strong>{DAYS[rule.dayOfWeek]} {rule.startTime} – {rule.endTime}</strong>
-                  <button className="ghost-button compact" style={{ color: "var(--red)" }} onClick={() => deleteRule(rule.id)}>
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              </article>
-            ))}
-            {!rules.length && <p className="muted">No availability rules set. Add rules above.</p>}
-          </div>
-        </section>
-
-        <section className="panel">
-          <h2>Calendar Blocks</h2>
-          <p className="muted" style={{ marginBottom: "14px" }}>
-            Block specific dates when you're unavailable. Use the API for now: <code>POST /me/calendar-blocks</code>
-          </p>
-          <div className="mini-note">
-            Blocks prevent booking during the specified time range, even if availability rules say you're free.
-            Timezone: {photographer.timezone}
-          </div>
-        </section>
+      <div className="split-heading compact-heading">
+        <h2>Availability Calendar</h2>
+        <span className="muted" style={{ fontSize: "0.82rem" }}>Timezone: {photographer.timezone}</span>
       </div>
+      <CalendarComponent />
     </div>
   );
 }

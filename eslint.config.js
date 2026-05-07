@@ -5,7 +5,7 @@ import playwright from "eslint-plugin-playwright";
 
 export default tseslint.config(
   {
-    ignores: ["dist/**", "node_modules/**", "coverage/**", "test-results/**", "playwright-report/**"]
+    ignores: ["dist/**", "dist-server/**", "node_modules/**", "coverage/**", "test-results/**", "playwright-report/**"]
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
