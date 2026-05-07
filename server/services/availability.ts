@@ -22,6 +22,29 @@ function dateKey(date: Date) {
   return date.toISOString().slice(0, 10);
 }
 
+export async function assertNoBlockOverlap(
+  photographerId: string,
+  startAt: Date,
+  endAt: Date,
+  excludeBlockId?: string
+) {
+  const existing = await prisma.calendarBlock.findFirst({
+    where: {
+      photographerId,
+      startAt: { lt: endAt },
+      endAt: { gt: startAt },
+      ...(excludeBlockId ? { id: { not: excludeBlockId } } : {})
+    }
+  });
+  if (existing) {
+    throw new AppError(
+      409,
+      "BLOCK_OVERLAP",
+      "This time range overlaps with an existing calendar block"
+    );
+  }
+}
+
 export async function availabilityForDate(photographerId: string, date: string, durationMinutes = 60) {
   const target = new Date(`${date}T12:00:00`);
   if (Number.isNaN(target.getTime())) {
@@ -46,7 +69,7 @@ export async function availabilityForDate(photographerId: string, date: string, 
   }
 
   const dayOfWeek = target.getDay();
-  const rules = photographer.availabilityRules.filter((rule) => rule.dayOfWeek === dayOfWeek);
+  const rules = photographer.availabilityRules.filter((rule) => rule.dayOfWeek === dayOfWeek && rule.isActive);
   const slots = [];
 
   for (const rule of rules) {
@@ -105,6 +128,7 @@ export async function assertBookableSlot(photographerId: string, startAt: Date, 
   const endMinutes = endAt.getHours() * 60 + endAt.getMinutes();
   const insideRule = photographer.availabilityRules.some((rule) => {
     return (
+      rule.isActive &&
       rule.dayOfWeek === dayOfWeek &&
       startMinutes >= minutesFromTime(rule.startTime) &&
       endMinutes <= minutesFromTime(rule.endTime) &&

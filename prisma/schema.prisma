@@ -142,6 +142,7 @@ model PhotographerService {
 }
 
 model AvailabilityRule {
+  isActive        Boolean             @default(true)
   id             String              @id @default(cuid())
   photographerId String
   photographer   PhotographerProfile @relation(fields: [photographerId], references: [id], onDelete: Cascade)

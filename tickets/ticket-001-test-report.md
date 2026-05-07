@@ -1,119 +1,130 @@
-# Ticket 001 — QA Test Report
+# Ticket 001 — QA Test Report (FRESH RE-TEST)
 
-**Tested by:** @QA_Moussawer  
-**Date:** 2026-05-07 20:52 UTC  
-**Tickets:** ticket-001-login-broken.md / ticket-001-login-fix.md  
-**Status:** 🔴 QA FAILED
-
----
-
-## Root Cause Found
-
-The Vite proxy returns HTTP 500 because the proxy target URL is **malformed**.
-
-**Chain of causation:**
-1. `.env.local` (created by Vercel CLI) contains `PORT=""`
-2. Vite's `loadEnv()` loads `.env.local` which **overrides** `.env`'s `PORT=4000`
-3. In `vite.config.ts` line 8: `const apiPort = env.PORT ?? "4000"` — the `??` operator treats `""` (empty string) as a valid value, so `apiPort` = `""`
-4. The proxy URL becomes `http://localhost:` — **missing the port number**
-5. Vite's http-proxy can't connect to the malformed URL → returns HTTP 500 with empty body
-
-**Fix required in `vite.config.ts`:**
-```ts
-// BEFORE (broken):
-const apiPort = env.PORT ?? "4000";
-
-// AFTER (fixed):
-const apiPort = env.PORT || "4000";
-// or:
-const apiPort = env.PORT ? env.PORT : "4000";
-```
+**Tested by:** @QAMouss_bot  
+**Date:** 2026-05-07 (fresh re-test per /start)  
+**Ticket:** ticket-001 — Add Login Page  
+**Status:** ❌ QA FAILED
 
 ---
 
 ## Test Results
 
 ### AC1: Vite proxy health check
-**Status:** ❌ FAIL
+**Status:** ✅ PASS
 
 ```
-$ curl http://localhost:5173/api/v1/health
-HTTP/1.1 500 Internal Server Error
-(empty body)
+$ curl -s http://localhost:5173/api/v1/health
+{"data":{"status":"ok","service":"moussawer-api","version":"v1","commit":"233c923"}}
 ```
 
-- Direct API (`localhost:4000`) returns `200` with `{"data":{"status":"ok",...}}`
-- Node.js can connect to port 4000 from localhost (both IPv4 and IPv6 work)
-- The issue is specifically in the Vite proxy configuration (see Root Cause above)
+HTTP 200 with valid JSON. Proxy correctly forwards to API on port 4000.
 
-### AC2: Login through Vite proxy
-**Status:** ❌ FAIL
+### AC2: Login through Vite proxy returns JWT token
+**Status:** ✅ PASS
 
-```
-$ curl -X POST http://localhost:5173/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"client@example.com","password":"password"}'
-HTTP/1.1 500 Internal Server Error
-(empty body)
-```
+| Scenario | Result |
+|----------|--------|
+| Client login (`client@example.com` / `password`) | ✅ 200 + JWT + user object |
+| Admin login (`admin@example.com` / `password`) | ✅ 200 + JWT + user object |
+| Photographer login (`photographer-one@example.com` / `password`) | ✅ 200 + JWT + user object |
+| Bad password (`client@example.com` / `wrongpassword`) | ✅ 401 `INVALID_CREDENTIALS` |
+| Empty body `{}` | ✅ 400 `VALIDATION_ERROR` — both fields required |
+| Missing password | ✅ 400 `VALIDATION_ERROR` — `password: Required` |
+| Missing email | ✅ 400 `VALIDATION_ERROR` — `email: Required` |
+| Invalid JSON body | ✅ 500 `INTERNAL_ERROR` (graceful, not a crash) |
 
-- Direct API login works perfectly: returns 200 with valid JWT token
-- Admin, Client, and Photographer accounts all authenticate correctly via direct API
-- Bad credentials correctly return 401 with `{"error":{"code":"INVALID_CREDENTIALS","message":"Invalid email or password"}}`
-- Login is completely broken from the frontend due to proxy failure
+All roles authenticate successfully. Error cases handled gracefully with proper validation.
 
 ### AC3: Only ONE `concurrently` process running
-**Status:** ❌ FAIL (processes changed during testing)
+**Status:** ✅ PASS
 
-At test start, there were **2 `concurrently` node processes** (PIDs 171125, 172054) and their child `tsx watch` + `vite` processes. During testing, those processes disappeared and were replaced by individually-started `tsx watch` (PID 215713) and `vite` (PID 215776) processes — these are NOT managed by `concurrently`. The `npm run dev` flow is not being used correctly.
+```
+PID 219290: sh -c concurrently -n api,web ...
+PID 219291: node .../concurrently -n api,web ...
+```
 
-- Original state: 2× concurrently, 3× tsx watch, 2× vite — **port conflicts inevitable**
-- Current state: no concurrently, but raw tsx watch + vite — **not using npm run dev**
+Single logical concurrently instance (shell wrapper + node process). Children: `tsx watch` and `vite`. Clean.
 
 ### AC4: No zombie tsx/node processes
-**Status:** ❌ FAIL (resolved mid-test, but not by Dev)
+**Status:** ✅ PASS
 
-At test start, zombie processes included:
-- PID 166154/166156 — standalone tsx watch from before any concurrently was started
-- PID 171361/171362 — child tsx watch of first concurrently (171125)
-- PID 172085/172086 — child tsx watch of second concurrently (172054)
+- One defunct `zsh` process (PID 236016) — unrelated shell artifact from telegrame-claude bot, NOT from moussawer app
+- App process tree clean: all children properly parented under concurrently
+- No orphaned tsx, vite, or node processes belonging to the app
 
-These processes disappeared during testing (exited on their own, not via a fix). The process cleanup is unstable and needs a proper dev-restart script usage.
+### AC5: AuthContext HMR compatible (Vite Fast Refresh)
+**Status:** ✅ PASS
 
-### AC5: AuthContext HMR works without errors
-**Status:** ⚠️ NOT TESTABLE (proxy broken)
-
-- The `useAuth` hook is a named export from `AuthContext.tsx`, which React Fast Refresh cannot handle — this causes full page reloads during development
-- However, this is a **dev experience issue**, not a login blocker
-- Cannot verify actual login flow behavior since the proxy is broken
+- `useAuth` extracted from `AuthContext.tsx` → `hooks/useAuth.ts`
+- `AuthContext.tsx` exports only React components (`AuthContext`, `AuthProvider`)
+- All 10 consumer files import from `../hooks/useAuth` (verified by grep)
+- `vite.config.ts` has `@vitejs/plugin-react` for Fast Refresh
+- TypeScript compiles clean for app source code (`tsc --noEmit` excluding tests)
 
 ---
 
-## Bugs Found
+## Playwright E2E Tests
+**Status:** ❌ FAIL
 
-### Bug 1 (CRITICAL): Vite proxy target has empty port due to `.env.local` override
+### Bug: Tests cannot run — broken import paths + untracked files
 
-**Severity:** 🔴 Critical — breaks ALL frontend API calls  
-**File:** `/srv/dev/moussawer/vite.config.ts` line 8  
-**Reproduction:**
-1. Have `.env.local` with `PORT=""` (created by Vercel CLI)
-2. Start dev server with `npm run dev`
-3. `curl http://localhost:5173/api/v1/health` → HTTP 500
-4. Verify with `node -e "const {loadEnv}=require('vite'); console.log(loadEnv('development','.','').PORT)"` → prints `""`
+**Symptom:**
+```
+Error: Cannot find module '/srv/dev/moussawer/fixtures/auth.fixture'
+  imported from /srv/dev/moussawer/tests/admin-login.spec.ts
 
-**Fix:** Change `env.PORT ?? "4000"` to `env.PORT || "4000"` in `vite.config.ts`
+Error: Cannot find module '/srv/dev/moussawer/fixtures/auth.fixture'
+  imported from /srv/dev/moussawer/tests/smoke.spec.ts
 
-### Bug 2 (HIGH): Duplicate `concurrently` processes cause port conflicts
+Error: No tests found
+```
 
-**Severity:** 🟠 High — can cause EADDRINUSE crashes and proxy instability  
-**Reproduction:** Run `npm run dev` multiple times without killing previous instances  
-**Evidence:** Two `concurrently` node processes observed simultaneously (PIDs 171125, 172054)
+**Root cause — Two issues:**
 
-### Bug 3 (MEDIUM): HMR incompatible export in AuthContext
+1. **Wrong import paths.** Both spec files use `../fixtures/auth.fixture` and `../pages/login.page`:
+   - `tests/admin-login.spec.ts` line 1: `import ... from "../fixtures/auth.fixture"`
+   - `tests/smoke.spec.ts` line 1: `import ... from "../fixtures/auth.fixture"`
+   
+   The `../` resolves to project root (`/srv/dev/moussawer/`), looking for `/srv/dev/moussawer/fixtures/auth.fixture` which does NOT exist. The actual files are at `tests/fixtures/auth.fixture.ts` and `tests/pages/login.page.ts`. Correct imports should be `./fixtures/auth.fixture` and `./pages/login.page`.
 
-**Severity:** 🟡 Medium — dev experience degradation, not user-facing  
-**File:** `/srv/dev/moussawer/src/contexts/AuthContext.tsx`  
-**Detail:** Named export `useAuth` is incompatible with React Fast Refresh, causing full page reloads on changes
+2. **Untracked files.** The test files are NOT committed to git:
+   ```
+   Untracked files:
+     tests/admin-login.spec.ts
+     tests/fixtures/
+     tests/pages/
+     tests/smoke.spec.ts
+   ```
+   The previous test report claimed "6/6 passed (9.6s)" but these tests cannot run in their current state. This is a regression from the previously reported passing state.
+
+---
+
+## Security Verification (from prior CR review)
+
+| Issue | Severity | Status |
+|-------|----------|--------|
+| `.env.vercel` not in `.gitignore` | 🔴 Critical | ✅ FIXED — verified via commit `233c923` |
+| `api/debug.ts` exposes environment secrets | 🔴 Critical | ✅ FIXED — file no longer exists |
+
+---
+
+## Additional Observations
+
+### 🟡 State.json is out of sync
+`/srv/dev/moussawer/.team-memory/state.json` shows ticket-001 as `"in-progress"` but `ticket-001.md` shows `Status: ✅ DONE` and the prior test report shows `QA PASSED`.
+
+### 🟢 vite.config.ts fix confirmed
+```ts
+const apiPort = env.PORT || "4000";  // was env.PORT ?? "4000"
+```
+`||` correctly handles empty `PORT=""` from `.env.local`.
+
+### 🟢 LoginPage.tsx is properly implemented
+- Email/password form with controlled inputs
+- Error handling with user-facing error messages
+- Pre-filled demo credentials for testing
+- Links to register page
+- Uses extracted `useAuth` hook
 
 ---
 
@@ -121,10 +132,13 @@ These processes disappeared during testing (exited on their own, not via a fix).
 
 | AC | Criteria | Status |
 |----|----------|--------|
-| AC1 | `curl :5173/api/v1/health` → 200 | ❌ FAIL (500) |
-| AC2 | Login through proxy returns token | ❌ FAIL (500) |
-| AC3 | Single concurrently process | ❌ FAIL |
-| AC4 | No zombie processes | ❌ FAIL |
-| AC5 | AuthContext HMR compatible | ⚠️ N/A |
+| AC1 | `curl :5173/api/v1/health` → 200 | ✅ PASS |
+| AC2 | Login through proxy returns JWT token | ✅ PASS |
+| AC3 | Single concurrently process | ✅ PASS |
+| AC4 | No zombie tsx/node processes | ✅ PASS |
+| AC5 | AuthContext HMR compatible | ✅ PASS |
+| — | Playwright E2E (6 tests) | ❌ FAIL — broken imports |
 
-**Overall:** 🔴 **QA FAILED** — 0/5 acceptance criteria pass. The primary bug is a one-line fix in `vite.config.ts` but it has not been applied.
+**Overall:** ❌ **QA FAILED** — 5/5 core acceptance criteria pass, but Playwright E2E tests are broken due to wrong import paths (`../` should be `./`) and untracked test files. Tests cannot run.
+
+@DevMouss_bot see test report for ticket-001 — Playwright E2E test imports need fixing.
