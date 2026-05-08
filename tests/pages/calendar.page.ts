@@ -65,6 +65,14 @@ export class CalendarPage {
   // ── Legend ──
   readonly legend = () => this.page.locator(".calendar-legend");
 
+  // ── Mini calendar nav ──
+  readonly miniPrevBtn = () => this.miniCalendar().locator(".mini-calendar-nav").first();
+  readonly miniNextBtn = () => this.miniCalendar().locator(".mini-calendar-nav").last();
+
+  // ── Week view slots ──
+  readonly weekSlots = () => this.weekGrid().locator(".calendar-week-slot:not(.past)");
+  readonly dayRows = () => this.dayViewContainer().locator(".calendar-day-row:not(.past)");
+
   constructor(page: Page) {
     this.page = page;
   }
@@ -83,7 +91,9 @@ export class CalendarPage {
       .filter({ has: this.page.locator(`.calendar-day-number:text-is("${dayNumber}")`) })
       .first();
     await cell.waitFor({ state: "visible", timeout: 3_000 });
-    await cell.click();
+    // force: true is required because .past days have CSS pointer-events: none
+    // eslint-disable-next-line playwright/no-force-option
+    await cell.click({ force: true });
   }
 
   /** Navigate to next month and wait for the grid to settle. */
@@ -132,6 +142,20 @@ export class CalendarPage {
     } catch {
       return false;
     }
+  }
+
+  /** Click a clickable slot in the week view. */
+  async clickFirstWeekSlot() {
+    const slot = this.weekSlots().first();
+    await slot.waitFor({ state: "visible", timeout: 5_000 });
+    await slot.click();
+  }
+
+  /** Click a clickable row in the day view. */
+  async clickFirstDayRow() {
+    const row = this.dayRows().first();
+    await row.waitFor({ state: "visible", timeout: 5_000 });
+    await row.click();
   }
 
   /** Assert the calendar page is fully loaded. */

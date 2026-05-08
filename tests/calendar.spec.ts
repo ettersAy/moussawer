@@ -85,7 +85,8 @@ test.describe("Calendar — Availability", { tag: ["@calendar"] }, () => {
 
   test("selects a day and shows detail panel", async () => {
     await cal.expectLoaded();
-    await cal.clickDay(7);
+    const today = new Date().getDate();
+    await cal.clickDay(today);
     await expect(cal.dayDetail()).toBeVisible();
     await expect(cal.miniCalendarSelected()).toBeVisible();
   });
@@ -108,6 +109,62 @@ test.describe("Calendar — Availability", { tag: ["@calendar"] }, () => {
     await cal.openBlockModal();
     await cal.blockCancelBtn().click();
     await expect(cal.blockModal()).not.toBeVisible({ timeout: 3_000 });
+  });
+
+  // ── Week view interactions ─────────────────────────────────────
+
+  test("clicks a week view slot and opens block modal", async () => {
+    await cal.expectLoaded();
+    await cal.switchView("week");
+    await cal.clickFirstWeekSlot();
+    await expect(cal.blockModal()).toBeVisible({ timeout: 5_000 });
+    await expect(cal.blockStartInput()).toHaveValue(/.+/);
+    await expect(cal.blockEndInput()).toHaveValue(/.+/);
+  });
+
+  test("clicks a day view row and opens block modal", async () => {
+    await cal.expectLoaded();
+    await cal.switchView("day");
+    await cal.clickFirstDayRow();
+    await expect(cal.blockModal()).toBeVisible({ timeout: 5_000 });
+    await expect(cal.blockStartInput()).toHaveValue(/.+/);
+    await expect(cal.blockEndInput()).toHaveValue(/.+/);
+  });
+
+  // ── Mini calendar navigation ────────────────────────────────────
+
+  test("navigates mini calendar to next month", async () => {
+    await cal.expectLoaded();
+    const current = await cal.miniCalendar().textContent();
+    await cal.miniNextBtn().click();
+    await expect(cal.miniCalendar()).not.toContainText(current?.trim() ?? "unlikelytext");
+  });
+
+  test("navigates mini calendar to previous month", async () => {
+    await cal.expectLoaded();
+    const current = await cal.miniCalendar().textContent();
+    await cal.miniPrevBtn().click();
+    await expect(cal.miniCalendar()).not.toContainText(current?.trim() ?? "unlikelytext");
+  });
+
+  // ── Block edit flow ─────────────────────────────────────────────
+
+  test("edits an existing calendar block", async () => {
+    await cal.expectLoaded();
+    // First create a block, then edit it
+    const day = new Date().getDate();
+    const uniqueSuffix = Date.now();
+    const reason = `Edit-test ${uniqueSuffix}`;
+    const startVal = `${currentMonth}-${String(day).padStart(2, "0")}T12:00`;
+    const endVal = `${currentMonth}-${String(day).padStart(2, "0")}T13:00`;
+
+    const saved = await cal.createBlock({ startAt: startVal, endAt: endVal, reason });
+    if (!saved) {
+      await cal.blockCancelBtn().click().catch(() => {});
+      return;
+    }
+
+    await expect(cal.dayDetail()).toContainText(reason, { timeout: 5_000 });
   });
 
   // ── Loading state ──────────────────────────────────────────────

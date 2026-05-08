@@ -17,7 +17,7 @@ export function DayDetail({ date, rangeData, blocks, onRemoveBlock }: DayDetailP
     const end = isoDate(new Date(b.endAt));
     return key >= start && key <= end;
   });
-  const bookings = data?.slots.filter((s) => !s.available && s.reason?.includes("booked")) ?? [];
+  const bookings = data?.slots.filter((s) => !s.available) ?? [];
 
   return (
     <div className="calendar-day-detail">

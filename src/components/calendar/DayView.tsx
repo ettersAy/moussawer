@@ -1,5 +1,5 @@
 import type { CalendarBlock, DayAvailability } from "./types";
-import { isoDate, dayLabel, dayOfMonth, monthYearLabel, slotTime, checkSlotOverlap } from "./utils";
+import { isoDate, dayLabel, dayOfMonth, monthYearLabel, slotTime, checkSlotOverlap, HOUR_LABELS_FULL } from "./utils";
 
 type DayViewProps = {
   date: Date;
@@ -7,10 +7,6 @@ type DayViewProps = {
   blocks: CalendarBlock[];
   onSelectSlot: (start: string, end: string) => void;
 };
-
-const HOUR_LABELS = Array.from({ length: 24 }, (_, h) =>
-  h === 0 ? "12:00 AM" : h < 12 ? `${h}:00 AM` : h === 12 ? "12:00 PM" : `${h - 12}:00 PM`
-);
 
 export function DayView({ date, rangeData, blocks, onSelectSlot }: DayViewProps) {
   const key = isoDate(date);
@@ -34,7 +30,7 @@ export function DayView({ date, rangeData, blocks, onSelectSlot }: DayViewProps)
             className={`calendar-day-row${isPast ? " past" : ""}${isBlocked ? " blocked" : ""}${isBooked ? " booked" : ""}`}
             onClick={() => !isPast && onSelectSlot(ss, se)}
           >
-            <div className="calendar-day-row-time">{HOUR_LABELS[h]}</div>
+            <div className="calendar-day-row-time">{HOUR_LABELS_FULL[h]}</div>
             <div className="calendar-day-row-content">
               {isBlocked && <span className="tag" style={{ background: "var(--red-soft)", color: "var(--red)" }}>Blocked</span>}
               {isBooked && (() => {

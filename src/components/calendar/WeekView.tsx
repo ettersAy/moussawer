@@ -1,5 +1,5 @@
 import type { CalendarBlock, DayAvailability } from "./types";
-import { isoDate, dayLabel, dayOfMonth, isTodayDay, isSameDate, checkSlotOverlap } from "./utils";
+import { isoDate, dayLabel, dayOfMonth, isTodayDay, isSameDate, checkSlotOverlap, HOUR_LABELS_COMPACT } from "./utils";
 
 type WeekViewProps = {
   days: Date[];
@@ -9,17 +9,13 @@ type WeekViewProps = {
   onSelectSlot: (start: string, end: string) => void;
 };
 
-const HOUR_LABELS = Array.from({ length: 24 }, (_, h) =>
-  h === 0 ? "12a" : h < 12 ? `${h}a` : h === 12 ? "12p" : `${h - 12}p`
-);
-
 export function WeekView({ days, rangeData, blocks, selected, onSelectSlot }: WeekViewProps) {
   return (
     <div className="calendar-week-grid">
       <div className="calendar-time-gutter">
         <div className="calendar-time-label" />
         {Array.from({ length: 24 }, (_, h) => (
-          <div key={h} className="calendar-time-label">{HOUR_LABELS[h]}</div>
+          <div key={h} className="calendar-time-label">{HOUR_LABELS_COMPACT[h]}</div>
         ))}
       </div>
       {days.map((d) => {

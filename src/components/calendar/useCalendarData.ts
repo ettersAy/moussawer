@@ -29,12 +29,20 @@ export function useCalendarData() {
     } catch { /* silently handle */ }
   }, []);
 
-  const loadMonth = useCallback((anchor: Date) => {
+  const fetchRangeForAnchor = useCallback((anchor: Date) => {
     const from = new Date(anchor.getFullYear(), anchor.getMonth(), 1);
     const to = new Date(anchor.getFullYear(), anchor.getMonth() + 1, 0);
+    return fetchRange(from, to);
+  }, [fetchRange]);
+
+  const loadMonth = useCallback((anchor: Date) => {
     setLoading(true);
-    Promise.all([fetchRules(), fetchRange(from, to)]).finally(() => setLoading(false));
-  }, [fetchRules, fetchRange]);
+    Promise.all([fetchRules(), fetchRangeForAnchor(anchor)]).finally(() => setLoading(false));
+  }, [fetchRules, fetchRangeForAnchor]);
+
+  const refreshRange = useCallback((anchor: Date) => {
+    return fetchRangeForAnchor(anchor);
+  }, [fetchRangeForAnchor]);
 
   // ── Rule mutations ──
   const addRule = useCallback(async (rule: { dayOfWeek: number; startTime: string; endTime: string }) => {
@@ -77,12 +85,6 @@ export function useCalendarData() {
     toast.success("Block removed.");
     await fetchRules();
   }, [fetchRules, toast]);
-
-  const refreshRange = useCallback((anchor: Date) => {
-    const from = new Date(anchor.getFullYear(), anchor.getMonth(), 1);
-    const to = new Date(anchor.getFullYear(), anchor.getMonth() + 1, 0);
-    return fetchRange(from, to);
-  }, [fetchRange]);
 
   return {
     rules, blocks, rangeData, loading,

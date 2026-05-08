@@ -72,10 +72,13 @@ export function prevWeek(d: Date): Date {
 
 export const DAYS_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
 
-export const HOUR_LABELS = [
-  "12a", "1a", "2a", "3a", "4a", "5a", "6a", "7a", "8a", "9a", "10a", "11a",
-  "12p", "1p", "2p", "3p", "4p", "5p", "6p", "7p", "8p", "9p", "10p", "11p",
-] as const;
+export const HOUR_LABELS_COMPACT = Array.from({ length: 24 }, (_, h) =>
+  h === 0 ? "12a" : h < 12 ? `${h}a` : h === 12 ? "12p" : `${h - 12}p`
+);
+
+export const HOUR_LABELS_FULL = Array.from({ length: 24 }, (_, h) =>
+  h === 0 ? "12:00 AM" : h < 12 ? `${h}:00 AM` : h === 12 ? "12:00 PM" : `${h - 12}:00 PM`
+);
 
 export function slotTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("en-CA", { hour: "numeric", minute: "2-digit", hour12: true });
