@@ -8,13 +8,40 @@
       "priority": "P1"
     },
     {
-      "id": "playwright-audit-tasks",
-      "title": "Playwright Test Code: Fix & Improvement Tasks (21 tasks)",
+      "id": "ticket-002",
+      "title": "Calendar Blocks UI",
       "status": "done",
       "assignee": "DevMouss_bot",
-      "priority": "P0-P2",
-      "resolvedAt": "2026-05-07T04:30:00.000Z"
+      "priority": "P1"
+    },
+    {
+      "id": "ticket-003",
+      "title": "Booking-Messaging Link",
+      "status": "done",
+      "assignee": "DevMouss_bot",
+      "priority": "P1"
+    },
+    {
+      "id": "ticket-004",
+      "title": "Earnings & Analytics Dashboard Tab",
+      "status": "done",
+      "assignee": "DevMouss_bot",
+      "priority": "P2"
+    },
+    {
+      "id": "ticket-005",
+      "title": "Portfolio Image Upload UX",
+      "status": "done",
+      "assignee": "DevMouss_bot",
+      "priority": "P2"
+    },
+    {
+      "id": "ticket-006",
+      "title": "Availability Rule Inline Editing",
+      "status": "done",
+      "assignee": "DevMouss_bot",
+      "priority": "P2"
     }
   ],
-  "updatedAt": "2026-05-07T04:30:00.000Z"
+  "updatedAt": "2026-05-07T23:57:00.000Z"
 }

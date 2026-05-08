@@ -1,10 +1,12 @@
 import { Send } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { api, shortDate, type Conversation, type Message } from "../lib/api";
 
 export function MessagesPage() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeId, setActiveId] = useState<string>("");
   const [messages, setMessages] = useState<Message[]>([]);
@@ -13,9 +15,14 @@ export function MessagesPage() {
   useEffect(() => {
     api<Conversation[]>("/conversations").then((response) => {
       setConversations(response.data);
-      setActiveId(response.data[0]?.id ?? "");
+      const targetId = searchParams.get("conversation");
+      if (targetId && response.data.some((c) => c.id === targetId)) {
+        setActiveId(targetId);
+      } else {
+        setActiveId(response.data[0]?.id ?? "");
+      }
     });
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     if (!activeId) return;

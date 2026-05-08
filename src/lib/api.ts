@@ -89,6 +89,7 @@ export type Booking = {
   client: { id: string; name?: string; email?: string };
   photographer: { id: string; name?: string; slug?: string; email?: string };
   service: { id: string; title?: string; durationMinutes?: number; price?: number };
+  conversation?: { id: string };
   startAt: string;
   endAt: string;
   location: string;
@@ -100,6 +101,24 @@ export type Booking = {
   cancelledAt?: string | null;
   completedAt?: string | null;
   createdAt: string;
+};
+
+export type CalendarBlock = {
+  id: string;
+  photographerId: string;
+  startAt: string;
+  endAt: string;
+  reason?: string | null;
+  createdAt: string;
+};
+
+export type AvailabilityRule = {
+  id: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  isActive: boolean;
+  timezone: string;
 };
 
 export type Conversation = {

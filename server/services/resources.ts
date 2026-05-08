@@ -158,6 +158,7 @@ export function bookingResource(
     client?: Pick<User, "id" | "name" | "email" | "avatarUrl">;
     photographer?: PhotographerProfile & { user: Pick<User, "id" | "name" | "email" | "avatarUrl"> };
     service?: PhotographerService;
+    conversations?: { id: string }[];
   }
 ) {
   return {
@@ -182,6 +183,7 @@ export function bookingResource(
           price: booking.service.price
         }
       : { id: booking.serviceId },
+    conversation: booking.conversations?.[0] ? { id: booking.conversations[0].id } : undefined,
     startAt: booking.startAt,
     endAt: booking.endAt,
     location: booking.location,

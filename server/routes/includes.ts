@@ -31,7 +31,8 @@ export const userInclude = {
 export const bookingInclude = {
   client: { select: { id: true, name: true, email: true, avatarUrl: true } },
   photographer: { include: { user: { select: { id: true, name: true, email: true, avatarUrl: true } } } },
-  service: true
+  service: true,
+  conversations: { select: { id: true } }
 } satisfies Prisma.BookingInclude;
 
 export const photographerInclude = {
