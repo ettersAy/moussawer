@@ -1,8 +1,8 @@
 <template>
   <header class="toolbar">
     <div class="brand">
-      <strong>{{ settings.settings.general.appName }}</strong>
-      <span>{{ store.nodes.length }} nodes</span>
+      <ProjectSwitcher />
+      <span class="node-count">{{ store.nodes.length }} nodes</span>
     </div>
 
     <input
@@ -48,7 +48,9 @@
 import { computed } from 'vue'
 import { useTreeStore } from '../stores/treeStore.js'
 import { useSettingsStore } from '../stores/settingsStore.js'
+import { useProjectStore } from '../stores/projectStore.js'
 import { getTagColor } from '../utils/treeUtils.js'
+import ProjectSwitcher from './ProjectSwitcher.vue'
 
 defineProps({
   outlineOpen: { type: Boolean, default: true },
@@ -124,19 +126,16 @@ function importJson(event) {
 }
 
 .brand {
-  display: grid;
-  gap: 2px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   min-width: 120px;
 }
 
-.brand strong {
-  font-size: 15px;
-  letter-spacing: 0;
-}
-
-.brand span {
+.node-count {
   color: var(--muted);
   font-size: 12px;
+  white-space: nowrap;
 }
 
 .search {

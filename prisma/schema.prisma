@@ -67,6 +67,7 @@ model User {
   favorites           Favorite[]
   reviewsWritten      Review[]                  @relation("ReviewsWritten")
   auditLogs           ActivityLog[]
+  projects            Project[]
 }
 
 model ClientProfile {
@@ -359,4 +360,22 @@ model ActivityLog {
 
   @@index([actorId])
   @@index([createdAt])
+}
+
+model Project {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name             String
+  description      String?
+  githubUrl        String?
+  localPath        String?
+  treeData         String   @default("{}")
+  githubRepoOwner  String?
+  githubRepoName   String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([userId])
+  @@index([userId, updatedAt])
 }

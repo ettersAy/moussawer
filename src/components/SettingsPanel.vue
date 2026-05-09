@@ -50,13 +50,14 @@
 
           <div v-if="tab === 'save'" class="form-grid">
             <label>
-              Folder path note
+              Local project path
               <input
                 :value="settings.settings.save.folderPath"
-                placeholder="Example: ~/Documents/mushajjir"
-                @input="settings.updateSave({ folderPath: $event.target.value })"
+                placeholder="Example: ~/dev/my-project"
+                @input="onFolderPathChange($event.target.value)"
               />
             </label>
+            <p v-if="pathSaved" class="hint success">Path saved to active project.</p>
             <label>
               Preferred export format
               <select
@@ -68,10 +69,6 @@
                 <option value="json">JSON</option>
               </select>
             </label>
-            <p class="hint">
-              Browser apps cannot write directly to a local folder without a backend or file picker permission. This is
-              saved as your preferred destination note for now.
-            </p>
           </div>
 
           <div v-if="tab === 'api'" class="api-section">
@@ -182,11 +179,31 @@
 <script setup>
 import { ref } from 'vue'
 import { useSettingsStore } from '../stores/settingsStore.js'
+import { useProjectStore } from '../stores/projectStore.js'
 
 defineEmits(['close'])
 
 const tab = ref('general')
 const settings = useSettingsStore()
+const projectStore = useProjectStore()
+const pathSaved = ref(false)
+let pathTimer = null
+
+function onFolderPathChange(value) {
+  settings.updateSave({ folderPath: value })
+  if (projectStore.activeProjectId) {
+    clearTimeout(pathTimer)
+    pathTimer = setTimeout(async () => {
+      try {
+        await projectStore.updateProject(projectStore.activeProjectId, { localPath: value })
+        pathSaved.value = true
+        setTimeout(() => (pathSaved.value = false), 2000)
+      } catch {
+        // silent
+      }
+    }, 500)
+  }
+}
 </script>
 
 <style scoped>

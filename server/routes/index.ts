@@ -10,6 +10,7 @@ import { router as messagingRouter } from "./messaging.routes";
 import { router as notificationsRouter } from "./notifications.routes";
 import { router as photographerRouter } from "./photographer.routes";
 import { router as portfolioRouter } from "./portfolio.routes";
+import { router as projectsRouter } from "./projects.routes";
 import { router as reviewsRouter } from "./reviews.routes";
 import { router as supportRouter } from "./support.routes";
 
@@ -28,3 +29,4 @@ apiRouter.use(favoritesRouter);
 apiRouter.use(notificationsRouter);
 apiRouter.use(supportRouter);
 apiRouter.use(adminRouter);
+apiRouter.use(projectsRouter);

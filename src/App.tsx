@@ -14,6 +14,7 @@ import { PhotographerProfilePage } from "./pages/PhotographerProfilePage";
 import { PhotographerDashboard } from "./pages/photographer/PhotographerDashboard";
 import { RegisterPage } from "./pages/RegisterPage";
 import { SupportPage } from "./pages/SupportPage";
+import MushajjirApp from "./components/MushajjirApp";
 
 export function App() {
   return (
@@ -36,6 +37,9 @@ export function App() {
         <Route element={<AdminRoute />}>
           <Route path="/admin" element={<AdminPage />} />
         </Route>
+      </Route>
+      <Route element={<ProtectedRoute />}>
+        <Route path="/mindmap" element={<MushajjirApp />} />
       </Route>
     </Routes>
   );

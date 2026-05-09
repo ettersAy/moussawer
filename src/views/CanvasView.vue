@@ -44,9 +44,11 @@ import StickyNode from '../components/StickyNode.vue'
 import TaskModal from '../components/TaskModal.vue'
 import { useTreeStore } from '../stores/treeStore.js'
 import { useSettingsStore } from '../stores/settingsStore.js'
+import { useProjectStore } from '../stores/projectStore.js'
 
 const store = useTreeStore()
 const settings = useSettingsStore()
+const projectStore = useProjectStore()
 const showSettings = ref(false)
 const showOutline = ref(true)
 const modalNodeId = ref(null)
@@ -168,9 +170,39 @@ watch(
   },
 )
 
-onMounted(() => {
+onMounted(async () => {
   window.addEventListener('keydown', onKeydown)
+
+  // Initialize projects: fetch list, restore last active
+  await projectStore.fetchProjects()
+
+  if (projectStore.hasProjects) {
+    const restored = projectStore.initFromLocalStorage()
+    if (restored) {
+      try {
+        const project = await projectStore.loadProject(projectStore.activeProjectId)
+        if (project.treeData?.nodes?.length) {
+          store.importTree(project.treeData)
+        }
+      } catch {
+        projectStore.activeProjectId = null
+      }
+    }
+  }
 })
+
+watch(
+  () => [store.nodes, store.edges],
+  () => {
+    if (projectStore.activeProjectId) {
+      projectStore.saveTreeToApi({
+        nodes: JSON.parse(JSON.stringify(store.nodes)),
+        edges: JSON.parse(JSON.stringify(store.edges)),
+      })
+    }
+  },
+  { deep: true },
+)
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKeydown)

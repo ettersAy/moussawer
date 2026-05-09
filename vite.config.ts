@@ -1,5 +1,6 @@
 /// <reference types="vitest" />
 import react from "@vitejs/plugin-react";
+import vue from "@vitejs/plugin-vue";
 import { defineConfig, loadEnv } from "vite";
 
 export default defineConfig(({ mode }) => {
@@ -7,7 +8,7 @@ export default defineConfig(({ mode }) => {
   const apiPort = env.PORT || "4000";
 
   return {
-    plugins: [react()],
+    plugins: [react(), vue()],
     server: {
       port: 5173,
       proxy: {
