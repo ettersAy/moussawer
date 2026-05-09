@@ -10,8 +10,8 @@
     "build:vercel": "(git rev-parse --short HEAD > .githash 2>/dev/null || true) && npx prisma generate && tsc -p tsconfig.server.json && vite build",
     "build": "git rev-parse --short HEAD > .githash && prisma generate && tsc --noEmit && vite build && tsc -p tsconfig.server.json && echo '{\"type\":\"commonjs\"}' > dist-server/package.json",
     "lint": "eslint .",
-    "pretest": "npm run db:reset",
     "test": "vitest run",
+    "test:reset": "npm run db:reset && vitest run",
     "test:watch": "vitest",
     "test:e2e": "npx playwright test",
     "test:e2e:ui": "npx playwright test --ui",
@@ -23,8 +23,10 @@
     "db:push": "prisma db push && prisma generate",
     "db:migrate": "prisma migrate dev --name init",
     "db:seed": "tsx prisma/seed.ts",
-    "db:reset": "npm run db:push && npm run db:seed",
-    "start": "node dist-server/server/index.js"
+    "db:seed:verify": "node -e \"const{PrismaClient}=require('@prisma/client');const p=new PrismaClient();p.user.count().then(c=>{if(c<3){console.error('SEED FAILED: only '+c+' users');process.exit(1)}console.log('Seed OK: '+c+' users');process.exit(0)})\"",
+    "db:reset": "npm run db:push && npm run db:seed && npm run db:seed:verify",
+    "verify": "tsc --noEmit && eslint . && vitest run",
+    "check": "./scripts/db-check.sh"
   },
   "dependencies": {
     "@prisma/client": "^6.7.0",

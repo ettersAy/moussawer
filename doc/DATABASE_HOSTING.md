@@ -2,22 +2,20 @@
 
 Moussawer uses Prisma with PostgreSQL.
 
-## Recommended free setup
-
-Use this setup first:
+## Current setup
 
 - Web/API host: Render Web Service
-- Database host: Supabase PostgreSQL free tier
-- Runtime `DATABASE_URL`: Supabase shared pooler / transaction mode URL on port `6543`
-
-Do not deploy the current Express server as a static-only Vercel frontend. The API is a long-running Express app and should run as a Node web service unless it is refactored into serverless functions.
+- Database host: Neon PostgreSQL free tier
+- Runtime `DATABASE_URL`: Neon pooled endpoint (with `-pooler` in hostname and `pgbouncer=true`)
+- Runtime `DIRECT_URL`: Neon direct endpoint (no `-pooler`, no `pgbouncer`) — used for Prisma migrations
 
 ## Required environment variables
 
-Set these in the hosting dashboard, not in Git:
+Set these in the Render dashboard AND in local `.env`, not in Git:
 
 ```env
-DATABASE_URL="postgresql://postgres.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1"
+DATABASE_URL="postgresql://<user>:<password>@<host>-pooler.<region>.aws.neon.tech/<db>?sslmode=require&pgbouncer=true"
+DIRECT_URL="postgresql://<user>:<password>@<host>.<region>.aws.neon.tech/<db>?sslmode=require"
 JWT_SECRET="<openssl-rand-hex-32>"
 NODE_ENV="production"
 PORT="4000"
@@ -27,32 +25,22 @@ Never commit real values in `.env`, `render.yaml`, README files, or docs.
 
 ## Common connection failures
 
-1. Direct Supabase URL used instead of pooler URL.
-2. Port `5432` used from a host that cannot reach IPv6-only direct endpoints.
-3. Missing `pgbouncer=true` with Supabase transaction pooler.
-4. Missing or malformed `DATABASE_URL` in the host dashboard.
-5. Supabase project is paused, deleted, or the database password changed.
-6. Database schema was never pushed after creating the DB.
+1. `DIRECT_URL` not set — the Prisma schema references `env("DIRECT_URL")`, so both vars must exist.
+2. Pooled URL used for `DIRECT_URL` or vice versa — the direct URL must NOT have `-pooler` or `pgbouncer=true`.
+3. Missing or malformed `DATABASE_URL` in the Render dashboard.
+4. Neon IP restrictions — check the Neon dashboard that connections from Render's IP range are allowed.
+5. Database schema was never pushed after creating the DB.
 
 ## Deployment rule
 
-Production build should not run `prisma db push` automatically.
-
-Use this manually after configuring `DATABASE_URL`:
+Schema pushes should be done manually from local (which connects to the same Neon database):
 
 ```bash
 npm run db:push
 npm run db:seed
 ```
 
-Production host build/start:
-
-```bash
-npm ci
-npm run db:generate
-npm run build
-npm start
-```
+The Render build command handles `prisma generate` automatically. No separate `db:push` needed on deploy.
 
 ## Verify production DB connectivity
 
@@ -60,25 +48,14 @@ After deploy, open:
 
 ```txt
 /api/v1/health
-/api/v1/health/db
 ```
 
-If `/health` works but `/health/db` fails, the web host is running but the DB URL, DB password, network path, or Supabase project status is wrong.
-
-## Alternative free DB hosts
-
-Best alternatives if Supabase keeps failing:
-
-1. Neon PostgreSQL free tier — minimal code change.
-2. Prisma Postgres free tier — designed for Prisma projects.
-3. Railway PostgreSQL — good developer experience, but free limits can change.
-
-Avoid switching to MySQL or SQLite for production unless there is a strong reason. PostgreSQL is already wired into `prisma/schema.prisma`.
+If `/health` returns OK, the database connection is working.
 
 ## Security note
 
-A real Supabase connection string and JWT secret were previously committed in `render.yaml`. Rotate both secrets before deploying again:
+Sensitive credentials (DATABASE_URL, DIRECT_URL, JWT_SECRET) must only exist in:
+1. Local `.env` (gitignored)
+2. Render.com dashboard environment variables
 
-1. Change the Supabase database password.
-2. Generate a new `JWT_SECRET` with `openssl rand -hex 32`.
-3. Update the values only in the hosting dashboard.
+Never commit these values. `.env.example` has placeholder templates only.

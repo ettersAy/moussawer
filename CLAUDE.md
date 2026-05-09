@@ -1,20 +1,17 @@
 # CLAUDE.md — Moussawer Photography Marketplace
 
-> **Last mission:** 2026-05-05 · 3 rounds of audit/testing/fixing · See `doc/MISSION_HANDOFF.md` for full context.
+> **Last mission:** 2026-05-09 · Migrated from Supabase to Neon PostgreSQL · See `doc/MISSION_HANDOFF.md` for full context.
 
 ## Pre-Flight Checklist (run before any coding)
 ```bash
-# 1. Is the database reachable?
-./scripts/db-check.sh
+# 1. Is the database reachable and seeded?
+npm run check
 
 # 2. Is the dev server running?
 curl -s http://localhost:4000/api/v1/health || ./scripts/dev-restart.sh
 
-# 3. Can Playwright open a browser?
-./scripts/playwright-check.sh
-
-# 4. Are all APIs functional?
-./scripts/smoke-test.sh
+# 3. Full verification (typecheck + lint + tests)
+npm run verify
 ```
 
 ## Tech Stack
@@ -22,7 +19,7 @@ curl -s http://localhost:4000/api/v1/health || ./scripts/dev-restart.sh
 - **Frontend:** React 19 + Vite 6 + React Router 7 + plain CSS
 - **Auth:** JWT (jsonwebtoken + bcryptjs), stored in localStorage
 - **Testing:** Vitest 3 + Supertest 7
-- **Deployment:** Render.com (free tier), Supabase PostgreSQL (free tier)
+- **Deployment:** Render.com (free tier), Neon PostgreSQL (free tier)
 
 ## Quick Start
 ```bash
@@ -52,12 +49,13 @@ npm run dev                   # API :4000 + Vite :5173
 | `src/App.tsx` | Route definitions with role guards |
 | `src/main.tsx` | Root render with ErrorBoundary + providers |
 
-## Known Issues
-- **Supabase free tier pauses after 1 week.** If cloud DB is unreachable, use local Docker PostgreSQL: `docker run -d --name moussawer-pg -e POSTGRES_USER=moussawer -e POSTGRES_PASSWORD=moussawer123 -e POSTGRES_DB=moussawer -p 5432:5432 postgres:14` then set `DATABASE_URL=postgresql://moussawer:moussawer123@localhost:5432/moussawer`
-- **Booking timezone gotcha:** API accepts UTC timestamps but validates against photographer's local timezone (default `America/Toronto`). `09:00 UTC = 05:00 Toronto` — outside 9am-5pm availability. Convert times accordingly.
+## Critical Warnings
+- **Shared database — no separate test DB.** Local dev, tests, and Render production all use the same Neon database. `npm run db:reset` DELETES ALL DATA and re-seeds. Never run it without understanding this. `npm test` does NOT auto-reset anymore (pretest was removed 2026-05-09).
+- **After seeding, verify.** Run `npm run db:seed:verify` to confirm users exist. A missing seed is invisible — the app starts fine but login returns 401.
+- **Neon requires two env vars.** `DATABASE_URL` (pooled with `pgbouncer=true`) and `DIRECT_URL` (direct, no pooling). Both must be set in local `.env` AND in Render dashboard. Missing `DIRECT_URL` causes silent connection issues.
+- **Booking timezone gotcha:** API accepts UTC timestamps but validates against photographer's local timezone (default `America/Toronto`). `09:00 UTC = 05:00 Toronto` — outside 9am-5pm availability.
 - **pkill -f "tsx watch" kills the shell** on zsh. Use `kill $(lsof -ti:4000) $(lsof -ti:5173)` instead.
-- **`status` is a zsh reserved word.** Don't use it as a variable name in shell scripts.
-- **Prisma deprecation warning** about `package.json#prisma` is expected — project hasn't migrated to `prisma.config.ts` yet.
+- **`status` is a zsh reserved word.** Use `code`, `result`, or `http_code` in shell scripts.
 
 ## Shell Safety Rules (zsh environment)
 - **Never use `pkill -f "tsx"` or `pkill -f "vite"`** — kills the shell itself. Use `kill $(lsof -ti:4000) $(lsof -ti:5173)`.
@@ -73,15 +71,33 @@ npm run dev                   # API :4000 + Vite :5173
 | photographer-one@example.com | password | PHOTOGRAPHER |
 
 ## Scripts
+
+### npm run
 | Script | Purpose |
 |--------|---------|
-| `scripts/smoke-test.sh` | Test all 33 API endpoints, report pass/fail |
+| `npm run verify` | Typecheck + lint + tests — run before committing |
+| `npm run check` | DB connectivity + seed check |
+| `npm run db:seed:verify` | Confirm seed created >=3 users |
+| `npm run db:reset` | **DESTRUCTIVE** — push schema + seed + verify |
+| `npm run test:reset` | **DESTRUCTIVE** — reset DB then run tests |
+| `npm run dev` | Start API (:4000) + Vite (:5173) |
+
+### Shell scripts
+| Script | Purpose |
+|--------|---------|
+| `scripts/smoke-test.sh` | Test all API endpoints, report pass/fail |
 | `scripts/dev-restart.sh` | Safe kill + restart of both dev servers |
-| `scripts/db-check.sh` | DB connectivity test + schema sync check |
-| `scripts/playwright-check.sh` | Verify Playwright browser is usable |
+| `scripts/db-check.sh` | DB connectivity + schema sync + seed check |
 | `scripts/schema-check.sh` | Validate schema integrity (relations, indexes) |
 
+### Logs
+| File | Purpose |
+|------|---------|
+| `mission.log` | Chronological record of mission events — append to it |
+
 ## Database
+- **Hosting:** Neon PostgreSQL (free tier) — pooled connection for queries, direct connection for migrations
 - **20 models:** User, ClientProfile, PhotographerProfile, Category, PhotographerCategory, PhotographerService, AvailabilityRule, CalendarBlock, PortfolioItem, Booking, Conversation, ConversationParticipant, Message, Incident, Dispute, DisputeComment, Review, Favorite, Notification, ActivityLog
 - **Tags are comma-separated strings** in PortfolioItem, not a relation — MVP simplification
 - **metadata fields use String type** with JSON content — use `safeJson()` from `server/utils/http.ts` when reading
+- **Required env vars:** `DATABASE_URL` (pooled, for queries), `DIRECT_URL` (direct, for migrations), `JWT_SECRET` — all three must be set locally and on Render.com

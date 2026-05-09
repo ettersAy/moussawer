@@ -1,6 +1,6 @@
 # Environment Setup — Local Dev & Free Production Hosting
 
-This project uses a single Supabase PostgreSQL database shared between local
+This project uses a single Neon PostgreSQL database shared between local
 development and production hosting. Both environments connect to the same
 database — the difference is how the app runs.
 
@@ -8,11 +8,11 @@ database — the difference is how the app runs.
 
 ```
                       ┌──────────────────────┐
-                      │   Supabase (free)     │
-                      │   PostgreSQL          │
-                      │   500 MB, permanent   │
-                      └──────────┬───────────┘
-                                 │ DATABASE_URL
+                      │   Neon (free)          │
+                      │   PostgreSQL            │
+                      │   0.5 GB, permanent     │
+                      └──────────┬─────────────┘
+                                 │ DATABASE_URL + DIRECT_URL
                  ┌───────────────┴───────────────┐
                  │                               │
      ┌───────────▼──────────┐      ┌─────────────▼──────────┐
@@ -25,12 +25,12 @@ database — the difference is how the app runs.
 
 | Env | Database | Server | Frontend | Dev reload |
 |---|---|---|---|---|
-| **Local** | Supabase cloud (same DB) | `tsx watch` on port 4000 | Vite dev on port 5173 | Hot (HMR) |
-| **Production** | Supabase cloud (same DB) | Compiled JS on port 4000 | Built static files (served by Express) | None (build once) |
+| **Local** | Neon cloud (same DB) | `tsx watch` on port 4000 | Vite dev on port 5173 | Hot (HMR) |
+| **Production** | Neon cloud (same DB) | Compiled JS on port 4000 | Built static files (served by Express) | None (build once) |
 
 > **Why no local database?** SQLite is NOT compatible with the Prisma schema
 > (`provider = "postgresql"`). Installing a local PostgreSQL is unnecessary when
-> Supabase offers a free 500 MB cloud database. You develop directly against the
+> Neon offers a free 0.5 GB cloud database. You develop directly against the
 > same database used in production — no schema drift, no local/cloud sync.
 
 ---
@@ -39,42 +39,39 @@ database — the difference is how the app runs.
 
 - **Node.js** 22+ and **npm** 10+
 - A **GitHub account** (for Render.com deployment)
-- A **Supabase account** (free, no credit card)
+- A **Neon account** (free, no credit card)
 - A **Render.com account** (free, no credit card)
 
 No local database needed. No Docker needed for development.
 
 ---
 
-## Step 2: Create the Supabase Database (once)
+## Step 2: Create the Neon Database (once)
 
 This is the shared database for both environments. Do this once.
 
-1. Go to [supabase.com](https://supabase.com) and sign up (GitHub login works).
-2. Click **"New project"**.
+1. Go to [neon.tech](https://neon.tech) and sign up (GitHub login works).
+2. Click **"Create project"**.
 3. Fill in:
    - **Name:** `moussawer`
-   - **Database password:** Generate a strong one and save it.
-     > **Special characters warning:** If your password contains `@`, `:`, `/`,
-     > `%`, or `#`, URL-encode them in the connection string:
-     > `@`→`%40`, `:`→`%3A`, `/`→`%2F`, `%`→`%25`, `#`→`%23`
    - **Region:** Pick the closest to you (e.g., `US East`).
-4. Wait ~2 minutes for provisioning.
-5. Go to **Project Settings → Database → Connection string**.
-6. Under **Connection pooling**, copy the **Transaction** URI. It looks like:
+   - **Postgres version:** 16 (default)
+4. Wait ~30 seconds for provisioning.
+5. Go to **Dashboard → your project → Connection Details**.
+6. Copy **both** connection strings:
+   - **Pooled connection** (has `-pooler` in hostname) — use for `DATABASE_URL`
+   - **Direct connection** (no `-pooler`) — use for `DIRECT_URL`
+7. Append `?sslmode=require&pgbouncer=true` to the pooled URL:
    ```
-   postgresql://postgres.<project-ref>:<password>@aws-0-us-east-1.pooler.supabase.com:6543/postgres
+   postgresql://<user>:<password>@<host>-pooler.<region>.aws.neon.tech/<db>?sslmode=require&pgbouncer=true
    ```
-   > **Use the pooler (port 6543), not the direct connection (port 5432).**
-   > The pooler supports IPv4. The direct endpoint is IPv6-only and Render.com
-   > cannot reach it.
-7. Append `?pgbouncer=true&connection_limit=1` to the URI:
+   Append `?sslmode=require` to the direct URL:
    ```
-   postgresql://postgres.<project-ref>:<password>@aws-0-us-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1
+   postgresql://<user>:<password>@<host>.<region>.aws.neon.tech/<db>?sslmode=require
    ```
-   > **Why:** PgBouncer runs in transaction mode, which doesn't support
-   > session-level features like `SET` or advisory locks. These flags tell
-   > Prisma to avoid those features.
+   > **Why two URLs?** Neon uses PgBouncer for connection pooling. The pooled
+   > endpoint (`DATABASE_URL`) handles queries. The direct endpoint
+   > (`DIRECT_URL`) is needed for Prisma migrations and schema operations.
 
 ---
 
@@ -85,8 +82,6 @@ openssl rand -hex 32
 ```
 
 Copy the output. You will use this for `JWT_SECRET` in both environments.
-
-Example output: `d6fb73ec361ec5bd4bc60f8375e5f310`
 
 ---
 
@@ -108,7 +103,8 @@ cp .env.example .env
 Edit `.env` with your real values:
 
 ```env
-DATABASE_URL="postgresql://postgres.<project-ref>:<your-password>@aws-0-us-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1"
+DATABASE_URL="postgresql://<user>:<password>@<host>-pooler.<region>.aws.neon.tech/<db>?sslmode=require&pgbouncer=true"
+DIRECT_URL="postgresql://<user>:<password>@<host>.<region>.aws.neon.tech/<db>?sslmode=require"
 JWT_SECRET="<output-from-step-3>"
 PORT=4000
 VITE_API_URL="/api/v1"
@@ -168,8 +164,9 @@ Check `prisma/schema.prisma` — the datasource block must say:
 
 ```prisma
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 ```
 
@@ -190,40 +187,7 @@ In `package.json`, these must exist:
 >    (the root `package.json` has `"type": "module"` which would break the
 >    compiled output otherwise)
 
-### 5.3 Verify `render.yaml`
-
-This file tells Render.com how to build and start the app:
-
-```yaml
-services:
-  - type: web
-    name: moussawer
-    env: node
-    buildCommand: npm install && npm run build && npx prisma db push && npx prisma generate
-    startCommand: node dist-server/server/index.js
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: PORT
-        value: 4000
-      - key: DATABASE_URL
-        sync: false
-      - key: JWT_SECRET
-        sync: false
-```
-
-> `sync: false` means you set the actual values in the Render dashboard —
-> they won't be overwritten by `render.yaml` changes.
-
-### 5.4 Push to GitHub
-
-```bash
-git add .
-git commit -m "chore: configure dual-environment setup"
-git push origin main
-```
-
-### 5.5 Deploy on Render.com
+### 5.3 Deploy on Render.com
 
 1. Go to [dashboard.render.com](https://dashboard.render.com).
 2. Click **"New +" → "Web Service"**.
@@ -231,25 +195,26 @@ git push origin main
 4. Configure:
    - **Name:** `moussawer`
    - **Runtime:** `Node`
-   - **Build Command:** `npm install && npm run build && npx prisma db push && npx prisma generate`
+   - **Build Command:** `npm install && npm run build && npx prisma generate`
    - **Start Command:** `node dist-server/server/index.js`
    - **Plan:** **Free**
 5. Under **Environment Variables**, add:
 
    | Key | Value |
    |---|---|
-   | `DATABASE_URL` | Your Supabase pooler URI from Step 2 |
+   | `DATABASE_URL` | Your Neon pooled URL from Step 2 |
+   | `DIRECT_URL` | Your Neon direct URL from Step 2 |
    | `JWT_SECRET` | Your secret from Step 3 |
    | `NODE_ENV` | `production` |
    | `PORT` | `4000` |
 
 6. Click **"Deploy Web Service"**.
 
-The first deploy takes ~3-5 minutes. Render runs `prisma db push` as part of
-the build, so the schema is already in place from local dev (Step 4.3).
-No additional schema push is needed unless you change it.
+The first deploy takes ~3-5 minutes. Run `npm run db:push` and `npm run db:seed`
+locally before or after the first deploy — since both environments share the same
+Neon database, the data will be available to production immediately.
 
-### 5.6 Access the app
+### 5.4 Access the app
 
 Your app is live at: `https://moussawer.onrender.com`
 
@@ -276,7 +241,7 @@ npm run dev
 When you modify `prisma/schema.prisma`:
 
 ```bash
-# Push schema changes to the Supabase database
+# Push schema changes to the Neon database
 npx prisma db push
 
 # Regenerate the Prisma client (required after schema changes)
@@ -308,21 +273,12 @@ Render.com auto-deploys on every push to `main`. No manual deployment needed.
 
 ### Why no local PostgreSQL?
 
-Supabase free tier gives you 500 MB permanently. Developing against the same
+Neon free tier gives you 0.5 GB permanently. Developing against the same
 database as production eliminates:
 - Schema drift (local SQLite vs production PostgreSQL)
 - Connection string switching
 - Local database installation/setup
 - Docker overhead
-
-### What if I go offline?
-
-You lose database access. For offline development, you'd need to:
-1. Install PostgreSQL locally
-2. Change `.env` to point to `postgresql://localhost:5432/moussawer`
-3. Run `npx prisma db push` locally
-
-But with Supabase's free tier, you'd rarely need this.
 
 ### Render free tier limitations
 
@@ -336,31 +292,18 @@ But with Supabase's free tier, you'd rarely need this.
 Use [UptimeRobot](https://uptimerobot.com) (free) to ping
 `https://moussawer.onrender.com/api/v1/health` every 10 minutes.
 
-### Supabase free tier limitations
+### Neon free tier limitations
 
-- **500 MB database storage**
-- **2 GB bandwidth/month**
-- **No automated backups**
-- **Pauses after 1 week of inactivity** — but Render's periodic pings will keep
-  it awake
-
-### What if I want a local-only staging database?
-
-Create a second Supabase project (`moussawer-staging`) with the same schema.
-Use a second `.env` file:
-
-```bash
-cp .env .env.staging
-# Edit .env.staging with the staging DATABASE_URL
-# Then: DATABASE_URL="..." npm run dev
-```
+- **0.5 GB database storage**
+- **~190 compute hours/month** (free tier)
+- **No automated backups** on free tier
 
 ### "Can't connect to database" on local
 
-- Check your `.env` DATABASE_URL is the **pooler** URL (port 6543), not the
-  direct URL (port 5432)
-- Verify the Supabase project is active (not paused)
-- Check `?pgbouncer=true&connection_limit=1` is appended to the URL
+- Check your `.env` has both `DATABASE_URL` (pooled) and `DIRECT_URL` (direct)
+- Verify the Neon project is active
+- Check `?sslmode=require&pgbouncer=true` is appended to the pooled URL
+- Ensure the direct URL does NOT have `-pooler` or `pgbouncer=true`
 
 ### "Prisma schema engine failed"
 
@@ -378,7 +321,8 @@ placeholder values. Never commit your real `.env`.
 
 | Variable | Local | Production | Notes |
 |---|---|---|---|
-| `DATABASE_URL` | Supabase pooler URI | Supabase pooler URI (set in Render dashboard) | Must use port 6543 (pooler) |
+| `DATABASE_URL` | Neon pooled URL | Neon pooled URL (set in Render dashboard) | With `-pooler` and `pgbouncer=true` |
+| `DIRECT_URL` | Neon direct URL | Neon direct URL (set in Render dashboard) | Without `-pooler`, without `pgbouncer` |
 | `JWT_SECRET` | From `openssl rand -hex 32` | Same value (set in Render dashboard) | Must be identical in both envs |
 | `PORT` | 4000 | 4000 | Render sets this automatically |
 | `VITE_API_URL` | /api/v1 | /api/v1 | Relative path, Vite proxies locally |
@@ -406,6 +350,6 @@ placeholder values. Never commit your real `.env`.
 
 | Service | Cost | What |
 |---|---|---|
-| Supabase | **$0/month** | 500 MB PostgreSQL, permanent |
+| Neon | **$0/month** | 0.5 GB PostgreSQL, permanent |
 | Render.com | **$0/month** | 750 hours/month, 512 MB RAM |
 | **Total** | **$0/month** | Full app, no credit card needed |

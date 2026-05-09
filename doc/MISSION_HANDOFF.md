@@ -19,8 +19,9 @@ The app is **fully functional** with zero server errors. All 33 API endpoints + 
 ## What This Mission Accomplished
 
 ### Environment Setup
-- **Local PostgreSQL** via Docker (`moussawer-pg` container) because Supabase free tier was paused
-- `.env` updated: `DATABASE_URL=postgresql://moussawer:moussawer123@localhost:5432/moussawer`
+- **Neon PostgreSQL** (free tier) is the shared cloud database for both local dev and Render.com production
+- Two connection strings are required: `DATABASE_URL` (pooled, for queries) and `DIRECT_URL` (direct, for migrations)
+- `.env` updated with Neon credentials on 2026-05-09 — both env vars must also be set in Render dashboard
 - Schema pushed + seeded with 5 test users, 6 categories, 3 photographers, bookings, conversations
 
 ### Security Fixes (Critical)
@@ -66,28 +67,21 @@ The app is **fully functional** with zero server errors. All 33 API endpoints + 
 ## How to Set Up From Scratch (in a new session)
 
 ```bash
-# 1. Database — if Supabase is paused, start local PostgreSQL
-docker run -d --name moussawer-pg \
-  -e POSTGRES_USER=moussawer \
-  -e POSTGRES_PASSWORD=moussawer123 \
-  -e POSTGRES_DB=moussawer \
-  -p 5432:5432 postgres:14
-
-# 2. Configure environment
-# Ensure .env has:
-#   DATABASE_URL=postgresql://moussawer:moussawer123@localhost:5432/moussawer
+# 1. Configure environment — ensure .env has Neon connection strings:
+#   DATABASE_URL=postgresql://<user>:<pw>@<host>-pooler.<region>.aws.neon.tech/<db>?sslmode=require&pgbouncer=true
+#   DIRECT_URL=postgresql://<user>:<pw>@<host>.<region>.aws.neon.tech/<db>?sslmode=require
 #   JWT_SECRET=d6fb73ec361ec5bd4bc60f8375e5f310
 
-# 3. Install + seed
+# 2. Install + seed
 npm install
 npx prisma db push
 npx prisma generate
 npm run db:seed
 
-# 4. Start servers (background with logging)
+# 3. Start servers (background with logging)
 ./scripts/dev-restart.sh
 
-# 5. Verify
+# 4. Verify
 ./scripts/smoke-test.sh
 ```
 
@@ -245,7 +239,7 @@ server/utils/http.ts      (AppError, safeJson, pagination, errorHandler)
 - `prisma/schema.prisma` — DisputeComment relation, 13 indexes
 - `src/lib/api.ts` — 401 auto-redirect (with public page exclusion)
 - `src/main.tsx` — ErrorBoundary wrapper
-- `.env` — local PostgreSQL URL
+- `.env` — Neon DATABASE_URL + DIRECT_URL
 
 ### Created
 - `CLAUDE.md` — project overview for AI agents

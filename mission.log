@@ -1,0 +1,25 @@
+# Moussawer Mission Log
+
+## 2026-05-09 — Neon Migration + Mission Reflection
+
+**DB migration: Supabase → Neon PostgreSQL**
+- Supabase free tier kept pausing → migrated to Neon (also free tier)
+- Prisma schema updated: added `directUrl = env("DIRECT_URL")` for Neon's PgBouncer
+- Both DATABASE_URL (pooled) and DIRECT_URL must be set in local .env AND Render dashboard
+- Seed was initially missed — caused 401 on production. Fixed by running `npm run db:seed`
+- `.env.example` updated with Neon placeholder format
+
+**Documentation updated:**
+- CLAUDE.md — Supabase → Neon, known issues, database section
+- doc/ENVIRONMENT_SETUP.md — full rewrite for Neon
+- doc/DATABASE_HOSTING.md — full rewrite for Neon
+- doc/MISSION_HANDOFF.md — environment setup section
+
+**Scripts improved:**
+- Added `db:seed:verify` — post-seed check (must have >=3 users)
+- Added `verify` — typecheck + lint + tests in one command
+- Added `check` — db connectivity check
+- Added `test:reset` — explicit reset+test (replaces dangerous auto-pretest)
+- Removed automatic `pretest` — it ran `db:reset` on every `npm test`, dangerous with shared DB
+
+**Memory saved:** supabase-to-neon-migration, hosting-setup
