@@ -63,7 +63,7 @@ export function safeJson(value: string) {
   }
 }
 
-export function errorHandler(error: unknown, _req: Request, res: Response, _next: NextFunction) {
+export function errorHandler(error: unknown, req: Request, res: Response, _next: NextFunction) {
   if (error instanceof AppError) {
     return res.status(error.status).json({
       error: {
@@ -74,11 +74,38 @@ export function errorHandler(error: unknown, _req: Request, res: Response, _next
     });
   }
 
-  console.error(error);
+  // Malformed JSON body from express.json() / body-parser
+  if (error instanceof SyntaxError && "body" in error) {
+    return res.status(400).json({
+      error: {
+        code: "MALFORMED_JSON",
+        message: "Request body contains invalid JSON",
+        details: error.message
+      }
+    });
+  }
+
+  // Prisma errors carry their own metadata
+  if (error instanceof Error && "code" in error && "clientVersion" in error) {
+    const prismaError = error as Error & { code: string; meta?: unknown };
+    console.error(`[${res.locals?.requestId ?? "-"}] Prisma error ${prismaError.code}:`, prismaError.message);
+    return res.status(503).json({
+      error: {
+        code: `DB_${prismaError.code}`,
+        message: "Database error — the service may be temporarily unavailable",
+        details: process.env.NODE_ENV !== "production" ? prismaError.message : undefined
+      }
+    });
+  }
+
+  const message = error instanceof Error ? error.message : String(error);
+  const requestId = res.locals?.requestId ?? "-";
+  console.error(`[${requestId}] Unhandled error:`, error);
   return res.status(500).json({
     error: {
       code: "INTERNAL_ERROR",
-      message: "Something went wrong"
+      message: process.env.NODE_ENV === "production" ? "Something went wrong" : message || "Something went wrong",
+      requestId
     }
   });
 }
