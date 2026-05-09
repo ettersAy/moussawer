@@ -1,8 +1,19 @@
 # Moussawer Mission Log
 
-## 2026-05-09 — Neon Migration + Mission Reflection
+## 2026-05-09 — Mushajjir Project Management + GitHub Integration
 
-**DB migration: Supabase → Neon PostgreSQL**
+**Feature: Project management with GitHub repos and local paths.**
+- 22 files, +1918 lines. Committed as d7dcc03.
+- Created missing files: settingsService.js, aiService.js, markdown.js
+- Added Vue 3 + Pinia + VueFlow to build pipeline
+- MushajjirApp React wrapper mounts Vue app at /mindmap route
+- Project model in Prisma: stores treeData as JSON, githubUrl, localPath
+- Full CRUD API at /api/v1/projects with GitHub URL validation
+- ProjectSwitcher dropdown + ProjectModal in toolbar
+- Tree auto-saves to API when project is active (debounced 500ms)
+- 8 API tests pass. TypeScript clean.
+
+**Earlier: DB migration: Supabase → Neon PostgreSQL**
 - Supabase free tier kept pausing → migrated to Neon (also free tier)
 - Prisma schema updated: added `directUrl = env("DIRECT_URL")` for Neon's PgBouncer
 - Both DATABASE_URL (pooled) and DIRECT_URL must be set in local .env AND Render dashboard
