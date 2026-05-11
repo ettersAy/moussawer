@@ -6,8 +6,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { StatusBadge } from "../../components/StatusBadge";
 import { ConfirmDialog } from "../../components/shared/ConfirmDialog";
 import { useToast } from "../../components/shared/Toast";
-import { api, shortDate, type User } from "../../lib/api";
+import { api, type User } from "../../lib/api";
 import { UserFormModal } from "./UserFormModal";
+import { UserRow } from "./UserRow";
 
 type SortField = "name" | "email" | "role" | "status" | "createdAt";
 type SortDir = "asc" | "desc";
@@ -16,20 +17,9 @@ const ROLE_OPTIONS = ["ALL", "ADMIN", "CLIENT", "PHOTOGRAPHER"] as const;
 const STATUS_OPTIONS = ["ALL", "ACTIVE", "SUSPENDED", "DISABLED"] as const;
 const PAGE_SIZES = [10, 25, 50, 100];
 
-function getInitials(name: string): string {
-  return name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-}
-
-function AvatarThumb({ user }: { user: User }) {
-  if (user.avatarUrl) {
-    return <img src={user.avatarUrl} alt="" className="user-avatar-thumb" />;
-  }
-  return <span className="user-avatar-fallback">{getInitials(user.name)}</span>;
+function SortIcon({ field, sortField, sortDir }: { field: SortField; sortField: SortField; sortDir: SortDir }) {
+  if (sortField !== field) return <ArrowUpDown size={12} className="sort-icon" />;
+  return sortDir === "asc" ? <ArrowUp size={12} className="sort-icon active" /> : <ArrowDown size={12} className="sort-icon active" />;
 }
 
 export function UsersTab() {
@@ -40,43 +30,32 @@ export function UsersTab() {
   const [loading, setLoading] = useState(true);
   const [meta, setMeta] = useState({ page: 1, limit: 25, total: 0, totalPages: 0 });
 
-  // Filters
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
 
-  // Sorting
   const [sortField, setSortField] = useState<SortField>("createdAt");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
-  // Bulk selection
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-
-  // Expandable rows
   const [expandedId, setExpandedId] = useState<string | null>(null);
-
-  // User form modal (undefined = closed, null = create mode, User = edit mode)
   const [formUser, setFormUser] = useState<User | undefined | null>(undefined);
 
-  // Confirm dialogs
   const [confirmDelete, setConfirmDelete] = useState<User | null>(null);
   const [confirmRole, setConfirmRole] = useState<{ user: User; role: string } | null>(null);
   const [confirmDisable, setConfirmDisable] = useState<User | null>(null);
   const [confirmBulk, setConfirmBulk] = useState<{ action: string; ids: string[] } | null>(null);
 
-  // Debounce search
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 300);
     return () => clearTimeout(timer);
   }, [search]);
 
-  // Reset to page 1 when filters change
   useEffect(() => {
     setMeta((m) => ({ ...m, page: 1 }));
   }, [debouncedSearch, roleFilter, statusFilter, sortField, sortDir]);
 
-  // Load users
   const loadUsers = useCallback(async (pageOverride?: number) => {
     setLoading(true);
     try {
@@ -104,12 +83,10 @@ export function UsersTab() {
     loadUsers();
   }, [loadUsers]);
 
-  // Reset selection on data load
   useEffect(() => {
     setSelectedIds(new Set());
   }, [users]);
 
-  // Toggle sort
   function toggleSort(field: SortField) {
     if (sortField === field) {
       setSortDir((d) => (d === "asc" ? "desc" : "asc"));
@@ -119,12 +96,6 @@ export function UsersTab() {
     }
   }
 
-  function SortIcon({ field }: { field: SortField }) {
-    if (sortField !== field) return <ArrowUpDown size={12} className="sort-icon" />;
-    return sortDir === "asc" ? <ArrowUp size={12} className="sort-icon active" /> : <ArrowDown size={12} className="sort-icon active" />;
-  }
-
-  // Status actions
   async function updateStatus(user: User, newStatus: string) {
     try {
       await api(`/admin/users/${user.id}`, { method: "PATCH", body: { status: newStatus } });
@@ -133,7 +104,6 @@ export function UsersTab() {
     } catch { toast.error("Failed to update status"); }
   }
 
-  // Role change
   async function changeRole(user: User, newRole: string) {
     try {
       await api(`/admin/users/${user.id}`, { method: "PATCH", body: { role: newRole } });
@@ -143,7 +113,6 @@ export function UsersTab() {
     setConfirmRole(null);
   }
 
-  // Verification toggle
   async function toggleVerified(user: User) {
     if (!user.photographerProfile) return;
     const newVal = !user.photographerProfile.verified;
@@ -154,7 +123,6 @@ export function UsersTab() {
     } catch { toast.error("Failed to update verification status"); }
   }
 
-  // Delete user
   async function deleteUser(user: User) {
     try {
       await api(`/admin/users/${user.id}`, { method: "DELETE" });
@@ -166,7 +134,6 @@ export function UsersTab() {
     setConfirmDelete(null);
   }
 
-  // Bulk actions
   async function executeBulk(action: string, ids: string[]) {
     try {
       if (action === "delete") {
@@ -203,7 +170,6 @@ export function UsersTab() {
 
   const allSelected = users.length > 0 && selectedIds.size === users.length;
 
-  // Pagination controls
   const pages = useMemo(() => {
     const arr: number[] = [];
     const tp = meta.totalPages;
@@ -243,7 +209,6 @@ export function UsersTab() {
       <section className="panel">
         <h2>Manage Users {!loading && <span className="count-badge">{meta.total}</span>}</h2>
 
-        {/* Toolbar: Search + Filters */}
         <div className="users-toolbar">
           <div className="search-wrapper">
             <Search size={16} className="search-icon" />
@@ -275,7 +240,6 @@ export function UsersTab() {
           </button>
         </div>
 
-        {/* Bulk action bar */}
         {selectedIds.size > 0 && (
           <div className="bulk-bar">
             <span className="bulk-count">{selectedIds.size} selected</span>
@@ -291,7 +255,6 @@ export function UsersTab() {
           </div>
         )}
 
-        {/* Table */}
         {loading ? (
           <div className="loading-state">Loading users…</div>
         ) : users.length === 0 ? (
@@ -306,19 +269,19 @@ export function UsersTab() {
                   </th>
                   <th className="col-avatar"></th>
                   <th className="col-sortable" onClick={() => toggleSort("name")}>
-                    Name <SortIcon field="name" />
+                    Name <SortIcon field="name" sortField={sortField} sortDir={sortDir} />
                   </th>
                   <th className="col-sortable" onClick={() => toggleSort("email")}>
-                    Email <SortIcon field="email" />
+                    Email <SortIcon field="email" sortField={sortField} sortDir={sortDir} />
                   </th>
                   <th className="col-sortable" onClick={() => toggleSort("role")}>
-                    Role <SortIcon field="role" />
+                    Role <SortIcon field="role" sortField={sortField} sortDir={sortDir} />
                   </th>
                   <th className="col-sortable" onClick={() => toggleSort("status")}>
-                    Status <SortIcon field="status" />
+                    Status <SortIcon field="status" sortField={sortField} sortDir={sortDir} />
                   </th>
                   <th className="col-sortable" onClick={() => toggleSort("createdAt")}>
-                    Joined <SortIcon field="createdAt" />
+                    Joined <SortIcon field="createdAt" sortField={sortField} sortDir={sortDir} />
                   </th>
                   <th className="col-actions">Actions</th>
                 </tr>
@@ -344,7 +307,6 @@ export function UsersTab() {
           </div>
         )}
 
-        {/* Pagination */}
         {meta.totalPages > 1 && (
           <div className="pagination">
             <button
@@ -383,7 +345,6 @@ export function UsersTab() {
         )}
       </section>
 
-      {/* Confirm dialogs */}
       <ConfirmDialog
         open={confirmDelete !== null}
         title="Delete user?"
@@ -421,157 +382,12 @@ export function UsersTab() {
         onCancel={() => setConfirmBulk(null)}
       />
 
-      {/* Create / Edit user modal */}
       <UserFormModal
         open={formUser !== undefined}
         user={formUser ?? null}
         onClose={() => setFormUser(undefined)}
         onSaved={() => { loadUsers(); toast.success(formUser === null ? "User created." : "User updated."); }}
       />
-    </div>
-  );
-}
-
-function UserRow({
-  user, isSelected, isExpanded, onToggleSelect, onToggleExpand,
-  actionButtons, onRoleChange, onToggleVerified, onDelete, onEdit
-}: {
-  user: User;
-  isSelected: boolean;
-  isExpanded: boolean;
-  onToggleSelect: () => void;
-  onToggleExpand: () => void;
-  actionButtons: { label: string; icon: React.ReactNode; onClick: () => void; className?: string }[];
-  onRoleChange: (role: string) => void;
-  onToggleVerified: (user: User) => void;
-  onDelete: () => void;
-  onEdit: () => void;
-}) {
-  const isPhotographer = user.role === "PHOTOGRAPHER";
-  const pp = user.photographerProfile;
-
-  return (
-    <>
-      <tr className={`user-row ${isExpanded ? "expanded" : ""}`}>
-        <td className="col-check">
-          <input type="checkbox" checked={isSelected} onChange={onToggleSelect} aria-label={`Select ${user.name}`} />
-        </td>
-        <td className="col-avatar" onClick={onToggleExpand}>
-          <AvatarThumb user={user} />
-        </td>
-        <td className="col-name" onClick={onToggleExpand}>
-          <span className="user-name">{user.name}</span>
-        </td>
-        <td className="col-email">{user.email}</td>
-        <td className="col-role">
-          <select
-            value={user.role}
-            onChange={(e) => onRoleChange(e.target.value)}
-            className="role-select"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <option value="CLIENT">Client</option>
-            <option value="PHOTOGRAPHER">Photographer</option>
-            <option value="ADMIN">Admin</option>
-          </select>
-        </td>
-        <td className="col-status">
-          <StatusBadge value={user.status} />
-        </td>
-        <td className="col-joined">{shortDate(user.createdAt)}</td>
-        <td className="col-actions">
-          <div className="user-actions">
-            {isPhotographer && (
-              <button
-                className={`icon-button compact ${pp?.verified ? "verified-badge" : ""}`}
-                onClick={() => onToggleVerified(user)}
-                title={pp?.verified ? "Verified — click to unverify" : "Not verified — click to verify"}
-              >
-                <BadgeCheck size={14} className={pp?.verified ? "verified-icon" : "unverified-icon"} />
-              </button>
-            )}
-            <button className="ghost-button compact" onClick={onEdit} title="Edit user">
-              <Pencil size={14} />
-            </button>
-            {actionButtons.map((btn, i) => (
-              <button
-                key={i}
-                className={`ghost-button compact ${btn.className ?? ""}`}
-                onClick={btn.onClick}
-                title={btn.label}
-              >
-                {btn.icon}{btn.label}
-              </button>
-            ))}
-            <button className="ghost-button compact danger" onClick={onDelete} title="Delete user">
-              <Trash2 size={14} />
-            </button>
-          </div>
-        </td>
-      </tr>
-      {isExpanded && (
-        <tr className="user-detail-row">
-          <td colSpan={8}>
-            <UserDetail user={user} />
-          </td>
-        </tr>
-      )}
-    </>
-  );
-}
-
-function UserDetail({ user }: { user: User }) {
-  const pp = user.photographerProfile;
-  const cp = user.clientProfile;
-
-  return (
-    <div className="user-detail">
-      <div className="detail-header">
-        <AvatarThumb user={user} />
-        <div>
-          <strong className="detail-name">{user.name}</strong>
-          <span className="detail-email">{user.email}</span>
-          <div className="detail-meta-row">
-            <StatusBadge value={user.status} />
-            <span className="detail-role-tag">{user.role.toLowerCase()}</span>
-            {pp?.verified && <span className="detail-verified">✓ Verified photographer</span>}
-          </div>
-        </div>
-      </div>
-      <div className="detail-grid">
-        <div className="detail-section">
-          <h4>Account Info</h4>
-          <dl>
-            <dt>User ID</dt><dd><code>{user.id}</code></dd>
-            <dt>Joined</dt><dd>{shortDate(user.createdAt)}</dd>
-            <dt>Last updated</dt><dd>{shortDate(user.updatedAt)}</dd>
-          </dl>
-        </div>
-        {cp && (
-          <div className="detail-section">
-            <h4>Client Profile</h4>
-            <dl>
-              {cp.location && <><dt>Location</dt><dd>{cp.location}</dd></>}
-              {cp.bio && <><dt>Bio</dt><dd>{cp.bio}</dd></>}
-              {cp.phone && <><dt>Phone</dt><dd>{cp.phone}</dd></>}
-            </dl>
-          </div>
-        )}
-        {pp && (
-          <div className="detail-section">
-            <h4>Photographer Profile</h4>
-            <dl>
-              <dt>Slug</dt><dd><code>{pp.slug}</code></dd>
-              <dt>City</dt><dd>{pp.city}</dd>
-              <dt>Country</dt><dd>{pp.country}</dd>
-              <dt>Starting price</dt><dd>${pp.startingPrice}</dd>
-              <dt>Rating</dt><dd>{pp.rating} / 5</dd>
-              <dt>Published</dt><dd>{pp.isPublished ? "Yes" : "No"}</dd>
-              <dt>Verified</dt><dd>{pp.verified ? "Yes" : "No"}</dd>
-            </dl>
-          </div>
-        )}
-      </div>
     </div>
   );
 }

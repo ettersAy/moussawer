@@ -1,193 +1,27 @@
+import { ApiError } from "./types/api";
+
 const API_URL = import.meta.env.VITE_API_URL || "/api/v1";
 const TOKEN_KEY = "moussawer_token";
 
-export type ApiEnvelope<T> = {
-  data: T;
-  meta?: {
-    page?: number;
-    limit?: number;
-    total?: number;
-    totalPages?: number;
-  };
+// Re-export all types from the types directory
+export type { ApiEnvelope } from "./types/api";
+export { ApiError } from "./types/api";
+export type { User } from "./types/user";
+export type { Category } from "./types/category";
+export type { Photographer, Service, PortfolioItem, Review } from "./types/photographer";
+export type { Booking } from "./types/booking";
+export type { CalendarBlock, AvailabilityRule, Availability } from "./types/calendar";
+export type { Message, Conversation } from "./types/messaging";
+export type { CaseItem } from "./types/cases";
+export type { Notification } from "./types/notification";
+
+// Re-export utilities
+export { money, shortDate } from "./utils";
+
+type RequestOptions = Omit<RequestInit, "body"> & {
+  body?: unknown;
+  auth?: boolean;
 };
-
-export type User = {
-  id: string;
-  email: string;
-  name: string;
-  role: "ADMIN" | "CLIENT" | "PHOTOGRAPHER";
-  status: string;
-  avatarUrl?: string | null;
-  photographerProfile?: {
-    id: string;
-    slug: string;
-    verified?: boolean;
-    isPublished?: boolean;
-    city?: string;
-    country?: string;
-    startingPrice?: number;
-    rating?: number;
-  } | null;
-  clientProfile?: { location?: string | null; bio?: string | null; phone?: string | null } | null;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type Category = {
-  id: string;
-  name: string;
-  slug: string;
-};
-
-export type Photographer = {
-  id: string;
-  userId: string;
-  slug: string;
-  name: string;
-  email: string;
-  avatarUrl?: string | null;
-  bio: string;
-  city: string;
-  country: string;
-  profileImageUrl?: string | null;
-  startingPrice: number;
-  rating: number;
-  reviewCount: number;
-  timezone: string;
-  isPublished: boolean;
-  verified: boolean;
-  categories: Category[];
-  services: Service[];
-  portfolioItems: PortfolioItem[];
-  reviews: Review[];
-};
-
-export type Service = {
-  id: string;
-  title: string;
-  description: string;
-  durationMinutes: number;
-  price: number;
-  isActive?: boolean;
-  category?: Category | null;
-};
-
-export type PortfolioItem = {
-  id: string;
-  title: string;
-  description?: string | null;
-  imageUrl: string;
-  tags: string[];
-  isFeatured: boolean;
-  isModerated: boolean;
-  sortOrder?: number;
-  category?: Category | null;
-};
-
-export type Booking = {
-  id: string;
-  client: { id: string; name?: string; email?: string };
-  photographer: { id: string; name?: string; slug?: string; email?: string };
-  service: { id: string; title?: string; durationMinutes?: number; price?: number };
-  conversation?: { id: string };
-  startAt: string;
-  endAt: string;
-  location: string;
-  notes?: string | null;
-  status: "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
-  priceEstimate: number;
-  cancellationReason?: string | null;
-  confirmedAt?: string | null;
-  cancelledAt?: string | null;
-  completedAt?: string | null;
-  createdAt: string;
-};
-
-export type CalendarBlock = {
-  id: string;
-  photographerId: string;
-  startAt: string;
-  endAt: string;
-  reason?: string | null;
-  createdAt: string;
-};
-
-export type AvailabilityRule = {
-  id: string;
-  dayOfWeek: number;
-  startTime: string;
-  endTime: string;
-  isActive: boolean;
-  timezone: string;
-};
-
-export type Conversation = {
-  id: string;
-  subject: string;
-  bookingId?: string | null;
-  participants: { user: Pick<User, "id" | "name" | "role" | "avatarUrl">; lastReadAt?: string | null }[];
-  lastMessage?: Message | null;
-};
-
-export type Message = {
-  id: string;
-  conversationId: string;
-  sender: Pick<User, "id" | "name" | "role" | "avatarUrl">;
-  body: string;
-  attachmentUrl?: string | null;
-  readAt?: string | null;
-  createdAt: string;
-};
-
-export type CaseItem = {
-  id: string;
-  reporter: { id: string; name?: string; email?: string };
-  targetUser?: { id: string; name?: string; email?: string } | null;
-  bookingId?: string | null;
-  category?: string;
-  type?: string;
-  description: string;
-  status: string;
-  adminNotes?: string | null;
-  resolution?: string | null;
-  createdAt: string;
-};
-
-export type Review = {
-  id: string;
-  rating: number;
-  comment?: string | null;
-  client: { id: string; name?: string; avatarUrl?: string | null };
-  createdAt: string;
-};
-
-export type Notification = {
-  id: string;
-  type: string;
-  title: string;
-  body: string;
-  readAt?: string | null;
-  createdAt: string;
-};
-
-export type Availability = {
-  date: string;
-  timezone: string;
-  slots: { startAt: string; endAt: string; available: boolean; reason?: string | null }[];
-};
-
-export class ApiError extends Error {
-  code: string;
-  status: number;
-  details?: unknown;
-
-  constructor(message: string, code: string, status: number, details?: unknown) {
-    super(message);
-    this.code = code;
-    this.status = status;
-    this.details = details;
-  }
-}
 
 export function getToken() {
   return localStorage.getItem(TOKEN_KEY);
@@ -201,12 +35,7 @@ export function clearToken() {
   localStorage.removeItem(TOKEN_KEY);
 }
 
-type RequestOptions = Omit<RequestInit, "body"> & {
-  body?: unknown;
-  auth?: boolean;
-};
-
-export async function api<T>(path: string, options: RequestOptions = {}): Promise<ApiEnvelope<T>> {
+export async function api<T>(path: string, options: RequestOptions = {}): Promise<import("./types/api").ApiEnvelope<T>> {
   const token = getToken();
   const headers = new Headers(options.headers);
   headers.set("Accept", "application/json");
@@ -224,7 +53,6 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
     if (response.status === 401 && token) {
-      // Only redirect if user had a token (session expired) — ignore 401s from public pages
       localStorage.removeItem(TOKEN_KEY);
       const publicPaths = ["/", "/login", "/register", "/photographers", "/support"];
       if (!publicPaths.includes(window.location.pathname)) {
@@ -234,12 +62,4 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
     throw new ApiError(payload.error?.message ?? "Request failed", payload.error?.code ?? "REQUEST_FAILED", response.status, payload.error?.details);
   }
   return payload;
-}
-
-export function money(centsOrDollars: number) {
-  return new Intl.NumberFormat("en-CA", { style: "currency", currency: "CAD", maximumFractionDigits: 0 }).format(centsOrDollars);
-}
-
-export function shortDate(value: string) {
-  return new Intl.DateTimeFormat("en-CA", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(value));
 }

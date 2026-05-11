@@ -1,15 +1,17 @@
 import bcrypt from "bcryptjs";
 import { addDays, addHours, setHours, setMinutes } from "date-fns";
 import { BookingStatus, DisputeStatus, IncidentStatus, PrismaClient, Role } from "@prisma/client";
+import { categoryNames } from "./seed-data/categories";
+import { photographerSpecs, type PhotographerSpec } from "./seed-data/photographers";
+import {
+  seedAccounts, reviewData, conversationData,
+  incidentData, disputeData, notificationsData
+} from "./seed-data/bookings";
 
 const prisma = new PrismaClient();
 
 function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
+  return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
 function nextDay(dayOfWeek: number, hour: number, minute = 0) {
@@ -42,170 +44,107 @@ async function reset() {
   await prisma.user.deleteMany();
 }
 
+async function createCategories() {
+  const categories = await Promise.all(
+    categoryNames.map((name) =>
+      prisma.category.create({ data: { name, slug: slugify(name) } })
+    )
+  );
+  return Object.fromEntries(categories.map((cat) => [cat.slug, cat]));
+}
+
+async function createPhotographer(spec: PhotographerSpec, bySlug: Record<string, { id: string }>, passwordHash: string) {
+  return prisma.user.create({
+    data: {
+      email: spec.email,
+      passwordHash,
+      name: spec.name,
+      role: Role.PHOTOGRAPHER,
+      avatarUrl: spec.avatarUrl,
+      photographerProfile: {
+        create: {
+          slug: slugify(spec.name),
+          bio: spec.bio,
+          city: spec.city,
+          country: "Canada",
+          profileImageUrl: spec.profileImageUrl,
+          startingPrice: spec.startingPrice,
+          rating: spec.rating,
+          reviewCount: spec.reviewCount,
+          verified: spec.verified,
+          popularity: Math.floor(spec.rating * 20),
+          categories: {
+            create: spec.categorySlugs.map((categorySlug) => ({ categoryId: bySlug[categorySlug].id }))
+          },
+          services: {
+            create: spec.services.map(([title, description, durationMinutes, price, categorySlug]) => ({
+              title: String(title),
+              description: String(description),
+              durationMinutes: Number(durationMinutes),
+              price: Number(price),
+              categoryId: bySlug[String(categorySlug)].id
+            }))
+          },
+          portfolioItems: {
+            create: spec.images.map((imageUrl, index) => ({
+              title: `${spec.name.split(" ")[0]} Portfolio ${index + 1}`,
+              description: "Selected work from a recent client session.",
+              imageUrl,
+              isFeatured: index === 0,
+              sortOrder: index,
+              tags: spec.categorySlugs.join(","),
+              categoryId: bySlug[spec.categorySlugs[index % spec.categorySlugs.length]].id
+            }))
+          },
+          availabilityRules: {
+            create: [1, 2, 3, 4, 5, 6].flatMap((dayOfWeek) => [
+              { dayOfWeek, startTime: "09:00", endTime: "12:00", timezone: "America/Toronto" },
+              { dayOfWeek, startTime: "13:00", endTime: "17:00", timezone: "America/Toronto" }
+            ])
+          }
+        }
+      }
+    },
+    include: { photographerProfile: { include: { services: true } } }
+  });
+}
+
 async function main() {
   await reset();
 
   const passwordHash = await bcrypt.hash("password", 12);
-  const categories = await Promise.all(
-    ["Wedding", "Portrait", "Event", "Commercial", "Family", "Fashion"].map((name) =>
-      prisma.category.create({
-        data: { name, slug: slugify(name) }
-      })
-    )
-  );
-  const bySlug = Object.fromEntries(categories.map((category) => [category.slug, category]));
+  const bySlug = await createCategories();
 
   const admin = await prisma.user.create({
     data: {
-      email: "admin@example.com",
+      email: seedAccounts.admin.email,
       passwordHash,
-      name: "Moussawer Admin",
+      name: seedAccounts.admin.name,
       role: Role.ADMIN,
-      avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80"
+      avatarUrl: seedAccounts.admin.avatarUrl
     }
   });
 
   const client = await prisma.user.create({
     data: {
-      email: "client@example.com",
+      email: seedAccounts.client.email,
       passwordHash,
-      name: "Nadia Client",
+      name: seedAccounts.client.name,
       role: Role.CLIENT,
-      avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&q=80",
+      avatarUrl: seedAccounts.client.avatarUrl,
       clientProfile: {
         create: {
-          location: "Toronto, ON",
-          bio: "Planning modern events and brand shoots across the GTA.",
-          phone: "+1 416 555 0100"
+          location: seedAccounts.client.location,
+          bio: seedAccounts.client.bio,
+          phone: seedAccounts.client.phone
         }
       }
     }
   });
 
-  const photographerSpecs = [
-    {
-      email: "photographer-one@example.com",
-      name: "Amir Haddad",
-      city: "Toronto",
-      bio: "Editorial wedding and portrait photographer with a calm, cinematic style.",
-      profileImageUrl: "https://images.unsplash.com/photo-1502685104226-ee32379fefbe?auto=format&fit=crop&w=900&q=80",
-      avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
-      startingPrice: 320,
-      rating: 4.9,
-      reviewCount: 18,
-      verified: true,
-      categorySlugs: ["wedding", "portrait"],
-      services: [
-        ["Signature Portrait Session", "Two-hour portrait shoot with 20 edited images.", 120, 320, "portrait"],
-        ["Wedding Story Package", "Half-day wedding coverage with gallery delivery.", 360, 1450, "wedding"]
-      ],
-      images: [
-        "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
-        "https://images.unsplash.com/photo-1529634597503-139d3726fed5?auto=format&fit=crop&w=1200&q=80",
-        "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=80"
-      ]
-    },
-    {
-      email: "photographer-two@example.com",
-      name: "Leila Morgan",
-      city: "Montreal",
-      bio: "Fashion, commercial, and product imagery with polished studio lighting.",
-      profileImageUrl: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
-      avatarUrl: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=400&q=80",
-      startingPrice: 450,
-      rating: 4.8,
-      reviewCount: 14,
-      verified: true,
-      categorySlugs: ["fashion", "commercial"],
-      services: [
-        ["Studio Campaign", "Commercial studio session with art-direction support.", 180, 850, "commercial"],
-        ["Lookbook Session", "Fashion lookbook coverage for emerging brands.", 240, 980, "fashion"]
-      ],
-      images: [
-        "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1200&q=80",
-        "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=1200&q=80",
-        "https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb?auto=format&fit=crop&w=1200&q=80"
-      ]
-    },
-    {
-      email: "photographer-three@example.com",
-      name: "Jonas Reed",
-      city: "Ottawa",
-      bio: "Warm documentary coverage for families, conferences, and community events.",
-      profileImageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80",
-      avatarUrl: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80",
-      startingPrice: 240,
-      rating: 4.7,
-      reviewCount: 11,
-      verified: false,
-      categorySlugs: ["family", "event"],
-      services: [
-        ["Family Afternoon", "Relaxed family session with a private digital gallery.", 90, 240, "family"],
-        ["Event Essentials", "Coverage for launches, panels, and private celebrations.", 180, 650, "event"]
-      ],
-      images: [
-        "https://images.unsplash.com/photo-1491013516836-7db643ee125a?auto=format&fit=crop&w=1200&q=80",
-        "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=80",
-        "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1200&q=80"
-      ]
-    }
-  ];
-
   const photographers = [];
   for (const spec of photographerSpecs) {
-    const user = await prisma.user.create({
-      data: {
-        email: spec.email,
-        passwordHash,
-        name: spec.name,
-        role: Role.PHOTOGRAPHER,
-        avatarUrl: spec.avatarUrl,
-        photographerProfile: {
-          create: {
-            slug: slugify(spec.name),
-            bio: spec.bio,
-            city: spec.city,
-            country: "Canada",
-            profileImageUrl: spec.profileImageUrl,
-            startingPrice: spec.startingPrice,
-            rating: spec.rating,
-            reviewCount: spec.reviewCount,
-            verified: spec.verified,
-            popularity: Math.floor(spec.rating * 20),
-            categories: {
-              create: spec.categorySlugs.map((categorySlug) => ({ categoryId: bySlug[categorySlug].id }))
-            },
-            services: {
-              create: spec.services.map(([title, description, durationMinutes, price, categorySlug]) => ({
-                title: String(title),
-                description: String(description),
-                durationMinutes: Number(durationMinutes),
-                price: Number(price),
-                categoryId: bySlug[String(categorySlug)].id
-              }))
-            },
-            portfolioItems: {
-              create: spec.images.map((imageUrl, index) => ({
-                title: `${spec.name.split(" ")[0]} Portfolio ${index + 1}`,
-                description: "Selected work from a recent client session.",
-                imageUrl,
-                isFeatured: index === 0,
-                sortOrder: index,
-                tags: spec.categorySlugs.join(","),
-                categoryId: bySlug[spec.categorySlugs[index % spec.categorySlugs.length]].id
-              }))
-            },
-            availabilityRules: {
-              create: [1, 2, 3, 4, 5, 6].flatMap((dayOfWeek) => [
-                { dayOfWeek, startTime: "09:00", endTime: "12:00", timezone: "America/Toronto" },
-                { dayOfWeek, startTime: "13:00", endTime: "17:00", timezone: "America/Toronto" }
-              ])
-            }
-          }
-        }
-      },
-      include: { photographerProfile: { include: { services: true } } }
-    });
+    const user = await createPhotographer(spec, bySlug, passwordHash);
     photographers.push(user.photographerProfile!);
   }
 
@@ -265,22 +204,22 @@ async function main() {
       bookingId: completedBooking.id,
       clientId: client.id,
       photographerId: firstPhotographer.id,
-      rating: 5,
-      comment: "The direction was clear, the gallery was beautiful, and the whole process felt effortless."
+      rating: reviewData.rating,
+      comment: reviewData.comment
     }
   });
 
   const conversation = await prisma.conversation.create({
     data: {
       bookingId: pendingBooking.id,
-      subject: "Portrait session logistics",
+      subject: conversationData.subject,
       participants: {
         create: [{ userId: client.id }, { userId: photographers[0].userId }]
       },
       messages: {
         create: [
-          { senderId: client.id, body: "Can we keep the shoot near covered walkways if it rains?" },
-          { senderId: photographers[0].userId, body: "Absolutely. I have two backup spots within a five-minute walk." }
+          { senderId: client.id, body: conversationData.messages[0].body },
+          { senderId: photographers[0].userId, body: conversationData.messages[1].body }
         ]
       }
     }
@@ -290,8 +229,8 @@ async function main() {
     data: {
       reporterId: client.id,
       targetUserId: photographers[2].userId,
-      category: "Late arrival",
-      description: "Sample incident for admin triage and client visibility.",
+      category: incidentData.category,
+      description: incidentData.description,
       status: IncidentStatus.UNDER_REVIEW,
       adminNotes: "Waiting for photographer context."
     }
@@ -302,11 +241,11 @@ async function main() {
       reporterId: client.id,
       targetUserId: photographers[0].userId,
       bookingId: pendingBooking.id,
-      type: "Package disagreement",
-      description: "Sample dispute about deliverable scope.",
+      type: disputeData.type,
+      description: disputeData.description,
       status: DisputeStatus.AWAITING_RESPONSE,
       comments: {
-        create: [{ authorId: client.id, body: "I expected retouching to be included in the quote." }]
+        create: [{ authorId: client.id, body: disputeData.comment }]
       }
     }
   });
@@ -331,23 +270,23 @@ async function main() {
     data: [
       {
         userId: photographers[0].userId,
-        type: "booking.requested",
-        title: "New booking request",
-        body: "Nadia requested a portrait session.",
+        type: notificationsData[0].type,
+        title: notificationsData[0].title,
+        body: notificationsData[0].body,
         metadata: JSON.stringify({ bookingId: pendingBooking.id })
       },
       {
         userId: client.id,
-        type: "message.created",
-        title: "New message",
-        body: "Amir replied to your session logistics.",
+        type: notificationsData[1].type,
+        title: notificationsData[1].title,
+        body: notificationsData[1].body,
         metadata: JSON.stringify({ conversationId: conversation.id })
       },
       {
         userId: admin.id,
-        type: "dispute.created",
-        title: "Dispute awaiting response",
-        body: "A package disagreement needs admin visibility.",
+        type: notificationsData[2].type,
+        title: notificationsData[2].title,
+        body: notificationsData[2].body,
         metadata: JSON.stringify({ disputeId: dispute.id })
       }
     ]

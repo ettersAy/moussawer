@@ -1,14 +1,14 @@
 import { Router } from "express";
-import { router as adminRouter } from "./admin.routes";
+import { router as adminRouter } from "./admin/index";
 import { router as authRouter } from "./auth.routes";
 import { router as bookingsRouter } from "./bookings.routes";
-import { router as casesRouter } from "./cases.routes";
+import { router as casesRouter } from "./cases/index";
 import { router as discoveryRouter } from "./discovery.routes";
 import { router as favoritesRouter } from "./favorites.routes";
 import { router as healthRouter } from "./health.routes";
 import { router as messagingRouter } from "./messaging.routes";
 import { router as notificationsRouter } from "./notifications.routes";
-import { router as photographerRouter } from "./photographer.routes";
+import { router as photographerRouter } from "./photographer/index";
 import { router as portfolioRouter } from "./portfolio.routes";
 import { router as projectsRouter } from "./projects.routes";
 import { router as reviewsRouter } from "./reviews.routes";
