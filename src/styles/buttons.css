@@ -75,3 +75,23 @@
   background: var(--red);
   border-color: var(--red);
 }
+
+@media (max-width: 480px) {
+  .site-nav a,
+  .ghost-button,
+  .solid-button,
+  .icon-button {
+    min-height: 44px;
+    padding: 0 16px;
+  }
+
+  .icon-button {
+    width: 44px;
+    padding: 0;
+  }
+
+  .compact {
+    min-height: 40px;
+    padding: 0 12px;
+  }
+}

@@ -1,10 +1,71 @@
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
-import { Bell, Camera, LayoutDashboard, LogOut, MessageCircle, Search, ShieldCheck, Shield } from "lucide-react";
+import { Bell, Camera, LayoutDashboard, LogOut, Menu, MessageCircle, Search, ShieldCheck, Shield, X } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 
 export function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const drawerRef = useRef<HTMLDivElement>(null);
+
+  const closeNav = useCallback(() => setMobileNavOpen(false), []);
+
+  useEffect(() => {
+    if (!mobileNavOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (drawerRef.current && !drawerRef.current.contains(e.target as Node)) {
+        closeNav();
+      }
+    };
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeNav();
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [mobileNavOpen, closeNav]);
+
+  const navLinks = (
+    <nav className="site-nav" aria-label="Primary navigation">
+      <NavLink to="/photographers" onClick={closeNav}>
+        <Search size={16} />
+        Discover
+      </NavLink>
+      <NavLink to="/support" onClick={closeNav}>Support</NavLink>
+      {user && (
+        <>
+          <NavLink to="/dashboard" onClick={closeNav}>
+            <LayoutDashboard size={16} />
+            Dashboard
+          </NavLink>
+          <NavLink to="/messages" onClick={closeNav}>
+            <MessageCircle size={16} />
+            Messages
+          </NavLink>
+          <NavLink to="/cases" onClick={closeNav}>
+            <ShieldCheck size={16} />
+            Cases
+          </NavLink>
+          {user.role === "PHOTOGRAPHER" && (
+            <NavLink to="/photographer" onClick={closeNav}>
+              <Camera size={16} />
+              Workspace
+            </NavLink>
+          )}
+          {user.role === "ADMIN" && (
+            <NavLink to="/admin" onClick={closeNav}>
+              <Shield size={16} />
+              Admin
+            </NavLink>
+          )}
+        </>
+      )}
+    </nav>
+  );
 
   return (
     <div className="app-shell">
@@ -16,41 +77,10 @@ export function Layout() {
           <span>Moussawer</span>
         </Link>
 
-        <nav className="site-nav" aria-label="Primary navigation">
-          <NavLink to="/photographers">
-            <Search size={16} />
-            Discover
-          </NavLink>
-          <NavLink to="/support">Support</NavLink>
-          {user && (
-            <>
-              <NavLink to="/dashboard">
-                <LayoutDashboard size={16} />
-                Dashboard
-              </NavLink>
-              <NavLink to="/messages">
-                <MessageCircle size={16} />
-                Messages
-              </NavLink>
-              <NavLink to="/cases">
-                <ShieldCheck size={16} />
-                Cases
-              </NavLink>
-              {user.role === "PHOTOGRAPHER" && (
-                <NavLink to="/photographer">
-                  <Camera size={16} />
-                  Workspace
-                </NavLink>
-              )}
-              {user.role === "ADMIN" && (
-                <NavLink to="/admin">
-                  <Shield size={16} />
-                  Admin
-                </NavLink>
-              )}
-            </>
-          )}
-        </nav>
+        {/* Desktop nav (visible on wider screens) */}
+        <div className="site-nav-desktop">
+          {navLinks}
+        </div>
 
         <div className="header-actions">
           {user ? (
@@ -67,7 +97,7 @@ export function Layout() {
                 }}
               >
                 <LogOut size={16} />
-                Sign out
+                <span className="hide-on-mobile">Sign out</span>
               </button>
             </>
           ) : (
@@ -80,8 +110,38 @@ export function Layout() {
               </Link>
             </>
           )}
+
+          <button
+            className="hamburger"
+            type="button"
+            aria-expanded={mobileNavOpen}
+            aria-controls="mobile-nav"
+            onClick={() => setMobileNavOpen((o) => !o)}
+          >
+            {mobileNavOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
         </div>
       </header>
+
+      {/* Mobile nav overlay + drawer */}
+      {mobileNavOpen && (
+        <div className="mobile-nav-overlay">
+          <div className="mobile-nav-drawer" ref={drawerRef} id="mobile-nav">
+            <div className="mobile-nav-header">
+              <span className="brand">
+                <span className="brand-mark">
+                  <Camera size={18} />
+                </span>
+                Moussawer
+              </span>
+              <button className="icon-button" type="button" onClick={closeNav} aria-label="Close navigation">
+                <X size={20} />
+              </button>
+            </div>
+            {navLinks}
+          </div>
+        </div>
+      )}
 
       <main>
         <Outlet />
