@@ -47,6 +47,7 @@ export type Photographer = {
   timezone: string;
   isPublished: boolean;
   verified: boolean;
+  googleCalendarEnabled: boolean;
   categories: Category[];
   services: Service[];
   portfolioItems: PortfolioItem[];

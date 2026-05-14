@@ -30,6 +30,7 @@ export function photographerResource(
     timezone: photographer.timezone,
     isPublished: photographer.isPublished,
     verified: photographer.verified,
+    googleCalendarEnabled: photographer.googleCalendarEnabled,
     categories: photographer.categories?.map(({ category }) => ({
       id: category.id,
       name: category.name,

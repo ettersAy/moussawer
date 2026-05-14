@@ -4,6 +4,7 @@ export type CalendarBlock = {
   startAt: string;
   endAt: string;
   reason?: string | null;
+  source?: string | null;
   createdAt: string;
 };
 

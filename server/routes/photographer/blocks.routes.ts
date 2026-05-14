@@ -63,6 +63,7 @@ router.patch(
       where: { id: req.params.id, photographerId: photographer.id }
     });
     if (!block) throw new AppError(404, "NOT_FOUND", "Calendar block not found");
+    if (block.source === "google_calendar") throw new AppError(403, "FORBIDDEN", "Google Calendar blocks cannot be modified manually");
 
     const startAt = body.startAt ? new Date(body.startAt) : block.startAt;
     const endAt = body.endAt ? new Date(body.endAt) : block.endAt;
@@ -96,6 +97,7 @@ router.delete(
       where: { id: req.params.id, photographerId: photographer.id }
     });
     if (!block) throw new AppError(404, "NOT_FOUND", "Calendar block not found");
+    if (block.source === "google_calendar") throw new AppError(403, "FORBIDDEN", "Google Calendar blocks cannot be deleted manually");
     await prisma.calendarBlock.delete({ where: { id: block.id } });
     await audit(req.user!.id, "calendar_block.delete", "CalendarBlock", block.id);
     noContent(res);

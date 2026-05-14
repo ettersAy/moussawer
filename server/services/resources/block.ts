@@ -7,6 +7,7 @@ export function blockResource(block: CalendarBlock) {
     startAt: block.startAt,
     endAt: block.endAt,
     reason: block.reason,
+    source: block.source,
     createdAt: block.createdAt
   };
 }

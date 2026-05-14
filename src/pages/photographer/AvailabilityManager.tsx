@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { EyeOff, Pencil, Plus, Save, Trash2, X } from "lucide-react";
+import { Calendar, EyeOff, Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import { Calendar as CalendarComponent } from "../../components/calendar/Calendar";
 import { ConfirmDialog } from "../../components/shared/ConfirmDialog";
 import { useToast } from "../../components/shared/Toast";
 import { api, type AvailabilityRule, type CalendarBlock, type Photographer } from "../../lib/api";
+import { GCalSyncPanel } from "./GCalSyncPanel";
 
-export function AvailabilityManager({ photographer }: { photographer: Photographer; onRefresh: () => void }) {
+export function AvailabilityManager({ photographer, onRefresh }: { photographer: Photographer; onRefresh: () => void }) {
   const toast = useToast();
   const [rules, setRules] = useState<AvailabilityRule[]>([]);
   const [blocks, setBlocks] = useState<CalendarBlock[]>([]);
@@ -99,6 +100,8 @@ export function AvailabilityManager({ photographer }: { photographer: Photograph
       </div>
       <CalendarComponent />
 
+      <GCalSyncPanel onRefresh={onRefresh} />
+
       <div className="content-stack" style={{ marginTop: "8px" }}>
         <div className="split-heading compact-heading">
           <h3>Weekly Rules ({rules.length})</h3>
@@ -177,17 +180,25 @@ export function AvailabilityManager({ photographer }: { photographer: Photograph
 
         {blocks.length ? (
           <div className="list-stack">
-            {blocks.map((b) => (
-              <article className="panel service-row" key={b.id}>
-                <div>
-                  <strong>{formatBlockDate(b.startAt)} — {formatBlockDate(b.endAt)}</strong>
-                  {b.reason && <p className="muted" style={{ marginTop: "4px" }}>{b.reason}</p>}
-                </div>
-                <div className="inline-actions">
-                  <button className="ghost-button compact" style={{ color: "var(--red)" }} onClick={() => setConfirmDeleteBlock(b.id)}><Trash2 size={14} /></button>
-                </div>
-              </article>
-            ))}
+            {blocks.map((b) => {
+              const isGoogle = b.source === "google_calendar";
+              return (
+                <article className="panel service-row" key={b.id} style={{ opacity: isGoogle ? 0.85 : 1 }}>
+                  <div>
+                    <div className="card-title-row">
+                      <strong>{formatBlockDate(b.startAt)} — {formatBlockDate(b.endAt)}</strong>
+                      {isGoogle && <span className="tag" style={{ background: "var(--blue)", color: "#fff", fontSize: "0.7rem" }}><Calendar size={10} /> Google</span>}
+                    </div>
+                    {b.reason && <p className="muted" style={{ marginTop: "4px" }}>{b.reason}</p>}
+                  </div>
+                  {!isGoogle && (
+                    <div className="inline-actions">
+                      <button className="ghost-button compact" style={{ color: "var(--red)" }} onClick={() => setConfirmDeleteBlock(b.id)}><Trash2 size={14} /></button>
+                    </div>
+                  )}
+                </article>
+              );
+            })}
           </div>
         ) : (
           <div className="panel muted">No blocked dates. Block dates when you're on vacation or unavailable.</div>

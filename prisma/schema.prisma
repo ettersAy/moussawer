@@ -46,7 +46,8 @@ enum DisputeStatus {
 model User {
   id                  String                    @id @default(cuid())
   email               String                    @unique
-  passwordHash        String
+  passwordHash        String?
+  googleId            String?                   @unique
   name                String
   role                Role
   status              AccountStatus             @default(ACTIVE)
@@ -96,13 +97,17 @@ model PhotographerProfile {
   popularity        Int                    @default(0)
   timezone          String                 @default("America/Toronto")
   isPublished       Boolean                @default(true)
-  verified          Boolean                @default(false)
-  services          PhotographerService[]
-  categories        PhotographerCategory[]
-  portfolioItems    PortfolioItem[]
-  availabilityRules AvailabilityRule[]
-  calendarBlocks    CalendarBlock[]
-  bookings          Booking[]
+  verified               Boolean                @default(false)
+  googleCalendarEnabled  Boolean                @default(false)
+  googleRefreshToken     String?
+  googleCalendarId       String?
+  googleSyncToken        String?
+  services               PhotographerService[]
+  categories             PhotographerCategory[]
+  portfolioItems         PortfolioItem[]
+  availabilityRules      AvailabilityRule[]
+  calendarBlocks         CalendarBlock[]
+  bookings               Booking[]
   reviews           Review[]
   favorites         Favorite[]
   createdAt         DateTime               @default(now())
@@ -162,7 +167,11 @@ model CalendarBlock {
   startAt        DateTime
   endAt          DateTime
   reason         String?
+  source         String?
+  googleEventId  String?
   createdAt      DateTime            @default(now())
+
+  @@unique([photographerId, googleEventId])
 }
 
 model PortfolioItem {

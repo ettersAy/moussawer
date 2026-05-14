@@ -1,19 +1,23 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { GoogleLoginButton } from "../components/GoogleLoginButton";
 import { useAuth } from "../hooks/useAuth";
 
 export function RegisterPage() {
-  const { register } = useAuth();
+  const { user, register } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: "", email: "", password: "", role: "CLIENT" as "CLIENT" | "PHOTOGRAPHER", location: "", bio: "" });
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (user) navigate("/dashboard", { replace: true });
+  }, [user, navigate]);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     setError("");
     try {
       await register(form);
-      navigate("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to register");
     }
@@ -34,6 +38,8 @@ export function RegisterPage() {
         <label>Bio<textarea value={form.bio} onChange={(event) => setForm({ ...form, bio: event.target.value })} /></label>
         {error && <p className="form-error">{error}</p>}
         <button className="solid-button full" type="submit">Create account</button>
+        <GoogleLoginButton text="signup_with" />
+        <p className="muted">Already have an account? <Link to="/login">Log in</Link></p>
       </form>
     </section>
   );

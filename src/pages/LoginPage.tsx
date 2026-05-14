@@ -1,21 +1,25 @@
 import { Camera } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { GoogleLoginButton } from "../components/GoogleLoginButton";
 import { useAuth } from "../hooks/useAuth";
 
 export function LoginPage() {
-  const { login } = useAuth();
+  const { user, login } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("client@example.com");
   const [password, setPassword] = useState("password");
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (user) navigate("/dashboard", { replace: true });
+  }, [user, navigate]);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     setError("");
     try {
       await login(email, password);
-      navigate("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to log in");
     }
@@ -37,6 +41,7 @@ export function LoginPage() {
         </label>
         {error && <p className="form-error">{error}</p>}
         <button className="solid-button full" type="submit">Log in</button>
+        <GoogleLoginButton text="signin_with" />
         <p className="muted">New to Moussawer? <Link to="/register">Create an account</Link></p>
       </form>
     </section>

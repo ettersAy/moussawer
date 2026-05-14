@@ -1,5 +1,6 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
+import { OAuth2Client } from "google-auth-library";
 import { AccountStatus, Role } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "../db";
@@ -7,7 +8,10 @@ import { optionalAuth, requireAuth, signToken } from "../middleware/auth";
 import { audit } from "../services/notifications";
 import { userResource } from "../services/resources";
 import { AppError, asyncHandler, created, ok, validate } from "../utils/http";
+import { config } from "../config";
 import { currentUser, uniqueSlug } from "./helpers";
+
+const googleClient = new OAuth2Client(config.google.clientId);
 
 export const router = Router();
 
@@ -86,10 +90,74 @@ router.post(
       throw new AppError(401, "INVALID_CREDENTIALS", "Invalid email or password");
     }
 
-    const matches = await bcrypt.compare(body.password, user.passwordHash);
+    const matches = await bcrypt.compare(body.password, user.passwordHash ?? "");
     if (!matches) throw new AppError(401, "INVALID_CREDENTIALS", "Invalid email or password");
 
     ok(res, { token: signToken(user.id), user: userResource(user) });
+  })
+);
+
+router.post(
+  "/auth/google",
+  asyncHandler(async (req, res) => {
+    const body = validate(
+      z.object({ credential: z.string().min(1) }),
+      req.body
+    );
+
+    let payload;
+    try {
+      const ticket = await googleClient.verifyIdToken({
+        idToken: body.credential,
+        audience: config.google.clientId
+      });
+      payload = ticket.getPayload();
+    } catch {
+      throw new AppError(401, "INVALID_GOOGLE_TOKEN", "Google authentication failed");
+    }
+
+    if (!payload?.email || !payload.sub || !payload.email_verified) {
+      throw new AppError(401, "INVALID_GOOGLE_TOKEN", "Google account not verified");
+    }
+
+    const email = payload.email.toLowerCase();
+    const googleId = payload.sub;
+    const name = payload.name ?? email.split("@")[0];
+
+    // Find existing user by googleId or email
+    let user = await prisma.user.findUnique({ where: { googleId } });
+    if (!user) {
+      user = await prisma.user.findUnique({
+        where: { email },
+        include: { clientProfile: true, photographerProfile: { select: { id: true, slug: true } } }
+      });
+      if (user) {
+        // Link Google account to existing email/password user
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: { googleId },
+          include: { clientProfile: true, photographerProfile: { select: { id: true, slug: true } } }
+        });
+      }
+    }
+
+    if (!user) {
+      // Create new Google user
+      user = await prisma.user.create({
+        data: {
+          email,
+          googleId,
+          name,
+          role: Role.CLIENT,
+          clientProfile: { create: {} }
+        },
+        include: { clientProfile: true, photographerProfile: { select: { id: true, slug: true } } }
+      });
+      await audit(user.id, "auth.google_register", "User", user.id);
+    }
+
+    await audit(user.id, "auth.google_login", "User", user.id);
+    created(res, { token: signToken(user.id), user: userResource(user) });
   })
 );
 
