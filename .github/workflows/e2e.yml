@@ -12,21 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
-    services:
-      # If using a separate database, configure it here
-      # postgres:
-      #   image: postgres:16
-      #   env:
-      #     POSTGRES_USER: moussawer
-      #     POSTGRES_PASSWORD: password
-      #     POSTGRES_DB: moussawer
-      #   ports:
-      #     - 5432:5432
-      #   options: >-
-      #     --health-cmd pg_isready
-      #     --health-interval 10s
-      #     --health-timeout 5s
-      #     --health-retries 5
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DIRECT_URL: ${{ secrets.DIRECT_URL }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
     steps:
       - name: Checkout
