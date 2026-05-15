@@ -45,10 +45,10 @@ export function DashboardPage() {
   }
 
   async function cancelBooking(booking: Booking) {
-    const reason = prompt("Cancellation reason (optional):") || "";
+    const reason = prompt("سبب الإلغاء (اختياري):") || "";
     try {
       await api(`/bookings/${booking.id}/status`, { method: "PATCH", body: { status: "CANCELLED", cancellationReason: reason } });
-      toast.success("Booking cancelled.");
+      toast.success("تم إلغاء الحجز.");
       loadBookings();
     } catch (err: any) { toast.error(err.message); }
   }
@@ -57,7 +57,7 @@ export function DashboardPage() {
     if (!reviewForm) return;
     try {
       await api("/reviews", { method: "POST", body: reviewForm });
-      toast.success("Review submitted! Thank you.");
+      toast.success("تم إرسال التقييم! شكراً لك.");
       setReviewForm(null);
       loadBookings();
     } catch (err: any) { toast.error(err.message); }
@@ -65,7 +65,7 @@ export function DashboardPage() {
 
   async function removeFavorite(id: string) {
     await api(`/favorites/${id}`, { method: "DELETE" });
-    toast.success("Removed from favorites.");
+    toast.success("تمت الإزالة من المفضلة.");
     loadFavorites();
   }
 
@@ -75,23 +75,23 @@ export function DashboardPage() {
     <section className="page dashboard">
       <div className="split-heading compact-heading">
         <div>
-          <span className="eyebrow">{user.role.toLowerCase()} dashboard</span>
-          <h1>Welcome back, {user.name}</h1>
+          <span className="eyebrow">{user.role === "CLIENT" ? "لوحة تحكم العميل" : `${user.role.toLowerCase()} dashboard`}</span>
+          <h1>{user.role === "CLIENT" ? `مرحباً بعودتك، ${user.name}` : `Welcome back, ${user.name}`}</h1>
         </div>
       </div>
 
       <div className="metrics-grid">
-        <Metric icon={<CalendarClock />} label="Total bookings" value={stats.totalBookings} />
-        <Metric icon={<ClipboardList />} label="Pending" value={stats.pending} />
-        <Metric icon={<UserCheck />} label="Confirmed" value={stats.confirmed} />
-        <Metric icon={<BarChart3 />} label="Completed" value={stats.completed} />
+        <Metric icon={<CalendarClock />} label={user.role === "CLIENT" ? "إجمالي الحجوزات" : "Total bookings"} value={stats.totalBookings} />
+        <Metric icon={<ClipboardList />} label={user.role === "CLIENT" ? "قيد الانتظار" : "Pending"} value={stats.pending} />
+        <Metric icon={<UserCheck />} label={user.role === "CLIENT" ? "مؤكد" : "Confirmed"} value={stats.confirmed} />
+        <Metric icon={<BarChart3 />} label={user.role === "CLIENT" ? "مكتمل" : "Completed"} value={stats.completed} />
       </div>
 
       <div className="dashboard-grid">
         <section className="panel wide-panel">
-          <h2>Your Bookings</h2>
+          <h2>{user.role === "CLIENT" ? "حجوزاتك" : "Your Bookings"}</h2>
           {bookings.length === 0 ? (
-            <p className="muted">No bookings yet. Browse photographers to get started.</p>
+            <p className="muted">{user.role === "CLIENT" ? "لا توجد حجوزات بعد. تصفح المصورين للبدء." : "No bookings yet. Browse photographers to get started."}</p>
           ) : (
             <div className="list-stack">
               {bookings.map((b) => (
@@ -104,21 +104,21 @@ export function DashboardPage() {
                     <span className="muted">{money(b.priceEstimate)}</span>
                   </div>
                   <p>
-                    {user.role === "CLIENT" ? `Photographer: ${b.photographer.name}` : `Client: ${b.client.name}`}
+                    {user.role === "CLIENT" ? `المصور: ${b.photographer.name}` : `Client: ${b.client.name}`}
                     {" · "}{shortDate(b.startAt)} · {b.location}
                   </p>
                   {b.notes && <p className="muted">{b.notes}</p>}
-                  {b.cancellationReason && <p className="tone-warning" style={{ padding: "4px 8px", borderRadius: "4px" }}>Cancelled: {b.cancellationReason}</p>}
+                  {b.cancellationReason && <p className="tone-warning" style={{ padding: "4px 8px", borderRadius: "4px" }}>{user.role === "CLIENT" ? "ملغي:" : "Cancelled:"} {b.cancellationReason}</p>}
 
                   <div className="inline-actions" style={{ marginTop: "8px" }}>
                     {user.role === "CLIENT" && b.status === "PENDING" && (
                       <button className="ghost-button compact" style={{ color: "var(--red)" }} onClick={() => cancelBooking(b)}>
-                        <X size={14} /> Cancel
+                        <X size={14} /> إلغاء
                       </button>
                     )}
                     {user.role === "CLIENT" && b.status === "COMPLETED" && (
                       <button className="ghost-button compact" onClick={() => setReviewForm({ bookingId: b.id, rating: 5, comment: "" })}>
-                        <Star size={14} /> Write Review
+                        <Star size={14} /> كتابة تقييم
                       </button>
                     )}
                     {user.role === "PHOTOGRAPHER" && b.status === "PENDING" && (
@@ -133,9 +133,9 @@ export function DashboardPage() {
 
         {user.role === "CLIENT" && (
           <section className="panel">
-            <h2><Heart size={18} style={{ verticalAlign: "middle", marginRight: "6px" }} />Favorites ({favorites.length})</h2>
+            <h2><Heart size={18} style={{ verticalAlign: "middle", marginRight: "6px" }} />المفضلة ({favorites.length})</h2>
             {favorites.length === 0 ? (
-              <p className="muted">Save photographers to quickly book later.</p>
+              <p className="muted">احفظ المصورين للحجز بسرعة لاحقاً.</p>
             ) : (
               <div className="list-stack">
                 {favorites.map((p) => (
@@ -146,7 +146,7 @@ export function DashboardPage() {
                         <p className="muted" style={{ margin: 0 }}>{p.city} · ⭐ {p.rating}</p>
                       </div>
                       <div className="inline-actions">
-                        <a href={`/photographers/${p.slug}`} className="ghost-button compact">View</a>
+                        <a href={`/photographers/${p.slug}`} className="ghost-button compact">عرض</a>
                         <button className="ghost-button compact" onClick={() => removeFavorite(p.id)}>
                           <StarOff size={14} />
                         </button>
@@ -163,7 +163,7 @@ export function DashboardPage() {
       {reviewForm && (
         <div className="modal-overlay" onClick={() => setReviewForm(null)} role="dialog" aria-modal="true">
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <h2>Write a Review</h2>
+            <h2>{user.role === "CLIENT" ? "كتابة تقييم" : "Write a Review"}</h2>
             <div className="inline-actions" style={{ justifyContent: "center" }}>
               {[1, 2, 3, 4, 5].map((n) => (
                 <button key={n} type="button" className="ghost-button compact"
@@ -174,12 +174,12 @@ export function DashboardPage() {
               ))}
             </div>
             <label>
-              Comment (optional)
+              {user.role === "CLIENT" ? "تعليق (اختياري)" : "Comment (optional)"}
               <textarea value={reviewForm.comment} onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })} />
             </label>
             <div className="modal-actions">
-              <button className="ghost-button" onClick={() => setReviewForm(null)}>Cancel</button>
-              <button className="solid-button" onClick={submitReview}>Submit Review</button>
+              <button className="ghost-button" onClick={() => setReviewForm(null)}>{user.role === "CLIENT" ? "إلغاء" : "Cancel"}</button>
+              <button className="solid-button" onClick={submitReview}>{user.role === "CLIENT" ? "إرسال التقييم" : "Submit Review"}</button>
             </div>
           </div>
         </div>
