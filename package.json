@@ -25,6 +25,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:verify": "node -e \"const{PrismaClient}=require('@prisma/client');const p=new PrismaClient();p.user.count().then(c=>{if(c<3){console.error('SEED FAILED: only '+c+' users');process.exit(1)}console.log('Seed OK: '+c+' users');process.exit(0)})\"",
     "db:reset": "npm run db:push && npm run db:seed && npm run db:seed:verify",
+    "start": "node dist-server/server/index.js",
     "verify": "tsc --noEmit && eslint . && vitest run",
     "check": "./scripts/db-check.sh"
   },
