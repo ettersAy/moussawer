@@ -18,7 +18,7 @@ export function createApp() {
     next();
   });
 
-  app.use(helmet({ contentSecurityPolicy: false }));
+  app.use(helmet({ contentSecurityPolicy: false, crossOriginOpenerPolicy: false }));
   app.use(
     cors({
       origin: process.env.CORS_ORIGIN ?? (process.env.NODE_ENV === "production" ? process.env.APP_URL : "*"),
