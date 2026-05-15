@@ -1,6 +1,6 @@
 import { createApp } from "./app";
 import { config } from "./config";
-import { prisma } from "./db";
+import { prisma, runStartupMigrations } from "./db";
 
 async function main() {
   // Verify database connectivity before starting the server
@@ -22,6 +22,12 @@ async function main() {
   } catch (err) {
     console.warn("⚠️ Database connection failed at startup, will retry on first query:", err);
     console.warn("   The server will start but API endpoints may return 500 until the database is reachable.");
+  }
+
+  try {
+    await runStartupMigrations();
+  } catch (err) {
+    console.warn("⚠️ Startup migration failed, will retry on next deploy:", err);
   }
 
   const app = createApp();
